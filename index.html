@@ -18,30 +18,43 @@ input[type=number]{-moz-appearance:textfield}input::-webkit-outer-spin-button,in
 header{position:sticky;top:0;z-index:50;background:rgba(253,251,247,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);margin:0 -10px;padding:0 10px}.dark header{background:rgba(20,18,16,.92)}
 header .inner{display:flex;align-items:center;justify-content:space-between;height:50px}
 .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--coral),var(--amber));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
-.htitle{margin-left:8px;flex:1;min-width:0}.htitle h1{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.htitle p{font-size:10px;color:var(--fg2)}
+.htitle{margin-left:8px;flex:1;min-width:0}.htitle h1{font-size:13px;font-weight:600}.htitle p{font-size:10px;color:var(--fg2)}
 .hpills{display:flex;gap:3px;align-items:center;flex-shrink:0}
 .pill{font-size:9px;padding:2px 7px;border-radius:20px;background:var(--bg2);color:var(--fg2);white-space:nowrap}.pill b{font-weight:600;color:var(--fg)}.pill.g b{color:var(--teal)}.pill.r b{color:var(--rose)}
 .ib{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--fg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}.ib:hover{background:var(--bg2)}
-.tabs{display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--r);margin:10px 0}.tab{flex:1;text-align:center;padding:7px 2px;font-size:10px;font-weight:500;border-radius:8px;cursor:pointer;color:var(--fg2);border:none;background:none;font-family:var(--f);transition:.15s}.tab.a{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
-.card-b{padding:12px 14px}
-.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}@media(min-width:640px){.metrics{grid-template-columns:repeat(4,1fr)}}
-.met{background:var(--bg2);border-radius:var(--r);padding:10px 12px}.met-l{font-size:10px;color:var(--fg2)}.met-v{font-size:17px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}.met-s{font-size:9px;color:var(--fg3);margin-top:1px}.met-v.g{color:var(--teal)}.met-v.r{color:var(--rose)}.met-v.a{color:var(--amber)}
+.tabs{display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--r);margin:10px 0;overflow-x:auto}.tab{flex:1;text-align:center;padding:7px 2px;font-size:10px;font-weight:500;border-radius:8px;cursor:pointer;color:var(--fg2);border:none;background:none;font-family:var(--f);transition:.15s;white-space:nowrap}.tab.a{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}.card-b{padding:12px 14px}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:8px 0}@media(min-width:640px){.metrics{grid-template-columns:repeat(4,1fr)}}
+.met{background:var(--bg2);border-radius:var(--r);padding:10px 12px}.met-l{font-size:10px;color:var(--fg2)}.met-v{font-size:16px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums}.met-s{font-size:9px;color:var(--fg3);margin-top:1px}.met-v.g{color:var(--teal)}.met-v.r{color:var(--rose)}.met-v.a{color:var(--amber)}
 .fg{display:grid;gap:8px}.fg2{grid-template-columns:1fr 1fr}.fg3{grid-template-columns:1fr 1fr 1fr}.fg4{grid-template-columns:1fr 1fr 1fr 1fr}@media(max-width:640px){.fg3,.fg4{grid-template-columns:1fr 1fr}}
-.fi{display:flex;flex-direction:column;gap:2px}.fi label{font-size:9px;color:var(--fg2)}.fi input,.fi textarea{height:28px;border-radius:7px;border:1px solid var(--border);padding:0 7px;font-size:11px;font-family:var(--m);background:var(--card);color:var(--fg)}.fi input:focus,.fi textarea:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 2px rgba(194,83,46,.12)}.fi textarea{height:50px;padding:5px 7px;font-family:var(--f);resize:vertical}
-.sr{display:flex;align-items:center;gap:6px;padding:3px 0}.sr label{font-size:10px;color:var(--fg2);min-width:80px;flex-shrink:0}.sr input[type=range]{flex:1;accent-color:var(--coral);height:5px}.sr .sv,.sr input[type=number]{font-size:11px;font-family:var(--m);font-weight:500;width:90px;text-align:right;height:24px;border-radius:6px;border:1px solid var(--border);padding:0 5px;background:var(--card);color:var(--fg)}
+.fi{display:flex;flex-direction:column;gap:2px}.fi label{font-size:9px;color:var(--fg2);display:flex;align-items:center;gap:3px}.fi input,.fi textarea,.fi select{height:28px;border-radius:7px;border:1px solid var(--border);padding:0 7px;font-size:11px;font-family:var(--m);background:var(--card);color:var(--fg)}.fi input:focus,.fi textarea:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 2px rgba(194,83,46,.12)}.fi textarea{height:50px;padding:5px 7px;font-family:var(--f);resize:vertical}
+.sr{display:flex;align-items:center;gap:6px;padding:3px 0}.sr label{font-size:10px;color:var(--fg2);min-width:80px;flex-shrink:0}.sr input[type=range]{flex:1;accent-color:var(--coral);height:5px}.sr input[type=number]{font-size:11px;font-family:var(--m);width:90px;text-align:right;height:24px;border-radius:6px;border:1px solid var(--border);padding:0 5px;background:var(--card);color:var(--fg)}
 .btn{height:32px;padding:0 14px;border-radius:8px;border:none;font-family:var(--f);font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:.15s}
 .btn-p{background:linear-gradient(135deg,var(--coral),#D4650F);color:#fff}.btn-p:hover{opacity:.9}
-.btn-s{background:var(--bg2);color:var(--fg);border:1px solid var(--border)}.btn-d{background:var(--roseL);color:var(--rose)}
-.btn-sm{height:26px;padding:0 8px;font-size:9px;border-radius:6px}
+.btn-s{background:var(--bg2);color:var(--fg);border:1px solid var(--border)}.btn-d{background:var(--roseL);color:var(--rose)}.btn-sm{height:26px;padding:0 8px;font-size:9px;border-radius:6px}
 .chw{position:relative;height:200px}
 .pr{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}.pr+.pr{border-top:1px solid var(--border)}.pr span{color:var(--fg2)}.pr b{font-family:var(--m);font-weight:500}
 .badge{display:inline-flex;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600}
 .b-green{background:var(--greenL);color:var(--green)}.b-amber{background:var(--amberL);color:var(--amber)}.b-red{background:var(--roseL);color:var(--rose)}.b-blue{background:var(--blueL);color:var(--blue)}.b-purple{background:var(--purpleL);color:var(--purple)}.b-teal{background:var(--tealL);color:var(--teal)}
-.risk-card{border-left:3px solid;border-radius:0;padding:6px 10px;margin:4px 0;background:var(--bg2);font-size:11px}.risk-card.low{border-color:var(--teal)}.risk-card.med{border-color:var(--amber)}.risk-card.high{border-color:var(--rose)}
+.risk-card{border-left:3px solid;padding:6px 10px;margin:4px 0;background:var(--bg2);font-size:11px;border-radius:0 6px 6px 0}.risk-card.low{border-color:var(--teal)}.risk-card.med{border-color:var(--amber)}.risk-card.high{border-color:var(--rose)}
 .cost-bar{background:var(--bg2);border-radius:8px;padding:8px 10px;margin-top:8px}.bar-t{height:4px;border-radius:2px;background:var(--border);overflow:hidden}.bar-f{height:100%;border-radius:2px;transition:width .3s}
 .cks{display:flex;flex-wrap:wrap;gap:2px 6px;margin-top:4px}.ck{font-size:9px;display:flex;align-items:center;gap:2px;color:var(--fg2)}.dt{width:5px;height:5px;border-radius:50%}.dt-ok{background:var(--teal)}.dt-no{background:var(--border)}
-.quest{background:var(--amberL);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--amber)}
+/* Source dots */
+.src{display:inline-flex;width:6px;height:6px;border-radius:50%;flex-shrink:0}.src-auth{background:var(--green)}.src-listing{background:var(--blue)}.src-user{background:var(--amber)}.src-est{background:var(--rose)}
+.src-legend{display:flex;gap:8px;font-size:9px;color:var(--fg3);flex-wrap:wrap;margin:4px 0}.src-legend span{display:flex;align-items:center;gap:3px}
+/* Data quality */
+.dq{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg2);border-radius:8px;margin:8px 0}
+.dq-bar{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden}.dq-fill{height:100%;border-radius:3px;transition:width .4s}
+.dq-pct{font-size:13px;font-weight:600;font-family:var(--m);min-width:40px;text-align:right}
+.dq-label{font-size:10px;color:var(--fg2)}
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:10px;font-size:11px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}.toast.show{opacity:1}
+/* URL list */
+.url-list{margin-top:6px}.url-item{display:flex;gap:4px;align-items:center;margin-bottom:4px}.url-item input{flex:1}.url-item select{width:80px;height:28px;border-radius:7px;border:1px solid var(--border);font-size:10px;background:var(--card);color:var(--fg)}.url-item a{font-size:10px;color:var(--blue);text-decoration:none}
+.budget-section{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:8px}
+.budget-section h4{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.add-row{font-size:10px;color:var(--coral);cursor:pointer;font-weight:500;border:none;background:none;font-family:var(--f)}.add-row:hover{text-decoration:underline}
+.del-item{width:20px;height:20px;border:none;background:none;color:var(--rose);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0}.del-item:hover{background:var(--roseL)}
 .empty{text-align:center;padding:30px 16px;color:var(--fg2)}
 hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .hidden{display:none}.mt6{margin-top:6px}.mt8{margin-top:8px}
@@ -50,45 +63,77 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .login h2{font-size:18px;font-weight:600}.login p{font-size:12px;color:var(--fg2);max-width:340px}
 .login input{width:100%;max-width:280px;height:38px;border-radius:10px;border:1px solid var(--border);padding:0 12px;font-size:13px;font-family:var(--m);text-align:center;background:var(--card);color:var(--fg)}
 .login input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(194,83,46,.15)}
-.prov{display:inline-flex;align-items:center;gap:2px;font-size:8px;color:var(--fg3)}.prov .dot{width:5px;height:5px;border-radius:50%}
-.budget-section{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:8px}
-.budget-section h4{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
-.add-row{font-size:10px;color:var(--coral);cursor:pointer;font-weight:500;border:none;background:none;font-family:var(--f)}
-@media(max-width:640px){.hpills .pill:first-child{display:none}.fg3,.fg4{grid-template-columns:1fr 1fr}}
+/* Compare table highlights */
+.cmp-best{background:var(--tealL) !important}
+@media(max-width:640px){.hpills .pill:first-child{display:none}}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<div class="toast" id="toast"></div>
 <script>
-// Firebase
-var FC={apiKey:"AIzaSyDmQKsqqai1DKB2sJ4F0hIbX1EbknLNpA4",authDomain:"hus-och-budget.firebaseapp.com",databaseURL:"https://hus-och-budget-default-rtdb.europe-west1.firebasedatabase.app",projectId:"hus-och-budget",storageBucket:"hus-och-budget.firebasestorage.app",messagingSenderId:"1019610713349",appId:"1:1019610713349:web:26c9ec60dfd8009c1b3b6c"};
-firebase.initializeApp(FC);var db=firebase.database();
+// === FIREBASE ===
+firebase.initializeApp({apiKey:"AIzaSyDmQKsqqai1DKB2sJ4F0hIbX1EbknLNpA4",authDomain:"hus-och-budget.firebaseapp.com",databaseURL:"https://hus-och-budget-default-rtdb.europe-west1.firebasedatabase.app",projectId:"hus-och-budget",storageBucket:"hus-och-budget.firebasestorage.app",messagingSenderId:"1019610713349",appId:"1:1019610713349:web:26c9ec60dfd8009c1b3b6c"});
+var db=firebase.database();
 
-// === TAX ENGINE ===
-var PBB=58800;
+// === UTILS ===
 function N(v){var n=Number(v);return isNaN(n)?0:n}
+function dc(o){return JSON.parse(JSON.stringify(o))}
+function fSEK(v){v=N(v);return Math.abs(v)>=1e6?(v/1e6).toFixed(2)+" mkr":Math.round(v).toLocaleString("sv-SE")+" kr"}
+function fN(v){return Math.round(N(v)).toLocaleString("sv-SE")}
+function fP(v,d){return(N(v)*100).toFixed(d||1)+"%"}
+function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2500)}
+function srcDot(type){return '<span class="src src-'+type+'" title="'+(type==="auth"?"Myndighetsdata":type==="listing"?"Annonsdata":type==="user"?"Egen input":"Schablon")+'"></span>'}
+
+// === TAX ===
+var PBB=58800;
 function grundavdrag(i){if(i<=0)return 0;if(i<=.99*PBB)return Math.round(.423*PBB);if(i<=2.72*PBB)return Math.round(.423*PBB+.2*(i-.99*PBB));if(i<=3.41*PBB)return Math.round(.77*PBB);if(i<=8.08*PBB)return Math.round(.77*PBB-.1*(i-3.41*PBB));return Math.max(Math.round(.293*PBB),17400)}
 function jsaCalc(i,k){if(i<=0)return 0;if(i<=.91*PBB)return Math.round(k*i);if(i<=3.24*PBB)return Math.round(k*.91*PBB+.332*(i-.91*PBB));if(i<=8.08*PBB)return Math.round(k*.91*PBB+.332*(3.24-.91)*PBB);if(i<=13.54*PBB)return Math.round(Math.max(0,k*.91*PBB+.332*(3.24-.91)*PBB-.03*(i-8.08*PBB)));return Math.round(Math.max(0,k*.91*PBB+.332*(3.24-.91)*PBB-.03*(13.54-8.08)*PBB))}
-function ptax(gm,by,cfg,intDed){
-  var b=N(gm)*12+N(by),g=grundavdrag(b),be=Math.max(0,b-g),sg=643000;
-  var ks=Math.round(be*N(cfg.ks)),ss=be>sg?Math.round((be-sg)*.2):0;
-  var pa=Math.round(Math.min(b,590700)*.07),ka=cfg.ch?Math.round(be*N(cfg.ka)):0;
-  var bg=Math.round(be*.00293),ps=Math.min(Math.round(be*.01),1349);
-  var tot=ks+ss+pa+ka+bg+ps;
-  var rk=0,id=N(intDed);if(id>0)rk=id<=1e5?Math.round(id*.3):Math.round(1e5*.3+(id-1e5)*.21);
-  var rd=jsaCalc(b,N(cfg.ks))+pa+1500+rk,sl=Math.max(0,tot-rd);
-  var mg=b>(sg+g)?N(cfg.ks)+.2:N(cfg.ks);
-  return{n:Math.round((b-sl)/12),br:Math.round(b/12),sl:sl,ss:ss,ka:ka,mg:Math.round(mg*1e3)/1e3}
+function ptax(gm,by,cfg,intDed){var b=N(gm)*12+N(by),g=grundavdrag(b),be=Math.max(0,b-g),sg=643000;var ks=Math.round(be*N(cfg.ks)),ss=be>sg?Math.round((be-sg)*.2):0;var pa=Math.round(Math.min(b,590700)*.07),ka=cfg.ch?Math.round(be*N(cfg.ka)):0;var bg=Math.round(be*.00293),ps=Math.min(Math.round(be*.01),1349);var tot=ks+ss+pa+ka+bg+ps;var rk=0,id=N(intDed);if(id>0)rk=id<=1e5?Math.round(id*.3):Math.round(1e5*.3+(id-1e5)*.21);var rd=jsaCalc(b,N(cfg.ks))+pa+1500+rk,sl=Math.max(0,tot-rd);var mg=b>(sg+g)?N(cfg.ks)+.2:N(cfg.ks);return{n:Math.round((b-sl)/12),br:Math.round(b/12),sl:sl,ss:ss,ka:ka,mg:Math.round(mg*1e3)/1e3}}
+function barnbidrag(nc){var t={0:0,1:1250,2:2650,3:4480,4:6740,5:9240,6:11740};nc=N(nc);return nc<=0?0:nc in t?t[nc]:11740+(nc-6)*2500}
+
+// === BUDGET ===
+function calcBudgetTotal(f){var t=0;(f.budget_shared||[]).forEach(function(i){t+=N(i.amount)});f.persons.forEach(function(p){(p.personal_budget||[]).forEach(function(i){t+=N(i.amount)})});return t}
+function calcPersonBudget(p){var t=0;(p.personal_budget||[]).forEach(function(i){t+=N(i.amount)});return t}
+
+// === DATA QUALITY ===
+function calcDataQuality(p){
+  var dd=p.dd||{};
+  var fields=[
+    {k:"byggar",w:3,src:dd._src_byggar||""},
+    {k:"boarea",w:3,src:dd._src_boarea||""},
+    {k:"tomtarea",w:2,src:dd._src_tomtarea||""},
+    {k:"energiklass",w:3,src:dd._src_energiklass||""},
+    {k:"uppvarmning",w:2,src:dd._src_uppvarmning||""},
+    {k:"taxvarde",w:3,src:dd._src_taxvarde||""},
+    {k:"rum",w:1,src:dd._src_rum||""},
+    {k:"tak_ar",w:2,src:dd._src_tak_ar||""},
+    {k:"vp_ar",w:1,src:dd._src_vp_ar||""},
+    {k:"badrum_ar",w:1,src:dd._src_badrum_ar||""},
+  ];
+  var totalW=0,scoredW=0;
+  fields.forEach(function(f){
+    totalW+=f.w;
+    if(dd[f.k]){
+      var srcMult=f.src==="auth"?1:f.src==="listing"?0.85:f.src==="user"?0.7:0.5;
+      scoredW+=f.w*srcMult;
+    }
+  });
+  // URLs bonus
+  if((p.urls||[]).length>0)scoredW+=1;
+  totalW+=1;
+  // Notes bonus
+  if(dd.visning_notes)scoredW+=0.5;totalW+=0.5;
+  var pct=totalW>0?Math.round(scoredW/totalW*100):0;
+  return Math.min(100,pct);
 }
-function barnbidrag(nc){var t={0:0,1:1250,2:2650,3:4480,4:6740,5:9240,6:11740};nc=N(nc);if(nc<=0)return 0;if(nc in t)return t[nc];return 11740+(nc-6)*2500}
 
 // === PROSPECT CALC ===
 function calcP(f,p){
   var aptSale=N(f.curr_value)||10000000,currMtg=N(f.curr_mortgage)||5416460;
-  var bba=barnbidrag(f.children);
-  var sc=aptSale-aptSale*0.02-currMtg;
-  var rep=Math.min(N(p.parent_repay),N(p.parent_loan));
-  var eq=sc-rep,ta=N(p.price)+N(p.reno),nm=Math.max(0,ta-eq);
+  var bba=barnbidrag(f.children),sc=aptSale-aptSale*0.02-currMtg;
+  var rep=Math.min(N(p.parent_repay),N(p.parent_loan)),eq=sc-rep;
+  var ta=N(p.price)+N(p.reno),nm=Math.max(0,ta-eq);
   var er=N(f.rate)||0.022;if(er<=0)er=0.022;
   var im=Math.round(nm*er/12),yi=nm*er;
   var gi=f.persons.reduce(function(s,pe){return s+N(pe.gm)*12+N(pe.by)},0);
@@ -96,7 +141,7 @@ function calcP(f,p){
   var dti=gi>0?Math.round((nm+N(p.parent_loan)-rep)/gi*10)/10:0;
   var ar=0;if(ltv>0.7)ar=0.02;else if(ltv>0.5)ar=0.01;
   var am=Math.round(nm*ar/12);
-  var d=p.drift||{},dt=0;for(var k in d)dt+=N(d[k]);
+  var d=p.drift||{},dt=0;for(var k in d){if(k[0]!=="_")dt+=N(d[k])}
   var op=im+dt,th=op+am;
   var fks=N(f.ks)||0.326,fka=N(f.ka)||0.0085;
   var taxes=f.persons.map(function(pe,i){var sh=pe.intShare!==undefined?N(pe.intShare):(i===0?1:0);return ptax(pe.gm,pe.by,{ks:fks,ka:fka,ch:pe.church},yi*sh)});
@@ -104,438 +149,214 @@ function calcP(f,p){
   var bu=calcBudgetTotal(f);
   var lf=Math.round(N(p.price)*0.015)+825,npb=Math.max(0,nm-N(p.pantbrev)),pb=npb>0?Math.round(npb*0.02)+375:0;
   var surplus=fd-th-bu;
+  // Max price (surplus = 0)
+  var maxPrice=N(p.price);if(surplus>0&&N(p.price)>0){var step=100000;for(var mp=N(p.price);mp<N(p.price)+5000000;mp+=step){var tnm=Math.max(0,mp+N(p.reno)-eq);var tim=Math.round(tnm*er/12);var tar=tnm/(mp||1)>0.7?0.02:tnm/(mp||1)>0.5?0.01:0;var tam=Math.round(tnm*tar/12);if(fd-(tim+dt+tam)-bu<=0){maxPrice=mp-step;break}}if(maxPrice===N(p.price))maxPrice=N(p.price)+5000000}
+  var comfortPrice=maxPrice;for(var cp=N(p.price);cp<=maxPrice;cp+=100000){var cnm=Math.max(0,cp+N(p.reno)-eq);var cim=Math.round(cnm*er/12);var car=cnm/(cp||1)>0.7?0.02:cnm/(cp||1)>0.5?0.01:0;var cam=Math.round(cnm*car/12);if(fd-(cim+dt+cam)-bu<=5000){comfortPrice=cp-100000;break}}
   // Risk
-  var risks=[],rs=0;
-  if(ltv>0.85){risks.push({t:"Hög belåningsgrad",d:(ltv*100).toFixed(0)+"% — svårt att få lån",l:"high"});rs+=3}
-  else if(ltv>0.7){risks.push({t:"LTV >70%",d:(ltv*100).toFixed(0)+"% — 2% amorteringskrav",l:"med"});rs+=1}
-  if(dti>4.5){risks.push({t:"Hög skuldkvot",d:dti+"x",l:"high"});rs+=2}
-  else if(dti>3.5){risks.push({t:"Förhöjd skuldkvot",d:dti+"x",l:"med"});rs+=1}
-  var dd=p.dd||{},yr=new Date().getFullYear();
-  if(N(dd.byggar)&&N(dd.byggar)<1980){risks.push({t:"Äldre hus",d:"Byggt "+dd.byggar,l:"med"});rs+=1}
+  var risks=[],rs=0,dd=p.dd||{},yr=new Date().getFullYear();
+  if(ltv>0.85){risks.push({t:"Hög belåningsgrad "+(ltv*100).toFixed(0)+"%",d:"Svårt att få lån",l:"high"});rs+=3}
+  else if(ltv>0.7){risks.push({t:"LTV "+(ltv*100).toFixed(0)+"%",d:"2% amorteringskrav",l:"med"});rs+=1}
+  if(dti>4.5){risks.push({t:"Skuldkvot "+dti+"x",d:"Kan kräva extra amortering",l:"high"});rs+=2}
+  else if(dti>3.5){risks.push({t:"Skuldkvot "+dti+"x",d:"Förhöjd",l:"med"});rs+=1}
+  if(N(dd.byggar)&&N(dd.byggar)<1980){risks.push({t:"Byggt "+dd.byggar,d:"Räkna med underhåll",l:"med"});rs+=1}
   if(dd.energiklass&&"EFG".indexOf(dd.energiklass)>=0){risks.push({t:"Energiklass "+dd.energiklass,d:"Höga driftkostnader",l:"med"});rs+=1}
   if(N(dd.tak_ar)&&(yr-N(dd.tak_ar))>25){risks.push({t:"Tak "+(yr-N(dd.tak_ar))+" år",d:"Livslängd 30-40 år",l:"med"});rs+=1}
   if(N(dd.vp_ar)&&(yr-N(dd.vp_ar))>15){risks.push({t:"VP "+(yr-N(dd.vp_ar))+" år",d:"Byte 80-150k",l:"med"});rs+=1}
   if(surplus<0){risks.push({t:"Negativt överskott",d:fSEK(surplus)+"/mån",l:"high"});rs+=3}
-  else if(surplus<5000){risks.push({t:"Tight marginal",d:fSEK(surplus)+"/mån kvar",l:"med"});rs+=1}
+  else if(surplus<5000){risks.push({t:"Tight marginal",d:fSEK(surplus)+"/mån",l:"med"});rs+=1}
   var s5=calcSR(f,p,0.05),s7=calcSR(f,p,0.07);
   if(s5<0){risks.push({t:"Klarar ej 5% ränta",d:fSEK(s5)+"/mån",l:"high"});rs+=2}
   if(!risks.length)risks.push({t:"Inga större risker",d:"God marginal",l:"low"});
   var rl=rs>=4?"high":rs>=2?"med":"low";
   var missing=[];
-  if(!dd.byggar)missing.push("Byggår");if(!dd.energiklass)missing.push("Energiklass");if(!dd.boarea)missing.push("Boarea");if(!dd.tomtarea)missing.push("Tomtarea");if(!dd.uppvarmning)missing.push("Uppvärmning");if(!dd.taxvarde)missing.push("Taxeringsvärde");
-  return{name:p.name,price:N(p.price),reno:N(p.reno),mortgage:nm,rate:er,intMonth:im,amortRate:ar,amortMonth:am,drift:dt,opCost:op,totalHousing:th,disp:fd,bb:bba,ltv:ltv,dti:dti,surplus:surplus,lagfart:lf,pantbrev:pb,txCost:lf+pb,equity:eq,risks:risks,riskLevel:rl,missing:missing,budget:bu,s5:s5,s7:s7,taxes:taxes,gross:gi}
+  if(!dd.byggar)missing.push("Byggår");if(!dd.energiklass)missing.push("Energiklass");if(!dd.boarea)missing.push("Boarea");if(!dd.taxvarde)missing.push("Taxeringsvärde");if(!dd.uppvarmning)missing.push("Uppvärmning");
+  var dq=calcDataQuality(p);
+  return{name:p.name,price:N(p.price),reno:N(p.reno),mortgage:nm,rate:er,intMonth:im,amortRate:ar,amortMonth:am,drift:dt,opCost:op,totalHousing:th,disp:fd,bb:bba,ltv:ltv,dti:dti,surplus:surplus,lagfart:lf,pantbrev:pb,txCost:lf+pb,equity:eq,risks:risks,riskLevel:rl,missing:missing,budget:bu,s5:s5,s7:s7,taxes:taxes,gross:gi,maxPrice:maxPrice,comfortPrice:comfortPrice,dataQuality:dq}
 }
-function calcSR(f,p,rate){
-  var aptSale=N(f.curr_value)||10000000,currMtg=N(f.curr_mortgage)||5416460;
-  var bba=barnbidrag(f.children),sc=aptSale-aptSale*0.02-currMtg;
-  var rep=Math.min(N(p.parent_repay),N(p.parent_loan)),eq=sc-rep;
-  var nm=Math.max(0,N(p.price)+N(p.reno)-eq),im=Math.round(nm*rate/12);
-  var ltv=N(p.price)>0?nm/N(p.price):0,ar=0;if(ltv>0.7)ar=0.02;else if(ltv>0.5)ar=0.01;
-  var am=Math.round(nm*ar/12),d=p.drift||{},dt=0;for(var k in d)dt+=N(d[k]);
-  var fks=N(f.ks)||0.326,fka=N(f.ka)||0.0085;
-  var taxes=f.persons.map(function(pe,i){var sh=pe.intShare!==undefined?N(pe.intShare):(i===0?1:0);return ptax(pe.gm,pe.by,{ks:fks,ka:fka,ch:pe.church},nm*rate*sh)});
-  var fd=taxes.reduce(function(s,t){return s+t.n},0)+bba;
-  return fd-(im+dt+am)-calcBudgetTotal(f);
-}
-function calcBudgetTotal(f){
-  var t=0;
-  if(f.budget_shared){for(var i=0;i<f.budget_shared.length;i++)t+=N(f.budget_shared[i].amount)}
-  f.persons.forEach(function(p){if(p.personal_budget){for(var i=0;i<p.personal_budget.length;i++)t+=N(p.personal_budget[i].amount)}});
-  return t;
-}
-function calcPersonBudget(p){var t=0;if(p.personal_budget){for(var i=0;i<p.personal_budget.length;i++)t+=N(p.personal_budget[i].amount)}return t}
+function calcSR(f,p,rate){var aptSale=N(f.curr_value)||10000000,currMtg=N(f.curr_mortgage)||5416460;var bba=barnbidrag(f.children),sc=aptSale-aptSale*0.02-currMtg;var rep=Math.min(N(p.parent_repay),N(p.parent_loan)),eq=sc-rep;var nm=Math.max(0,N(p.price)+N(p.reno)-eq),im=Math.round(nm*rate/12);var ltv=N(p.price)>0?nm/N(p.price):0,ar=0;if(ltv>0.7)ar=0.02;else if(ltv>0.5)ar=0.01;var am=Math.round(nm*ar/12);var d=p.drift||{},dt=0;for(var k in d){if(k[0]!=="_")dt+=N(d[k])}var fks=N(f.ks)||0.326,fka=N(f.ka)||0.0085;var taxes=f.persons.map(function(pe,i){var sh=pe.intShare!==undefined?N(pe.intShare):(i===0?1:0);return ptax(pe.gm,pe.by,{ks:fks,ka:fka,ch:pe.church},nm*rate*sh)});var fd=taxes.reduce(function(s,t){return s+t.n},0)+bba;return fd-(im+dt+am)-calcBudgetTotal(f)}
 
-// === FORMAT ===
-function fSEK(v){v=N(v);return Math.abs(v)>=1e6?(v/1e6).toFixed(2)+" mkr":Math.round(v).toLocaleString("sv-SE")+" kr"}
-function fN(v){return Math.round(N(v)).toLocaleString("sv-SE")}
-function fP(v,d){return(N(v)*100).toFixed(d||1)+"%"}
+// === FAMILY CALC ===
+function calcFamily(f){var taxes=f.persons.map(function(p){return ptax(p.gm,p.by,{ks:N(f.ks)||0.326,ka:N(f.ka)||0.0085,ch:p.church})});var bba=barnbidrag(f.children);var netto=taxes.reduce(function(s,t){return s+t.n},0);var disp=netto+bba;var sharedBudget=0;(f.budget_shared||[]).forEach(function(i){sharedBudget+=N(i.amount)});var pBuds=f.persons.map(function(p){return calcPersonBudget(p)});var totalBudget=sharedBudget+pBuds.reduce(function(s,v){return s+v},0);var housing=N(f.curr_int)+N(f.curr_amort)+N(f.curr_brf)+N(f.curr_garage);return{taxes:taxes,bba:bba,netto:netto,disp:disp,sharedBudget:sharedBudget,pBuds:pBuds,totalBudget:totalBudget,housing:housing,surplus:disp-totalBudget-housing}}
 
 // === DEFAULTS ===
-var DEF_SHARED=[{name:"Mat",amount:10000},{name:"Hushåll",amount:3000},{name:"Transport",amount:3000},{name:"Förskola",amount:2620},{name:"Nöjen/semester",amount:3000},{name:"Försäkring",amount:3000},{name:"Abonnemang",amount:1000},{name:"Sparande",amount:5000},{name:"Övrigt",amount:3000}];
-var DEF_PERSONAL=[{name:"Kläder",amount:1200},{name:"Lunch",amount:500}];
-var FDEF={persons:[
-  {name:"Daniel",gm:77500,by:77500,church:true,intShare:1,personal_budget:[{name:"Kläder",amount:1500},{name:"Hobby",amount:500}]},
-  {name:"Malin",gm:41100,by:0,church:true,intShare:0,personal_budget:[{name:"Kläder",amount:1500},{name:"Hobby",amount:500}]}
-],ks:0.326,ka:0.0085,rate:0.022,children:2,barnbidrag_person:0,
-curr_int:10100,curr_amort:5400,curr_brf:12307,curr_garage:1250,curr_mortgage:5416460,curr_value:10000000,curr_addr:"Hovås Allé 32",
-budget_shared:JSON.parse(JSON.stringify(DEF_SHARED))};
-var PDEF={name:"",addr:"",notes:"",status:"intressant",parent_loan:1200000,parent_repay:1200000,price:0,reno:0,
-drift:{heat:2000,el:1500,water:500,waste:300,ins:500,tax:869,garden:500,other:0},pantbrev:0,
-dd:{byggar:null,energiklass:"",energiprestanda:null,boarea:null,biarea:null,tomtarea:null,uppvarmning:"",taxvarde:null,rum:null,vaningar:null,hustyp:"",vatten_avlopp:"",tak_ar:null,fasad_ar:null,vp_ar:null,badrum_ar:null,visning_notes:"",maklare_fragor:"",hemnet_url:""},
-checklist:{radon:false,fukt:false,servitut:false,detaljplan:false,grannar:false,buller:false,skola:false,el_status:false,vatten_test:false,tak_inspektion:false}};
+var FDEF={persons:[{name:"Daniel",gm:77500,by:77500,church:true,intShare:1,personal_budget:[{name:"Kläder",amount:1500},{name:"Hobby",amount:500}]},{name:"Malin",gm:41100,by:0,church:true,intShare:0,personal_budget:[{name:"Kläder",amount:1500},{name:"Hobby",amount:500}]}],ks:0.326,ka:0.0085,rate:0.022,children:2,barnbidrag_person:0,curr_int:10100,curr_amort:5400,curr_brf:12307,curr_garage:1250,curr_mortgage:5416460,curr_value:10000000,curr_addr:"Hovås Allé 32",budget_shared:[{name:"Mat",amount:10000},{name:"Hushåll",amount:3000},{name:"Transport",amount:3000},{name:"Förskola",amount:2620},{name:"Nöjen/semester",amount:3000},{name:"Försäkring",amount:3000},{name:"Abonnemang",amount:1000},{name:"Sparande",amount:5000},{name:"Övrigt",amount:3000}]};
+var PDEF={name:"",addr:"",notes:"",status:"intressant",parent_loan:1200000,parent_repay:1200000,price:0,reno:0,drift:{heat:2000,el:1500,water:500,waste:300,ins:500,tax:869,garden:500,other:0},pantbrev:0,urls:[],dd:{byggar:null,energiklass:"",boarea:null,tomtarea:null,uppvarmning:"",taxvarde:null,rum:null,tak_ar:null,fasad_ar:null,vp_ar:null,badrum_ar:null,visning_notes:"",maklare_fragor:"",hemnet_url:""},checklist:{}};
 var STATUS_L={intressant:"Intressant",visning:"Visning bokad",budgivning:"Budgivning",avvakta:"Avvakta",avslag:"Avslag"};
 var STATUS_C={intressant:"b-blue",visning:"b-teal",budgivning:"b-amber",avvakta:"b-purple",avslag:"b-red"};
 var DRIFT_L={heat:"Uppvärmning",el:"El",water:"Vatten/avlopp",waste:"Sopor",ins:"Försäkring",tax:"Fastighetsavg.",garden:"Tomt",other:"Övrigt"};
-var CHECK_L={radon:"Radon",fukt:"Fuktmätning",servitut:"Servitut",detaljplan:"Detaljplan",grannar:"Pratat med grannar",buller:"Bullernivå",skola:"Skola/förskola",el_status:"Elstatus",vatten_test:"Vattentest",tak_inspektion:"Takinspektion"};
+var CHECK_SECTIONS=[
+  {title:"Före visning",items:[{k:"detaljplan",l:"Kolla detaljplan"},{k:"hemnet_hist",l:"Prishistorik området"},{k:"grannar_koll",l:"Kolla grannar"}]},
+  {title:"Under visning",items:[{k:"fukt",l:"Fukt/mögel"},{k:"el_status",l:"Elskåp/elsäkerhet"},{k:"vatten",l:"Vattentryck"},{k:"buller",l:"Bullernivå"},{k:"tak_vis",l:"Takets skick"},{k:"grund",l:"Grund/källare"}]},
+  {title:"Före bud",items:[{k:"radon",l:"Radonmätning"},{k:"besiktning",l:"Besiktning bokad"},{k:"dolda_fel",l:"Dolda-fel-försäkring"},{k:"servitut",l:"Servitut kontrollerat"},{k:"skola",l:"Skola/förskola kollat"}]},
+  {title:"Efter köp",items:[{k:"tilltrde",l:"Tillträdesdatum"},{k:"lagfart_ok",l:"Lagfart ansökt"},{k:"forsakring_ok",l:"Villaförsäkring"}]}
+];
 
 // === STATE ===
-var S={screen:"login",dark:false,hid:"",family:JSON.parse(JSON.stringify(FDEF)),prospects:[],tab:"dash",viewIdx:null,charts:{}};
+var S={screen:"login",dark:false,hid:"",family:dc(FDEF),prospects:[],tab:"dash",viewIdx:null,charts:{}};
 var dbRef=null,skipSync=false;
 function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
-function dc(o){return JSON.parse(JSON.stringify(o))}
 
-// === FIREBASE ===
+// === FIREBASE CONNECT ===
 function connect(id){
   dbRef=db.ref("households/"+id);
-  dbRef.on("value",function(snap){
-    var d=snap.val();if(!d)return;skipSync=true;
-    if(d.family){
-      var fam=JSON.parse(JSON.stringify(FDEF));
-      for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]}
-      if(d.family.persons)fam.persons=d.family.persons;
-      if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
-      // Migrate old budget format
-      if(d.family.budget&&!d.family.budget_shared){
-        var items=[];for(var bk in d.family.budget){items.push({name:bk,amount:N(d.family.budget[bk])})}
-        fam.budget_shared=items;
-      }
-      S.family=fam;
-    }
-    if(d.prospects)S.prospects=d.prospects;
-    S.screen="app";skipSync=false;render();setTimeout(updateCharts,80);
-  });
+  dbRef.on("value",function(snap){var d=snap.val();if(!d)return;skipSync=true;
+    if(d.family){var fam=dc(FDEF);for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]};if(d.family.persons)fam.persons=d.family.persons;if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
+    if(d.family.budget&&!d.family.budget_shared){var items=[];for(var bk in d.family.budget)items.push({name:bk,amount:N(d.family.budget[bk])});fam.budget_shared=items}
+    S.family=fam}
+    if(d.prospects)S.prospects=d.prospects;S.screen="app";skipSync=false;render();setTimeout(updateCharts,80)});
   dbRef.once("value",function(snap){if(!snap.val())dbRef.set({family:S.family,prospects:[]})});
-  S.screen="app";localStorage.setItem("hid",id);render();
-}
-var saved=localStorage.getItem("hid");
-
-// === COMPUTED HELPERS ===
-function calcFamily(f){
-  var taxes=f.persons.map(function(p){return ptax(p.gm,p.by,{ks:N(f.ks)||0.326,ka:N(f.ka)||0.0085,ch:p.church})});
-  var bba=barnbidrag(f.children);
-  var netto=taxes.reduce(function(s,t){return s+t.n},0);
-  var disp=netto+bba;
-  var sharedBudget=0;if(f.budget_shared){for(var i=0;i<f.budget_shared.length;i++)sharedBudget+=N(f.budget_shared[i].amount)}
-  var personalBudgets=f.persons.map(function(p){return calcPersonBudget(p)});
-  var totalBudget=sharedBudget+personalBudgets.reduce(function(s,v){return s+v},0);
-  var housing=N(f.curr_int)+N(f.curr_amort)+N(f.curr_brf)+N(f.curr_garage);
-  var surplus=disp-totalBudget-housing;
-  return{taxes:taxes,bba:bba,netto:netto,disp:disp,sharedBudget:sharedBudget,personalBudgets:personalBudgets,totalBudget:totalBudget,housing:housing,surplus:surplus};
+  S.screen="app";localStorage.setItem("hid",id);render()
 }
 
 // === RENDER ===
-function render(){
-  var a=document.getElementById("app");a.className=S.dark?"dark":"";
-  if(S.screen==="login"){rLogin(a);return}rApp(a);
-}
+function render(){var a=document.getElementById("app");a.className=S.dark?"dark":"";if(S.screen==="login"){rLogin(a);return}rApp(a)}
 
-function rLogin(el){
-  el.innerHTML='<div class="login"><div class="logo" style="width:56px;height:56px;border-radius:14px;font-size:24px">🏠</div><h2>Husaffär & Familjeekonomi</h2><p>Ange ert hushålls-ID. Första gången? Välj valfri kod (min 6 tecken).</p><input id="hi" type="text" placeholder="t.ex. familjen-2025" value="'+S.hid+'"><button class="btn btn-p" id="hb">Anslut</button><p style="font-size:10px;color:var(--fg3)">Data synkas i realtid mellan alla enheter</p></div>';
-  document.getElementById("hi").addEventListener("input",function(e){S.hid=e.target.value});
-  document.getElementById("hb").addEventListener("click",function(){var id=S.hid.trim();if(id.length<6)return alert("Minst 6 tecken");connect(id)});
-  document.getElementById("hi").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("hb").click()});
-}
+function rLogin(el){el.innerHTML='<div class="login"><div class="logo" style="width:56px;height:56px;border-radius:14px;font-size:24px">🏠</div><h2>Husaffär & Familjeekonomi</h2><p>Ange ert hushålls-ID (min 6 tecken)</p><input id="hi" type="text" placeholder="t.ex. familjen-2025" value="'+S.hid+'"><button class="btn btn-p" id="hb">Anslut</button><p style="font-size:10px;color:var(--fg3)">Data synkas i realtid</p></div>';document.getElementById("hi").addEventListener("input",function(e){S.hid=e.target.value});document.getElementById("hb").addEventListener("click",function(){var id=S.hid.trim();if(id.length<6)return alert("Minst 6 tecken");connect(id)});document.getElementById("hi").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("hb").click()})}
 
-function rApp(el){
-  var f=S.family,c=calcFamily(f);
-  el.innerHTML='<div class="app">'+
-  '<header><div class="inner">'+
-  '<div class="flex aic" style="min-width:0"><div class="logo">🏠</div><div class="htitle"><h1>Husaffär & Familjeekonomi</h1><p>Simulera · Jämför · Besluta</p></div></div>'+
-  '<div class="hpills"><span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span>'+
-  '<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo" title="Byt hushåll">🔑</button></div>'+
-  '</div></header>'+
-  '<div class="tabs">'+
-  '<button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Dashboard</button>'+
-  '<button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏡 Bostad</button>'+
-  '<button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Prospekt'+(S.prospects.length?" ("+S.prospects.length+")":"")+'</button>'+
-  '<button class="tab '+(S.tab==="compare"?"a":"")+'" data-t="compare">⚖️ Jämför</button>'+
-  '</div>'+
-  '<div id="tc">'+rTab(f,c)+'</div>'+
-  '</div>';
-  bindGlobal();
-}
+function rApp(el){var f=S.family,c=calcFamily(f);
+  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo">🏠</div><div class="htitle"><h1>Husaffär & Familjeekonomi</h1><p>Simulera · Jämför · Besluta</p></div></div><div class="hpills"><span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span><button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
+  '<div class="tabs"><button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Dashboard</button><button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏡 Bostad</button><button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Prospekt'+(S.prospects.length?" ("+S.prospects.length+")":"")+'</button><button class="tab '+(S.tab==="compare"?"a":"")+'" data-t="compare">⚖️ Jämför</button></div>'+
+  '<div id="tc">'+rTab(f,c)+'</div></div>';bindAll(f,c)}
 
-function rTab(f,c){
-  if(S.tab==="dash")return rDash(f,c);
-  if(S.tab==="bostad")return rBostad(f,c);
-  if(S.tab==="prospekt")return S.viewIdx!==null?rPDetail(f,c):rPList(f,c);
-  return rCompare(f,c);
-}
+function rTab(f,c){if(S.tab==="dash")return rDash(f,c);if(S.tab==="bostad")return rBostad(f,c);if(S.tab==="prospekt")return S.viewIdx!==null?rPD(f,c):rPL(f,c);return rCmp(f,c)}
 
 // === DASHBOARD ===
-function rDash(f,c){
-  var ps=S.prospects.map(function(p){return calcP(f,p)});
-  return '<div class="metrics">'+
-  '<div class="met"><div class="met-l">💰 Disponibelt</div><div class="met-v">'+fSEK(c.disp)+'</div><div class="met-s">/mån efter skatt</div></div>'+
-  '<div class="met"><div class="met-l">🏠 Boende</div><div class="met-v">'+fSEK(c.housing)+'</div><div class="met-s">nuvarande</div></div>'+
-  '<div class="met"><div class="met-l">🛒 Budget</div><div class="met-v">'+fSEK(c.totalBudget)+'</div><div class="met-s">gem. + personligt</div></div>'+
-  '<div class="met"><div class="met-l">'+(c.surplus>=0?"📈":"📉")+' Överskott</div><div class="met-v '+(c.surplus>=0?"g":"r")+'">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</div><div class="met-s">efter allt</div></div>'+
-  '</div>'+
-  (ps.length?'<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:500;color:var(--fg2);margin-bottom:8px">📊 Boendekostnad: nuvarande vs prospekt</div><div class="chw"><canvas id="dashBar"></canvas></div></div></div>'+
-  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:500;color:var(--fg2);margin-bottom:8px">⚠️ Stresstest: överskott vid stigande räntor</div><div class="chw"><canvas id="dashStress"></canvas></div></div></div>':'')+
-  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">👥 Inkomstöversikt</div>'+
-  f.persons.map(function(p,i){var bb_p=(N(f.barnbidrag_person)===i)?barnbidrag(f.children):0;return '<div class="pr"><span>'+p.name+' netto</span><b>'+fSEK(c.taxes[i].n)+'</b></div>'+(bb_p?'<div class="pr"><span>'+p.name+' barnbidrag</span><b>'+fSEK(bb_p)+'</b></div>':'')}).join('')+
-  '<div class="pr" style="font-weight:600"><span>Totalt disponibelt</span><b style="color:var(--teal)">'+fSEK(c.disp)+'</b></div>'+
-  '</div></div>'+
-  (ps.length?'<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">🔍 Prospektöversikt</div>'+
-  ps.map(function(r,i){var curr=c.housing;var diff=r.totalHousing-curr;return '<div class="flex aic jcb" style="padding:5px 0;'+(i?'border-top:1px solid var(--border)':'')+'"><div><span style="font-size:12px;font-weight:500">'+r.name+'</span> <span class="badge '+(STATUS_C[S.prospects[i].status]||"b-blue")+'">'+STATUS_L[S.prospects[i].status]+'</span></div><div class="flex gap6 aic"><span style="font-size:10px;color:var(--fg2)">'+fSEK(r.totalHousing)+'/mån</span><span style="font-size:10px;font-family:var(--m);color:'+(diff<=0?'var(--teal)':'var(--rose)')+'">'+(diff>=0?"+":"")+fSEK(diff)+'</span><span class="badge '+(r.riskLevel==="low"?"b-green":r.riskLevel==="med"?"b-amber":"b-red")+'">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</span></div></div>'}).join('')+
-  '</div></div>':'');
+function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var currH=c.housing;
+  return '<div class="metrics"><div class="met"><div class="met-l">💰 Disponibelt</div><div class="met-v">'+fSEK(c.disp)+'</div><div class="met-s">/mån</div></div><div class="met"><div class="met-l">🏠 Boende</div><div class="met-v">'+fSEK(c.housing)+'</div><div class="met-s">'+(f.curr_addr||"nuvarande")+'</div></div><div class="met"><div class="met-l">🛒 Budget</div><div class="met-v">'+fSEK(c.totalBudget)+'</div><div class="met-s">gem.+personligt</div></div><div class="met"><div class="met-l">'+(c.surplus>=0?"📈":"📉")+' Överskott</div><div class="met-v '+(c.surplus>=0?"g":"r")+'">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</div><div class="met-s">efter allt</div></div></div>'+
+  (ps.length?'<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:500;color:var(--fg2);margin-bottom:8px">📊 Boendekostnad: '+(f.curr_addr||"nuvarande")+' vs prospekt</div><div class="chw"><canvas id="dBar"></canvas></div></div></div><div class="card"><div class="card-b"><div style="font-size:11px;font-weight:500;color:var(--fg2);margin-bottom:8px">⚠️ Stresstest: överskott vid stigande räntor</div><div class="chw"><canvas id="dStress"></canvas></div></div></div>':'')+
+  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">👥 Inkomster</div>'+f.persons.map(function(p,i){var bb_p=N(f.barnbidrag_person)===i?barnbidrag(f.children):0;return '<div class="pr"><span>'+p.name+' netto</span><b>'+fSEK(c.taxes[i].n)+'</b></div>'+(bb_p?'<div class="pr"><span>  ↳ barnbidrag</span><b>'+fSEK(bb_p)+'</b></div>':'')}).join('')+'<div class="pr" style="font-weight:600"><span>Totalt disponibelt</span><b style="color:var(--teal)">'+fSEK(c.disp)+'</b></div></div></div>'+
+  (ps.length?'<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">🔍 Prospekt</div>'+ps.map(function(r,i){var diff=r.totalHousing-currH;return '<div class="flex aic jcb" style="padding:4px 0;'+(i?'border-top:1px solid var(--border)':'')+'"><div class="flex aic gap6"><span style="font-size:12px;font-weight:500">'+r.name+'</span><span class="badge '+(STATUS_C[S.prospects[i].status])+'">'+STATUS_L[S.prospects[i].status]+'</span></div><div class="flex gap6 aic"><div class="dq" style="padding:2px 6px;margin:0;width:60px"><div class="dq-bar" style="height:4px"><div class="dq-fill" style="width:'+r.dataQuality+'%;background:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'"></div></div><span style="font-size:9px;font-weight:600">'+r.dataQuality+'%</span></div><span style="font-size:10px;font-family:var(--m);color:'+(diff<=0?'var(--teal)':'var(--rose)')+'">'+(diff>=0?"+":"")+fSEK(diff)+'</span><span class="badge '+(r.riskLevel==="low"?"b-green":r.riskLevel==="med"?"b-amber":"b-red")+'">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</span></div></div>'}).join('')+'</div></div>':'')
 }
 
-// === BOSTAD ===
-function rBostad(f,c){
-  var sharedTotal=c.sharedBudget;
-  return '<div class="card"><div class="card-b">'+
-  '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🏡 Nuvarande bostad'+(f.curr_addr?' — '+f.curr_addr:'')+'</div>'+
-  '<div class="fg fg2"><div class="fi"><label>Adress</label><input id="ca" value="'+(f.curr_addr||'')+'"></div><div class="fi"><label>Marknadsvärde</label><input type="number" id="cv" value="'+N(f.curr_value)+'"></div></div>'+
-  '<hr><div class="fg fg3"><div class="fi"><label>Bolån kvar</label><input type="number" id="cm" value="'+N(f.curr_mortgage)+'"></div><div class="fi"><label>Ränta/mån</label><input type="number" id="ci" value="'+N(f.curr_int)+'"></div><div class="fi"><label>Amortering/mån</label><input type="number" id="cam" value="'+N(f.curr_amort)+'"></div></div>'+
-  '<div class="fg fg3 mt6"><div class="fi"><label>BRF/el/vatten/mån</label><input type="number" id="cb" value="'+N(f.curr_brf)+'"></div><div class="fi"><label>Garage/mån</label><input type="number" id="cg" value="'+N(f.curr_garage)+'"></div><div class="fi"><label>Räntenivå %</label><input type="number" id="cr" value="'+(N(f.rate)*100).toFixed(1)+'" step="0.1"></div></div>'+
-  '<div class="sr mt6"><label>Ränta</label><input type="range" min="1" max="10" step="0.1" value="'+(N(f.rate)*100)+'" id="crs"><input type="number" value="'+(N(f.rate)*100).toFixed(1)+'" step="0.1" id="crn"></div>'+
-  '<hr><div class="flex aic jcb"><span style="font-size:12px;font-weight:600">Total boendekostnad</span><span style="font-size:14px;font-weight:700;font-family:var(--m)">'+fSEK(c.housing)+'/mån</span></div>'+
-  '<div class="pr"><span>Vid försäljning (netto)</span><b>'+fSEK(N(f.curr_value)-N(f.curr_value)*0.02-N(f.curr_mortgage))+'</b></div>'+
-  '</div></div>'+
-
-  '<div class="card"><div class="card-b">'+
-  '<div style="font-size:13px;font-weight:600;margin-bottom:8px">👥 Familj</div>'+
-  '<div class="fg fg2">'+f.persons.map(function(p,i){
-    var tax=c.taxes[i];var bb_p=(N(f.barnbidrag_person)===i)?barnbidrag(f.children):0;var pBud=calcPersonBudget(p);
-    return '<div style="background:var(--bg2);border-radius:10px;padding:10px 12px">'+
-    '<div class="flex aic gap6" style="margin-bottom:8px"><div style="width:24px;height:24px;border-radius:50%;background:'+(i===0?'var(--purpleL)':'var(--tealL)')+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:'+(i===0?'var(--purple)':'var(--teal)')+'">'+p.name[0]+'</div><span style="font-size:12px;font-weight:600">'+p.name+'</span></div>'+
-    '<div class="fg fg2"><div class="fi"><label>Brutto/mån</label><input type="number" value="'+N(p.gm)+'" data-pi="'+i+'" data-pf="gm" class="pi"></div><div class="fi"><label>Bonus/år</label><input type="number" value="'+N(p.by)+'" data-pi="'+i+'" data-pf="by" class="pi"></div></div>'+
-    '<div class="pr mt6"><span>Netto/mån</span><b>'+fSEK(tax.n)+'</b></div>'+
-    (bb_p?'<div class="pr"><span>Barnbidrag</span><b>'+fSEK(bb_p)+'</b></div>':'')+
-    '<div class="pr"><span>Marginalskatt</span><b>'+fP(tax.mg)+'</b></div>'+
-    '<div class="pr"><span>Personliga utgifter</span><b>'+fSEK(pBud)+'</b></div>'+
-    '<div class="pr" style="font-weight:600"><span>Personligt netto</span><b style="color:var(--teal)">'+fSEK(tax.n+bb_p-pBud-sharedTotal/f.persons.length)+'</b></div>'+
-    '</div>'
-  }).join('')+'</div>'+
-  '<div class="sr mt8"><label>Barn ('+N(f.children)+')</label><input type="range" min="0" max="6" value="'+N(f.children)+'" id="cch"><input type="number" value="'+N(f.children)+'" id="cchn" style="width:50px"></div>'+
-  '</div></div>'+
-
-  // BUDGET
-  '<div class="card"><div class="card-b">'+
-  '<div class="flex aic jcb"><span style="font-size:13px;font-weight:600">🛒 Budget</span><span style="font-size:12px;font-family:var(--m);font-weight:600">'+fSEK(c.totalBudget)+'/mån</span></div>'+
-  '<div class="flex aic jcb mt6" style="font-size:11px"><span style="color:var(--fg2)">Disponibelt − budget − boende</span><span style="font-weight:600;color:'+(c.surplus>=0?'var(--teal)':'var(--rose)')+'">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'/mån</span></div>'+
-  '<hr>'+
-
-  // Gemensamma
-  '<div class="budget-section"><h4>Gemensamma utgifter <span style="font-size:11px;font-family:var(--m);color:var(--fg)">'+fSEK(sharedTotal)+'/mån</span></h4>'+
-  '<div class="fg fg3">'+
-  (f.budget_shared||[]).map(function(item,i){return '<div class="fi"><label>'+item.name+'</label><input type="number" value="'+N(item.amount)+'" data-si="'+i+'" class="si"></div>'}).join('')+
-  '</div><button class="add-row mt6" id="add-shared">+ Lägg till post</button></div>'+
-
-  // Personliga
-  f.persons.map(function(p,pi){
-    var items=p.personal_budget||[];var tot=calcPersonBudget(p);
-    return '<div class="budget-section"><h4>'+p.name+'s egna <span style="font-size:11px;font-family:var(--m);color:var(--fg)">'+fSEK(tot)+'/mån</span></h4>'+
-    '<div class="fg fg3">'+items.map(function(item,i){return '<div class="fi"><label>'+item.name+'</label><input type="number" value="'+N(item.amount)+'" data-pi="'+pi+'" data-bi="'+i+'" class="pbi"></div>'}).join('')+
-    '</div><button class="add-row mt6 add-personal" data-pi="'+pi+'">+ Lägg till post</button></div>'
-  }).join('')+
-
-  '</div></div>';
+// === BOSTAD (abbreviated for space — same as v4) ===
+function rBostad(f,c){var shT=c.sharedBudget;
+  return '<div class="card"><div class="card-b"><div style="font-size:13px;font-weight:600;margin-bottom:8px">🏡 '+(f.curr_addr||"Nuvarande bostad")+'</div><div class="fg fg2"><div class="fi"><label>Adress</label><input id="ca" value="'+(f.curr_addr||'')+'"></div><div class="fi"><label>Marknadsvärde</label><input type="number" id="cv" value="'+N(f.curr_value)+'"></div></div><hr><div class="fg fg3"><div class="fi"><label>Bolån kvar</label><input type="number" id="cm" value="'+N(f.curr_mortgage)+'"></div><div class="fi"><label>Ränta/mån</label><input type="number" id="ci" value="'+N(f.curr_int)+'"></div><div class="fi"><label>Amortering/mån</label><input type="number" id="cam" value="'+N(f.curr_amort)+'"></div></div><div class="fg fg3 mt6"><div class="fi"><label>BRF/el/vatten</label><input type="number" id="cb" value="'+N(f.curr_brf)+'"></div><div class="fi"><label>Garage</label><input type="number" id="cg" value="'+N(f.curr_garage)+'"></div><div class="fi"><label>Räntenivå %</label><input type="number" id="cr" value="'+(N(f.rate)*100).toFixed(1)+'" step="0.1"></div></div><div class="sr mt6"><label>Ränta</label><input type="range" min="1" max="10" step="0.1" value="'+(N(f.rate)*100)+'" id="crs"><input type="number" value="'+(N(f.rate)*100).toFixed(1)+'" step="0.1" id="crn"></div><hr><div class="flex aic jcb"><span style="font-size:12px;font-weight:600">Boendekostnad</span><span style="font-size:14px;font-weight:700;font-family:var(--m)">'+fSEK(c.housing)+'/mån</span></div><div class="pr"><span>Vid försäljning (netto)</span><b>'+fSEK(N(f.curr_value)-N(f.curr_value)*0.02-N(f.curr_mortgage))+'</b></div></div></div>'+
+  '<div class="card"><div class="card-b"><div style="font-size:13px;font-weight:600;margin-bottom:8px">👥 Familj</div><div class="fg fg2">'+f.persons.map(function(p,i){var tx=c.taxes[i],bb_p=N(f.barnbidrag_person)===i?barnbidrag(f.children):0,pB=calcPersonBudget(p);return '<div style="background:var(--bg2);border-radius:10px;padding:10px 12px"><div class="flex aic gap6" style="margin-bottom:8px"><div style="width:24px;height:24px;border-radius:50%;background:'+(i===0?'var(--purpleL)':'var(--tealL)')+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:'+(i===0?'var(--purple)':'var(--teal)')+'">'+p.name[0]+'</div><span style="font-size:12px;font-weight:600">'+p.name+'</span></div><div class="fg fg2"><div class="fi"><label>Brutto/mån</label><input type="number" value="'+N(p.gm)+'" data-pi="'+i+'" data-pf="gm" class="pi"></div><div class="fi"><label>Bonus/år</label><input type="number" value="'+N(p.by)+'" data-pi="'+i+'" data-pf="by" class="pi"></div></div><div class="pr mt6"><span>Netto</span><b>'+fSEK(tx.n)+'</b></div>'+(bb_p?'<div class="pr"><span>Barnbidrag</span><b>'+fSEK(bb_p)+'</b></div>':'')+'<div class="pr"><span>Marginalskatt</span><b>'+fP(tx.mg)+'</b></div><div class="pr"><span>Egna utgifter</span><b>'+fSEK(pB)+'</b></div><div class="pr" style="font-weight:600"><span>Personligt netto</span><b style="color:var(--teal)">'+fSEK(tx.n+bb_p-pB-shT/f.persons.length)+'</b></div></div>'}).join('')+'</div><div class="sr mt8"><label>Barn ('+N(f.children)+')</label><input type="range" min="0" max="6" value="'+N(f.children)+'" id="cch"><input type="number" value="'+N(f.children)+'" id="cchn" style="width:50px"></div></div></div>'+
+  '<div class="card"><div class="card-b"><div class="flex aic jcb"><span style="font-size:13px;font-weight:600">🛒 Budget</span><span style="font-size:12px;font-family:var(--m);font-weight:600">'+fSEK(c.totalBudget)+'/mån</span></div><div class="flex aic jcb mt6" style="font-size:11px"><span style="color:var(--fg2)">Disp − budget − boende</span><span style="font-weight:600;color:'+(c.surplus>=0?'var(--teal)':'var(--rose)')+'">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'/mån</span></div><hr><div class="budget-section"><h4>Gemensamma <span style="font-family:var(--m)">'+fSEK(shT)+'/mån</span></h4><div class="fg fg3">'+(f.budget_shared||[]).map(function(item,i){return '<div class="flex aic gap4"><div class="fi" style="flex:1"><label>'+item.name+'</label><input type="number" value="'+N(item.amount)+'" data-si="'+i+'" class="si"></div><button class="del-item del-shared" data-si="'+i+'">×</button></div>'}).join('')+'</div><button class="add-row mt6" id="add-shared">+ Lägg till</button></div>'+f.persons.map(function(p,pi){var items=p.personal_budget||[],tot=calcPersonBudget(p);return '<div class="budget-section"><h4>'+p.name+'s egna <span style="font-family:var(--m)">'+fSEK(tot)+'/mån</span></h4><div class="fg fg3">'+items.map(function(item,i){return '<div class="flex aic gap4"><div class="fi" style="flex:1"><label>'+item.name+'</label><input type="number" value="'+N(item.amount)+'" data-pi="'+pi+'" data-bi="'+i+'" class="pbi"></div><button class="del-item del-personal" data-pi="'+pi+'" data-bi="'+i+'">×</button></div>'}).join('')+'</div><button class="add-row mt6 add-personal" data-pi="'+pi+'">+ Lägg till</button></div>'}).join('')+'</div></div>'
 }
 
 // === PROSPECT LIST ===
-function rPList(f,c){
-  if(!S.prospects.length)return '<div class="empty"><p style="font-size:12px">Inga prospekt ännu</p><button class="btn btn-p mt8" id="np">➕ Nytt prospekt</button></div>';
-  var currH=c.housing;
-  return '<div class="flex aic jcb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:600">🔍 Prospekt ('+S.prospects.length+')</span><button class="btn btn-p btn-sm" id="np">➕ Nytt</button></div>'+
-  S.prospects.map(function(p,i){
-    var r=calcP(f,p);var diff=r.totalHousing-currH;
-    return '<div class="card" style="cursor:pointer" data-vi="'+i+'"><div class="card-b">'+
-    '<div class="flex aic jcb"><div><span style="font-size:13px;font-weight:600">'+(p.name||"Namnlöst")+'</span>'+(p.addr?' <span style="font-size:10px;color:var(--fg2)">'+p.addr+'</span>':'')+'</div>'+
-    '<span class="badge '+(STATUS_C[p.status]||"b-blue")+'">'+STATUS_L[p.status]+'</span></div>'+
-    '<div class="metrics" style="margin:6px 0 0"><div class="met"><div class="met-l">Pris</div><div class="met-v" style="font-size:14px">'+fSEK(r.price)+'</div></div>'+
-    '<div class="met"><div class="met-l">Boende/mån</div><div class="met-v" style="font-size:14px">'+fSEK(r.totalHousing)+'</div></div>'+
-    '<div class="met"><div class="met-l">vs nuvarande</div><div class="met-v '+(diff<=0?"g":"r")+'" style="font-size:14px">'+(diff>=0?"+":"")+fSEK(diff)+'</div></div>'+
-    '<div class="met"><div class="met-l">Risk</div><div class="met-v '+(r.riskLevel==="low"?"g":r.riskLevel==="med"?"a":"r")+'" style="font-size:14px">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</div></div>'+
-    '</div></div></div>'
-  }).join('');
-}
+function rPL(f,c){if(!S.prospects.length)return '<div class="empty"><p>Inga prospekt</p><button class="btn btn-p mt8" id="np">➕ Nytt prospekt</button></div>';var currH=c.housing;
+  return '<div class="flex aic jcb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:600">🔍 Prospekt</span><button class="btn btn-p btn-sm" id="np">➕ Nytt</button></div>'+S.prospects.map(function(p,i){var r=calcP(f,p),diff=r.totalHousing-currH;
+  return '<div class="card" style="cursor:pointer" data-vi="'+i+'"><div class="card-b"><div class="flex aic jcb"><div><span style="font-size:13px;font-weight:600">'+(p.name||"Namnlöst")+'</span>'+(p.addr?' <span style="font-size:10px;color:var(--fg2)">'+p.addr+'</span>':'')+'</div><div class="flex gap4 aic"><span class="badge '+(STATUS_C[p.status])+'">'+STATUS_L[p.status]+'</span></div></div>'+
+  '<div class="dq mt6"><span class="dq-label">Data</span><div class="dq-bar"><div class="dq-fill" style="width:'+r.dataQuality+'%;background:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'"></div></div><span class="dq-pct" style="color:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'">'+r.dataQuality+'%</span></div>'+
+  '<div class="metrics" style="margin:6px 0 0"><div class="met"><div class="met-l">Pris</div><div class="met-v" style="font-size:14px">'+fSEK(r.price)+'</div></div><div class="met"><div class="met-l">Boende/mån</div><div class="met-v" style="font-size:14px">'+fSEK(r.totalHousing)+'</div></div><div class="met"><div class="met-l">vs nuv.</div><div class="met-v '+(diff<=0?"g":"r")+'" style="font-size:14px">'+(diff>=0?"+":"")+fSEK(diff)+'</div></div><div class="met"><div class="met-l">Risk</div><div class="met-v '+(r.riskLevel==="low"?"g":r.riskLevel==="med"?"a":"r")+'" style="font-size:14px">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</div></div></div></div></div>'}).join('')}
 
 // === PROSPECT DETAIL ===
-function rPDetail(f,c){
-  var i=S.viewIdx,p=S.prospects[i];if(!p)return "";
-  var r=calcP(f,p);var currH=c.housing;var diff=r.totalHousing-currH;
-  var checks=[["Ränta",true],["Amort.",true],["Värme",N(p.drift.heat)>0],["El",N(p.drift.el)>0],["Vatten",N(p.drift.water)>0],["Sopor",N(p.drift.waste)>0],["Förs.",N(p.drift.ins)>0],["Fast.avg",N(p.drift.tax)>0],["Tomt",N(p.drift.garden)>0],["Reno",N(p.reno)>0]];
+function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f,p),currH=c.housing,diff=r.totalHousing-currH;var dd=p.dd||{};
+  var checks=[["Ränta",1],["Amort.",1],["Värme",N(p.drift.heat)>0],["El",N(p.drift.el)>0],["Vatten",N(p.drift.water)>0],["Sopor",N(p.drift.waste)>0],["Förs.",N(p.drift.ins)>0],["Fast.",N(p.drift.tax)>0],["Tomt",N(p.drift.garden)>0],["Reno",N(p.reno)>0]];
   var filled=checks.filter(function(c){return c[1]}).length,pct=Math.round(filled/10*100);
-  var cl=p.checklist||{};
-  return '<button class="btn btn-s btn-sm" id="backp" style="margin-bottom:8px">← Tillbaka</button>'+
-
-  '<div class="card"><div class="card-b">'+
-  '<div class="flex aic jcb"><div class="flex aic gap6"><span style="font-size:15px;font-weight:600">'+(p.name||"Namnlöst")+'</span>'+
-  '<select id="ps" style="font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg)">'+Object.keys(STATUS_L).map(function(k){return '<option value="'+k+'" '+(p.status===k?"selected":"")+'>'+STATUS_L[k]+'</option>'}).join('')+'</select></div>'+
-  '<button class="btn btn-d btn-sm" id="delp">🗑️</button></div>'+
+  return '<button class="btn btn-s btn-sm" id="backp">← Tillbaka</button>'+
+  // Header
+  '<div class="card"><div class="card-b"><div class="flex aic jcb"><div class="flex aic gap6"><span style="font-size:15px;font-weight:600">'+(p.name||"Namnlöst")+'</span><select id="ps" style="font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg)">'+Object.keys(STATUS_L).map(function(k){return '<option value="'+k+'"'+(p.status===k?" selected":"")+'>'+STATUS_L[k]+'</option>'}).join('')+'</select></div><button class="btn btn-d btn-sm" id="delp">🗑️</button></div>'+
   '<div class="fg fg2 mt6"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><input value="'+(p.addr||"")+'" data-pk="addr" class="pp"></div></div>'+
-
+  // Data quality bar
+  '<div class="dq mt8"><span class="dq-label">Datakvalitet</span><div class="dq-bar"><div class="dq-fill" style="width:'+r.dataQuality+'%;background:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'"></div></div><span class="dq-pct" style="color:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'">'+r.dataQuality+'%</span></div>'+
+  '<div class="src-legend mt6"><span>'+srcDot("auth")+' Myndighet</span><span>'+srcDot("listing")+' Annons</span><span>'+srcDot("user")+' Egen</span><span>'+srcDot("est")+' Schablon</span></div>'+
+  // URLs
+  '<hr><div style="font-size:10px;font-weight:600;margin-bottom:4px">🔗 Annonslänkar</div><div class="url-list">'+(p.urls||[]).map(function(u,j){return '<div class="url-item"><select data-ui="'+j+'" class="url-src"><option value="hemnet"'+(u.src==="hemnet"?" selected":"")+'>Hemnet</option><option value="booli"'+(u.src==="booli"?" selected":"")+'>Booli</option><option value="notar"'+(u.src==="notar"?" selected":"")+'>Notar</option><option value="bjurfors"'+(u.src==="bjurfors"?" selected":"")+'>Bjurfors</option><option value="other"'+(u.src==="other"?" selected":"")+'>Annan</option></select><input value="'+(u.url||"")+'" placeholder="https://..." data-ui="'+j+'" class="url-val" style="flex:1"><button class="del-item del-url" data-ui="'+j+'">×</button></div>'}).join('')+'</div><div class="flex gap4 mt6"><button class="btn btn-s btn-sm" id="add-url">+ Lägg till länk</button><label style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--fg2)"><input type="checkbox" '+(p.off_market?"checked":"")+' id="offmarket"> Ej annonserad</label></div>'+
+  // Affärscase
   '<hr><div style="font-size:11px;font-weight:600">💰 Affärscase</div>'+
   '<div class="sr mt6"><label>Huspris</label><input type="range" min="1000000" max="20000000" step="100000" value="'+N(p.price)+'" data-sk="price" class="psl"><input type="number" value="'+N(p.price)+'" data-sk="price" class="pnm"></div>'+
   '<div class="sr"><label>Renovering</label><input type="range" min="0" max="3000000" step="50000" value="'+N(p.reno)+'" data-sk="reno" class="psl"><input type="number" value="'+N(p.reno)+'" data-sk="reno" class="pnm"></div>'+
   '<div class="sr"><label>Föräldralån åter</label><input type="range" min="0" max="'+(N(p.parent_loan)||1200000)+'" step="50000" value="'+N(p.parent_repay)+'" data-sk="parent_repay" class="psl"><input type="number" value="'+N(p.parent_repay)+'" data-sk="parent_repay" class="pnm"></div>'+
-
-  '<div class="metrics mt8">'+
-  '<div class="met"><div class="met-l">Nytt bolån</div><div class="met-v" style="font-size:15px">'+fSEK(r.mortgage)+'</div></div>'+
-  '<div class="met"><div class="met-l">LTV</div><div class="met-v '+(r.ltv>0.85?"r":r.ltv>0.7?"a":"g")+'" style="font-size:15px">'+fP(r.ltv)+'</div></div>'+
-  '<div class="met"><div class="met-l">Boende/mån</div><div class="met-v" style="font-size:15px">'+fSEK(r.totalHousing)+'</div></div>'+
-  '<div class="met"><div class="met-l">Överskott/mån</div><div class="met-v '+(r.surplus>=0?"g":"r")+'" style="font-size:15px">'+(r.surplus>=0?"+":"")+fSEK(r.surplus)+'</div></div></div>'+
-  '<div class="pr"><span>Ränta/mån ('+fP(r.rate)+')</span><b>'+fSEK(r.intMonth)+'</b></div>'+
-  '<div class="pr"><span>Amortering/mån ('+fP(r.amortRate)+')</span><b>'+fSEK(r.amortMonth)+'</b></div>'+
-  '<div class="pr"><span>Drift/mån</span><b>'+fSEK(r.drift)+'</b></div>'+
-  '<div class="pr"><span>vs nuvarande</span><b style="color:'+(diff<=0?'var(--teal)':'var(--rose)')+'">'+(diff>=0?"+":"")+fSEK(diff)+'/mån</b></div>'+
-  '<div class="pr"><span>Skuldkvot</span><b>'+r.dti+'x</b></div>'+
-  '<div class="pr"><span>Stresstest 5%</span><b style="color:'+(r.s5>=0?'var(--teal)':'var(--rose)')+'">'+(r.s5>=0?"+":"")+fSEK(r.s5)+'</b></div>'+
-  '<div class="pr"><span>Stresstest 7%</span><b style="color:'+(r.s7>=0?'var(--teal)':'var(--rose)')+'">'+(r.s7>=0?"+":"")+fSEK(r.s7)+'</b></div>'+
-  '<div class="pr"><span>Lagfart + pantbrev</span><b>'+fSEK(r.txCost)+'</b></div>'+
+  '<div class="metrics mt8"><div class="met"><div class="met-l">Bolån</div><div class="met-v" style="font-size:15px">'+fSEK(r.mortgage)+'</div></div><div class="met"><div class="met-l">LTV</div><div class="met-v '+(r.ltv>0.85?"r":r.ltv>0.7?"a":"g")+'" style="font-size:15px">'+fP(r.ltv)+'</div></div><div class="met"><div class="met-l">Boende/mån</div><div class="met-v" style="font-size:15px">'+fSEK(r.totalHousing)+'</div></div><div class="met"><div class="met-l">Överskott</div><div class="met-v '+(r.surplus>=0?"g":"r")+'" style="font-size:15px">'+(r.surplus>=0?"+":"")+fSEK(r.surplus)+'</div></div></div>'+
+  '<div class="pr"><span>Ränta/mån ('+fP(r.rate)+')</span><b>'+fSEK(r.intMonth)+'</b></div><div class="pr"><span>Amortering ('+fP(r.amortRate)+')</span><b>'+fSEK(r.amortMonth)+'</b></div><div class="pr"><span>Drift/mån</span><b>'+fSEK(r.drift)+'</b></div><div class="pr"><span>vs nuvarande</span><b style="color:'+(diff<=0?'var(--teal)':'var(--rose)')+'">'+(diff>=0?"+":"")+fSEK(diff)+'/mån</b></div>'+
+  // Förhandlingsunderlag
+  '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;margin-top:8px"><div style="font-size:10px;font-weight:600;margin-bottom:4px">🎯 Prisanalys</div><div class="pr"><span>Max-pris (överskott = 0)</span><b style="color:var(--rose)">'+fSEK(r.maxPrice)+'</b></div><div class="pr"><span>Komfortpris (5k kvar)</span><b style="color:var(--amber)">'+fSEK(r.comfortPrice)+'</b></div><div class="pr"><span>Nuvarande bud</span><b>'+fSEK(r.price)+'</b></div><div class="pr"><span>Marginal till max</span><b style="color:var(--teal)">'+fSEK(r.maxPrice-r.price)+'</b></div></div>'+
+  '<div class="pr"><span>Skuldkvot</span><b>'+r.dti+'x</b></div><div class="pr"><span>Stresstest 5%</span><b style="color:'+(r.s5>=0?'var(--teal)':'var(--rose)')+'">'+(r.s5>=0?"+":"")+fSEK(r.s5)+'</b></div><div class="pr"><span>Stresstest 7%</span><b style="color:'+(r.s7>=0?'var(--teal)':'var(--rose)')+'">'+(r.s7>=0?"+":"")+fSEK(r.s7)+'</b></div><div class="pr"><span>Lagfart+pantbrev</span><b>'+fSEK(r.txCost)+'</b></div>'+
   '<div class="cost-bar mt6"><div class="flex aic jcb" style="font-size:10px"><span style="color:var(--fg2)">Kostnadstäckning</span><b>'+filled+'/10</b></div><div class="bar-t mt6"><div class="bar-f" style="width:'+pct+'%;background:'+(pct===100?'var(--teal)':pct>=70?'var(--amber)':'var(--rose)')+'"></div></div><div class="cks mt6">'+checks.map(function(c){return '<span class="ck"><span class="dt '+(c[1]?'dt-ok':'dt-no')+'"></span>'+c[0]+'</span>'}).join('')+'</div></div>'+
   '</div></div>'+
-
   // DD
-  '<div class="card"><div class="card-b">'+
-  '<div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🔎 Due diligence</span><button class="btn btn-s btn-sm" id="autoschab">⚡ Schabloner</button></div>'+
-  '<div class="fg fg4 mt6">'+
-  '<div class="fi"><label>Byggår</label><input type="number" value="'+(p.dd.byggar||"")+'" data-dk="byggar" class="dd"></div>'+
-  '<div class="fi"><label>Boarea m²</label><input type="number" value="'+(p.dd.boarea||"")+'" data-dk="boarea" class="dd"></div>'+
-  '<div class="fi"><label>Tomtarea m²</label><input type="number" value="'+(p.dd.tomtarea||"")+'" data-dk="tomtarea" class="dd"></div>'+
-  '<div class="fi"><label>Rum</label><input type="number" value="'+(p.dd.rum||"")+'" data-dk="rum" class="dd"></div></div>'+
-  '<div class="fg fg3 mt6">'+
-  '<div class="fi"><label>Energiklass</label><input value="'+(p.dd.energiklass||"")+'" data-dk="energiklass" class="dd" placeholder="A-G"></div>'+
-  '<div class="fi"><label>Uppvärmning</label><input value="'+(p.dd.uppvarmning||"")+'" data-dk="uppvarmning" class="dd"></div>'+
-  '<div class="fi"><label>Taxeringsvärde</label><input type="number" value="'+(p.dd.taxvarde||"")+'" data-dk="taxvarde" class="dd"></div></div>'+
-  '<div style="font-size:10px;font-weight:600;color:var(--amber);margin:8px 0 4px">Underhåll (senaste åtgärd, årtal)</div>'+
-  '<div class="fg fg4"><div class="fi"><label>Tak</label><input type="number" value="'+(p.dd.tak_ar||"")+'" data-dk="tak_ar" class="dd"></div><div class="fi"><label>Fasad</label><input type="number" value="'+(p.dd.fasad_ar||"")+'" data-dk="fasad_ar" class="dd"></div><div class="fi"><label>VP</label><input type="number" value="'+(p.dd.vp_ar||"")+'" data-dk="vp_ar" class="dd"></div><div class="fi"><label>Badrum</label><input type="number" value="'+(p.dd.badrum_ar||"")+'" data-dk="badrum_ar" class="dd"></div></div>'+
-  '<div class="fi mt6"><label>Anteckningar</label><textarea data-dk="visning_notes" class="dd">'+(p.dd.visning_notes||"")+'</textarea></div>'+
-  '<div class="fi mt6"><label>Frågor till mäklaren</label><textarea data-dk="maklare_fragor" class="dd">'+(p.dd.maklare_fragor||"")+'</textarea></div>'+
-  (r.missing.length?'<div class="quest mt6">📋 Saknar: '+r.missing.join(", ")+'</div>':'')+
+  '<div class="card"><div class="card-b"><div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🔎 Due diligence</span><button class="btn btn-s btn-sm" id="autoschab">⚡ Schabloner</button></div>'+
+  '<div class="fg fg4 mt6"><div class="fi"><label>'+srcDot(dd._src_byggar||"user")+' Byggår</label><input type="number" value="'+(dd.byggar||"")+'" data-dk="byggar" class="dd"></div><div class="fi"><label>'+srcDot(dd._src_boarea||"user")+' Boarea m²</label><input type="number" value="'+(dd.boarea||"")+'" data-dk="boarea" class="dd"></div><div class="fi"><label>Tomtarea m²</label><input type="number" value="'+(dd.tomtarea||"")+'" data-dk="tomtarea" class="dd"></div><div class="fi"><label>Rum</label><input type="number" value="'+(dd.rum||"")+'" data-dk="rum" class="dd"></div></div>'+
+  '<div class="fg fg3 mt6"><div class="fi"><label>'+srcDot(dd._src_energiklass||"user")+' Energiklass</label><input value="'+(dd.energiklass||"")+'" data-dk="energiklass" class="dd" placeholder="A-G"></div><div class="fi"><label>Uppvärmning</label><input value="'+(dd.uppvarmning||"")+'" data-dk="uppvarmning" class="dd"></div><div class="fi"><label>'+srcDot(dd._src_taxvarde||"user")+' Taxeringsv.</label><input type="number" value="'+(dd.taxvarde||"")+'" data-dk="taxvarde" class="dd"></div></div>'+
+  '<div style="font-size:10px;font-weight:600;color:var(--amber);margin:8px 0 4px">Underhåll (årtal)</div><div class="fg fg4"><div class="fi"><label>Tak</label><input type="number" value="'+(dd.tak_ar||"")+'" data-dk="tak_ar" class="dd"></div><div class="fi"><label>Fasad</label><input type="number" value="'+(dd.fasad_ar||"")+'" data-dk="fasad_ar" class="dd"></div><div class="fi"><label>VP</label><input type="number" value="'+(dd.vp_ar||"")+'" data-dk="vp_ar" class="dd"></div><div class="fi"><label>Badrum</label><input type="number" value="'+(dd.badrum_ar||"")+'" data-dk="badrum_ar" class="dd"></div></div>'+
+  '<div class="fi mt6"><label>Anteckningar</label><textarea data-dk="visning_notes" class="dd">'+(dd.visning_notes||"")+'</textarea></div><div class="fi mt6"><label>Frågor till mäklaren</label><textarea data-dk="maklare_fragor" class="dd">'+(dd.maklare_fragor||"")+'</textarea></div>'+
+  (r.missing.length?'<div style="background:var(--amberL);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--amber)">📋 Saknar: '+r.missing.join(", ")+'</div>':'')+
   '</div></div>'+
-
   // Risk
-  '<div class="card"><div class="card-b">'+
-  '<div style="font-size:11px;font-weight:600">⚠️ Risk — <span class="badge '+(r.riskLevel==="low"?"b-green":r.riskLevel==="med"?"b-amber":"b-red")+'">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</span></div>'+
-  r.risks.map(function(ri){return '<div class="risk-card '+ri.l+'"><b>'+ri.t+'</b><br>'+ri.d+'</div>'}).join('')+
-  '</div></div>'+
-
+  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600">⚠️ Risk — <span class="badge '+(r.riskLevel==="low"?"b-green":r.riskLevel==="med"?"b-amber":"b-red")+'">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</span></div>'+r.risks.map(function(ri){return '<div class="risk-card '+ri.l+'"><b>'+ri.t+'</b> — '+ri.d+'</div>'}).join('')+'</div></div>'+
   // Checklist
-  '<div class="card"><div class="card-b">'+
-  '<div style="font-size:11px;font-weight:600;margin-bottom:6px">✅ Checklista</div>'+
-  '<div class="fg fg3">'+Object.keys(CHECK_L).map(function(k){return '<label style="font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" '+(cl[k]?"checked":"")+' data-ck="'+k+'" class="ckb" style="accent-color:var(--teal)">'+CHECK_L[k]+'</label>'}).join('')+'</div>'+
-  '</div></div>'+
-
+  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">✅ Checklista</div>'+CHECK_SECTIONS.map(function(sec){var cl=p.checklist||{};var done=sec.items.filter(function(it){return cl[it.k]}).length;return '<div style="margin-top:6px"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:3px">'+sec.title+' ('+done+'/'+sec.items.length+')</div><div class="fg fg3">'+sec.items.map(function(it){return '<label style="font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" '+(cl[it.k]?"checked":"")+' data-ck="'+it.k+'" class="ckb" style="accent-color:var(--teal)">'+it.l+'</label>'}).join('')+'</div></div>'}).join('')+'</div></div>'+
   // Drift
-  '<div class="card"><div class="card-b">'+
-  '<div style="font-size:11px;font-weight:600;margin-bottom:6px">Driftkostnader (kr/mån)</div>'+
-  '<div class="fg fg4">'+Object.keys(DRIFT_L).map(function(k){return '<div class="fi"><label>'+DRIFT_L[k]+'</label><input type="number" value="'+N(p.drift[k])+'" data-drk="'+k+'" class="dri"></div>'}).join('')+'</div>'+
-  '</div></div>';
+  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">Drift (kr/mån)</div><div class="fg fg4">'+Object.keys(DRIFT_L).map(function(k){return '<div class="fi"><label>'+srcDot(p.drift["_src_"+k]||"user")+' '+DRIFT_L[k]+'</label><input type="number" value="'+N(p.drift[k])+'" data-drk="'+k+'" class="dri"></div>'}).join('')+'</div></div></div>'
 }
 
 // === COMPARE ===
-function rCompare(f,c){
-  if(!S.prospects.length)return '<div class="empty"><p style="font-size:12px">Lägg till prospekt först</p></div>';
-  var rs=S.prospects.map(function(p){return calcP(f,p)});
-  var currH=c.housing;
-  var rows=[
-    ["Huspris",function(r){return fSEK(r.price)},null,"—"],
-    ["Nytt bolån",function(r){return fSEK(r.mortgage)},null,fSEK(N(f.curr_mortgage))],
-    ["LTV",function(r){return fP(r.ltv)},function(r){return r.ltv>0.85?"r":r.ltv>0.7?"a":""},"—"],
-    ["Skuldkvot",function(r){return r.dti+"x"},function(r){return r.dti>4.5?"r":r.dti>3.5?"a":""},"—"],
-    ["Ränta/mån",function(r){return fN(r.intMonth)+" kr"},null,fN(N(f.curr_int))+" kr"],
-    ["Amortering/mån",function(r){return fN(r.amortMonth)+" kr"},null,fN(N(f.curr_amort))+" kr"],
-    ["Drift/mån",function(r){return fN(r.drift)+" kr"},null,fN(N(f.curr_brf)+N(f.curr_garage))+" kr"],
-    ["Boende/mån",function(r){return fN(r.totalHousing)+" kr"},null,fN(currH)+" kr"],
-    ["vs nuvarande",function(r){var d=r.totalHousing-currH;return(d>=0?"+":"")+fN(d)+" kr"},function(r){return(r.totalHousing-currH)<=0?"g":"r"},"—"],
-    ["Överskott",function(r){return(r.surplus>=0?"+":"")+fN(r.surplus)+" kr"},function(r){return r.surplus>=0?"g":"r"},(c.surplus>=0?"+":"")+fN(c.surplus)+" kr"],
-    ["Stresstest 5%",function(r){return(r.s5>=0?"+":"")+fN(r.s5)+" kr"},function(r){return r.s5>=0?"g":"r"},"—"],
-    ["Stresstest 7%",function(r){return(r.s7>=0?"+":"")+fN(r.s7)+" kr"},function(r){return r.s7>=0?"g":"r"},"—"],
-    ["Risk",function(r){return r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög"},function(r){return r.riskLevel==="low"?"g":r.riskLevel==="med"?"a":"r"},"—"]
-  ];
-  return '<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">'+
-  '<thead><tr><th style="text-align:left;padding:8px;font-size:9px;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)">Nyckeltal</th>'+
-  '<th style="text-align:right;padding:8px;font-size:9px;text-transform:uppercase;color:var(--teal);border-bottom:1px solid var(--border)">'+(f.curr_addr||"Nuvarande")+'</th>'+
-  rs.map(function(r){return '<th style="text-align:right;padding:8px;font-size:9px;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)">'+r.name+'</th>'}).join('')+'</tr></thead>'+
-  '<tbody>'+rows.map(function(row){
-    var label=row[0],fn=row[1],cfn=row[2],currVal=row[3];
-    return '<tr><td style="padding:5px 8px;border-bottom:1px solid var(--bg2);color:var(--fg2)">'+label+'</td>'+
-    '<td style="padding:5px 8px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--m);color:var(--teal)">'+currVal+'</td>'+
-    rs.map(function(r){var cl=cfn?cfn(r):"";var st=cl==="g"?"color:var(--teal)":cl==="r"?"color:var(--rose)":cl==="a"?"color:var(--amber)":"";return '<td style="padding:5px 8px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--m);'+st+'">'+fn(r)+'</td>'}).join('')+'</tr>'
-  }).join('')+'</tbody></table></div>';
+function rCmp(f,c){if(!S.prospects.length)return '<div class="empty"><p>Lägg till prospekt</p></div>';var rs=S.prospects.map(function(p){return calcP(f,p)}),currH=c.housing;
+  var rows=[["Huspris",function(r){return fSEK(r.price)},null,"—"],["Bolån",function(r){return fSEK(r.mortgage)},null,fSEK(N(f.curr_mortgage))],["LTV",function(r){return fP(r.ltv)},function(r){return r.ltv>0.85?"r":r.ltv>0.7?"a":""},"—"],["Skuldkvot",function(r){return r.dti+"x"},function(r){return r.dti>4.5?"r":r.dti>3.5?"a":""},"—"],["Ränta/mån",function(r){return fN(r.intMonth)+" kr"},null,fN(N(f.curr_int))+" kr"],["Amort./mån",function(r){return fN(r.amortMonth)+" kr"},null,fN(N(f.curr_amort))+" kr"],["Drift/mån",function(r){return fN(r.drift)+" kr"},null,fN(N(f.curr_brf)+N(f.curr_garage))+" kr"],["Boende/mån",function(r){return fN(r.totalHousing)+" kr"},null,fN(currH)+" kr"],["vs nuvarande",function(r){var d=r.totalHousing-currH;return(d>=0?"+":"")+fN(d)+" kr"},function(r){return(r.totalHousing-currH)<=0?"g":"r"},"—"],["Överskott",function(r){return(r.surplus>=0?"+":"")+fN(r.surplus)+" kr"},function(r){return r.surplus>=0?"g":"r"},(c.surplus>=0?"+":"")+fN(c.surplus)+" kr"],["5% ränta",function(r){return(r.s5>=0?"+":"")+fN(r.s5)+" kr"},function(r){return r.s5>=0?"g":"r"},"—"],["7% ränta",function(r){return(r.s7>=0?"+":"")+fN(r.s7)+" kr"},function(r){return r.s7>=0?"g":"r"},"—"],["Risk",function(r){return r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög"},function(r){return r.riskLevel==="low"?"g":r.riskLevel==="med"?"a":"r"},"—"],["Datakvalitet",function(r){return r.dataQuality+"%"},function(r){return r.dataQuality>=70?"g":r.dataQuality>=40?"a":"r"},"—"]];
+  // Find best per row
+  return '<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th style="text-align:left;padding:8px;font-size:9px;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)">Nyckeltal</th><th style="text-align:right;padding:8px;font-size:9px;text-transform:uppercase;color:var(--teal);border-bottom:1px solid var(--border)">'+(f.curr_addr||"Nuvarande")+'</th>'+rs.map(function(r){return '<th style="text-align:right;padding:8px;font-size:9px;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)">'+r.name+'</th>'}).join('')+'</tr></thead><tbody>'+rows.map(function(row){var label=row[0],fn=row[1],cfn=row[2],cv=row[3];return '<tr><td style="padding:5px 8px;border-bottom:1px solid var(--bg2);color:var(--fg2)">'+label+'</td><td style="padding:5px 8px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--m);color:var(--teal)">'+cv+'</td>'+rs.map(function(r){var cl=cfn?cfn(r):"";var st=cl==="g"?"color:var(--teal)":cl==="r"?"color:var(--rose)":cl==="a"?"color:var(--amber)":"";return '<td style="padding:5px 8px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--m);'+st+'">'+fn(r)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'
 }
 
 // === EVENTS ===
-function bindGlobal(){
+function bindAll(f,c){
   document.getElementById("td").addEventListener("click",function(){S.dark=!S.dark;render()});
   document.getElementById("lo").addEventListener("click",function(){localStorage.removeItem("hid");if(dbRef)dbRef.off();dbRef=null;S.screen="login";S.hid="";render()});
   document.querySelectorAll(".tab").forEach(function(t){t.addEventListener("click",function(){S.viewIdx=null;S.tab=t.dataset.t;render();setTimeout(updateCharts,60)})});
-  bindTab();
-}
-function bindTab(){
-  // Bostad inputs
-  var bf=function(id,k,parse){var el=document.getElementById(id);if(el)el.addEventListener("change",function(e){var v=parse?parse(e.target.value):e.target.value;var fam=dc(S.family);fam[k]=v;ss({family:fam})})};
-  bf("ca","curr_addr");bf("cv","curr_value",N);bf("cm","curr_mortgage",N);bf("ci","curr_int",N);bf("cam","curr_amort",N);bf("cb","curr_brf",N);bf("cg","curr_garage",N);
-  bf("cr","rate",function(v){return Math.max(0.1,N(v))/100});
+  // Bostad
+  var bF=function(id,k,p){var el=document.getElementById(id);if(el)el.addEventListener("change",function(e){var fam=dc(S.family);fam[k]=p?p(e.target.value):e.target.value;ss({family:fam})})};
+  bF("ca","curr_addr");bF("cv","curr_value",N);bF("cm","curr_mortgage",N);bF("ci","curr_int",N);bF("cam","curr_amort",N);bF("cb","curr_brf",N);bF("cg","curr_garage",N);bF("cr","rate",function(v){return Math.max(0.1,N(v))/100});
   var crs=document.getElementById("crs"),crn=document.getElementById("crn");
   if(crs)crs.addEventListener("input",function(e){var fam=dc(S.family);fam.rate=N(e.target.value)/100;ss({family:fam})});
   if(crn)crn.addEventListener("change",function(e){var fam=dc(S.family);fam.rate=Math.max(0.1,N(e.target.value))/100;ss({family:fam})});
   var cch=document.getElementById("cch"),cchn=document.getElementById("cchn");
   if(cch)cch.addEventListener("input",function(e){var fam=dc(S.family);fam.children=N(e.target.value);ss({family:fam})});
   if(cchn)cchn.addEventListener("change",function(e){var fam=dc(S.family);fam.children=N(e.target.value);ss({family:fam})});
-  // Person inputs
   document.querySelectorAll(".pi").forEach(function(el){el.addEventListener("change",function(e){var fam=dc(S.family);fam.persons[N(e.target.dataset.pi)][e.target.dataset.pf]=N(e.target.value);ss({family:fam})})});
-  // Shared budget
   document.querySelectorAll(".si").forEach(function(el){el.addEventListener("change",function(e){var fam=dc(S.family);fam.budget_shared[N(e.target.dataset.si)].amount=N(e.target.value);ss({family:fam})})});
-  var addShared=document.getElementById("add-shared");
-  if(addShared)addShared.addEventListener("click",function(){var fam=dc(S.family);var name=prompt("Namn på budgetpost:");if(!name)return;fam.budget_shared.push({name:name,amount:0});ss({family:fam})});
-  // Personal budget
+  document.querySelectorAll(".del-shared").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var fam=dc(S.family);fam.budget_shared.splice(N(el.dataset.si),1);ss({family:fam})})});
+  var addS=document.getElementById("add-shared");if(addS)addS.addEventListener("click",function(){var n=prompt("Namn:");if(!n)return;var fam=dc(S.family);fam.budget_shared.push({name:n,amount:0});ss({family:fam})});
   document.querySelectorAll(".pbi").forEach(function(el){el.addEventListener("change",function(e){var fam=dc(S.family);fam.persons[N(e.target.dataset.pi)].personal_budget[N(e.target.dataset.bi)].amount=N(e.target.value);ss({family:fam})})});
-  document.querySelectorAll(".add-personal").forEach(function(el){el.addEventListener("click",function(){var pi=N(el.dataset.pi);var fam=dc(S.family);var name=prompt("Namn på budgetpost:");if(!name)return;if(!fam.persons[pi].personal_budget)fam.persons[pi].personal_budget=[];fam.persons[pi].personal_budget.push({name:name,amount:0});ss({family:fam})})});
-  // New prospect
+  document.querySelectorAll(".del-personal").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var fam=dc(S.family);fam.persons[N(el.dataset.pi)].personal_budget.splice(N(el.dataset.bi),1);ss({family:fam})})});
+  document.querySelectorAll(".add-personal").forEach(function(el){el.addEventListener("click",function(){var n=prompt("Namn:");if(!n)return;var fam=dc(S.family);var pi=N(el.dataset.pi);if(!fam.persons[pi].personal_budget)fam.persons[pi].personal_budget=[];fam.persons[pi].personal_budget.push({name:n,amount:0});ss({family:fam})})});
+  // Prospect
   var np=document.getElementById("np");if(np)np.addEventListener("click",function(){var p=dc(PDEF);p.name="Prospekt "+(S.prospects.length+1);var ps=dc(S.prospects);ps.push(p);ss({prospects:ps,viewIdx:ps.length-1})});
-  // View prospect
   document.querySelectorAll("[data-vi]").forEach(function(el){el.addEventListener("click",function(){S.viewIdx=N(el.dataset.vi);render()})});
-  // Prospect detail
-  var backp=document.getElementById("backp");if(backp)backp.addEventListener("click",function(){S.viewIdx=null;render()});
-  var delp=document.getElementById("delp");if(delp)delp.addEventListener("click",function(){if(!confirm("Radera?"))return;var ps=dc(S.prospects);ps.splice(S.viewIdx,1);ss({prospects:ps,viewIdx:null})});
+  var bp=document.getElementById("backp");if(bp)bp.addEventListener("click",function(){S.viewIdx=null;render()});
+  var dp=document.getElementById("delp");if(dp)dp.addEventListener("click",function(){if(!confirm("Radera?"))return;var ps=dc(S.prospects);ps.splice(S.viewIdx,1);ss({prospects:ps,viewIdx:null})});
   var psel=document.getElementById("ps");if(psel)psel.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].status=e.target.value;ss({prospects:ps})});
   document.querySelectorAll(".pp").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx][e.target.dataset.pk]=e.target.value;ss({prospects:ps})})});
-  // Sliders + number inputs for prospect
   document.querySelectorAll(".psl").forEach(function(el){el.addEventListener("input",function(e){var ps=dc(S.prospects);ps[S.viewIdx][e.target.dataset.sk]=N(e.target.value);ss({prospects:ps})})});
   document.querySelectorAll(".pnm").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx][e.target.dataset.sk]=N(e.target.value);ss({prospects:ps})})});
-  // DD
-  document.querySelectorAll(".dd").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);var v=e.target.type==="number"?(N(e.target.value)||null):e.target.value;if(!ps[S.viewIdx].dd)ps[S.viewIdx].dd={};ps[S.viewIdx].dd[e.target.dataset.dk]=v;ss({prospects:ps})})});
-  // Drift
-  document.querySelectorAll(".dri").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].drift[e.target.dataset.drk]=N(e.target.value);ss({prospects:ps})})});
-  // Checklist
+  document.querySelectorAll(".dd").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);var v=e.target.type==="number"?(N(e.target.value)||null):e.target.value;if(!ps[S.viewIdx].dd)ps[S.viewIdx].dd={};ps[S.viewIdx].dd[e.target.dataset.dk]=v;ps[S.viewIdx].dd["_src_"+e.target.dataset.dk]="user";ss({prospects:ps})})});
+  document.querySelectorAll(".dri").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].drift[e.target.dataset.drk]=N(e.target.value);ps[S.viewIdx].drift["_src_"+e.target.dataset.drk]="user";ss({prospects:ps})})});
   document.querySelectorAll(".ckb").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);if(!ps[S.viewIdx].checklist)ps[S.viewIdx].checklist={};ps[S.viewIdx].checklist[e.target.dataset.ck]=e.target.checked;ss({prospects:ps})})});
-  // Auto schabloner
-  var asch=document.getElementById("autoschab");
-  if(asch)asch.addEventListener("click",function(){
-    var ps=dc(S.prospects);var p=ps[S.viewIdx];if(!p)return;var dd=p.dd||{};
-    var boa=N(dd.boarea)||150,bygg=N(dd.byggar)||2000,upv=(dd.uppvarmning||"").toLowerCase();
-    var h=15;if(upv.indexOf("pump")>=0)h=10;else if(upv.indexOf("fjärr")>=0)h=12;else if(upv.indexOf("direkt")>=0)h=20;
-    if(bygg<1990)h=Math.round(h*1.2);
-    p.drift.heat=Math.round(boa*h/12);p.drift.el=Math.round(boa*3);p.drift.water=500;p.drift.waste=300;
-    p.drift.ins=Math.round(300+boa*1.5);
-    var tv=N(dd.taxvarde);p.drift.tax=tv>0?Math.round(Math.min(Math.round(tv*0.0075),10425)/12):869;
-    p.drift.garden=(N(dd.tomtarea)||0)>500?500:300;
+  // URLs
+  var addUrl=document.getElementById("add-url");if(addUrl)addUrl.addEventListener("click",function(){var ps=dc(S.prospects);if(!ps[S.viewIdx].urls)ps[S.viewIdx].urls=[];ps[S.viewIdx].urls.push({src:"hemnet",url:""});ss({prospects:ps})});
+  document.querySelectorAll(".url-val").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].urls[N(e.target.dataset.ui)].url=e.target.value;ss({prospects:ps})})});
+  document.querySelectorAll(".url-src").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].urls[N(e.target.dataset.ui)].src=e.target.value;ss({prospects:ps})})});
+  document.querySelectorAll(".del-url").forEach(function(el){el.addEventListener("click",function(){var ps=dc(S.prospects);ps[S.viewIdx].urls.splice(N(el.dataset.ui),1);ss({prospects:ps})})});
+  var om=document.getElementById("offmarket");if(om)om.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].off_market=e.target.checked;ss({prospects:ps})});
+  // Schabloner
+  var asch=document.getElementById("autoschab");if(asch)asch.addEventListener("click",function(){var ps=dc(S.prospects),p=ps[S.viewIdx];if(!p)return;var dd=p.dd||{};var boa=N(dd.boarea)||150,bygg=N(dd.byggar)||2000,upv=(dd.uppvarmning||"").toLowerCase();var h=15;if(upv.indexOf("pump")>=0)h=10;else if(upv.indexOf("fjärr")>=0)h=12;else if(upv.indexOf("direkt")>=0)h=20;if(bygg<1990)h=Math.round(h*1.2);
+    var count=0;
+    p.drift.heat=Math.round(boa*h/12);p.drift._src_heat="est";count++;
+    p.drift.el=Math.round(boa*3);p.drift._src_el="est";count++;
+    p.drift.water=500;p.drift._src_water="est";count++;
+    p.drift.waste=300;p.drift._src_waste="est";count++;
+    p.drift.ins=Math.round(300+boa*1.5);p.drift._src_ins="est";count++;
+    var tv=N(dd.taxvarde);p.drift.tax=tv>0?Math.round(Math.min(Math.round(tv*0.0075),10425)/12):869;p.drift._src_tax=tv>0?"auth":"est";count++;
+    p.drift.garden=(N(dd.tomtarea)||0)>500?500:300;p.drift._src_garden="est";count++;
     ss({prospects:ps});
+    toast(count+" driftposter beräknade från "+boa+"m² "+(upv||"okänd uppvärmning"));
   });
 }
 
 // === CHARTS ===
-function updateCharts(){
-  for(var k in S.charts){try{S.charts[k].destroy()}catch(e){}}S.charts={};
-  if(S.tab!=="dash"||!S.prospects.length)return;
-  var f=S.family,c=calcFamily(f);var currH=c.housing;
-  var rs=S.prospects.map(function(p){return calcP(f,p)});
-  var tc=S.dark?"#9C9588":"#6B6358",gc=S.dark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)";
-  var C={coral:"#C2532E",amber:"#D4890F",teal:"#1A8A65",purple:"#6B4DAA",blue:"#2E78B7"};
-  var barEl=document.getElementById("dashBar");
-  if(barEl){
-    var labels=[(f.curr_addr||"Nuvarande")];rs.forEach(function(r){labels.push(r.name||"?")});
-    S.charts.bar=new Chart(barEl,{type:"bar",data:{labels:labels,datasets:[
-      {label:"Ränta",data:[N(f.curr_int)].concat(rs.map(function(r){return r.intMonth})),backgroundColor:C.coral},
-      {label:"Drift",data:[N(f.curr_brf)+N(f.curr_garage)].concat(rs.map(function(r){return r.drift})),backgroundColor:C.teal},
-      {label:"Amortering",data:[N(f.curr_amort)].concat(rs.map(function(r){return r.amortMonth})),backgroundColor:C.amber,borderRadius:{topLeft:3,topRight:3}}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},color:tc}},y:{stacked:true,grid:{color:gc},ticks:{font:{size:9},color:tc,callback:function(v){return Math.round(v/1000)+"k"}},border:{display:false}}}}});
-  }
-  var stEl=document.getElementById("dashStress");
-  if(stEl){
-    var rates=[0.02,0.025,0.03,0.035,0.04,0.05,0.06,0.07];
-    var cols=[C.coral,C.teal,C.blue,C.purple,C.amber];
-    var ds=rs.map(function(r,j){return{label:r.name||"?",data:rates.map(function(rate){return Math.round(calcSR(f,S.prospects[j],rate))}),borderColor:cols[j%5],backgroundColor:cols[j%5]+"18",fill:true,tension:0.3,pointRadius:2,borderWidth:2}});
-    S.charts.stress=new Chart(stEl,{type:"line",data:{labels:rates.map(function(r){return(r*100).toFixed(1)+"%"}),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc}}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:tc}},y:{grid:{color:gc},ticks:{font:{size:9},color:tc,callback:function(v){var a=Math.abs(v);return(v<0?"−":"")+(a>=1000?Math.round(a/1000)+"k":a)}},border:{display:false}}}}});
-  }
+function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e){}}S.charts={};if(S.tab!=="dash"||!S.prospects.length)return;
+  var f=S.family,c=calcFamily(f),rs=S.prospects.map(function(p){return calcP(f,p)}),currH=c.housing;
+  var tc=S.dark?"#9C9588":"#6B6358",gc=S.dark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)",C={coral:"#C2532E",amber:"#D4890F",teal:"#1A8A65",purple:"#6B4DAA",blue:"#2E78B7"};
+  var bEl=document.getElementById("dBar");
+  if(bEl){var labels=[(f.curr_addr||"Nuv.")];rs.forEach(function(r){labels.push((r.name||"?").slice(0,12))});
+    S.charts.bar=new Chart(bEl,{type:"bar",data:{labels:labels,datasets:[{label:"Ränta",data:[N(f.curr_int)].concat(rs.map(function(r){return r.intMonth})),backgroundColor:C.coral},{label:"Drift",data:[N(f.curr_brf)+N(f.curr_garage)].concat(rs.map(function(r){return r.drift})),backgroundColor:C.teal},{label:"Amort.",data:[N(f.curr_amort)].concat(rs.map(function(r){return r.amortMonth})),backgroundColor:C.amber,borderRadius:{topLeft:3,topRight:3}}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},color:tc}},y:{stacked:true,grid:{color:gc},ticks:{font:{size:9},color:tc,callback:function(v){return Math.round(v/1000)+"k"}},border:{display:false}}}}})}
+  var sEl=document.getElementById("dStress");
+  if(sEl){var rates=[0.02,0.025,0.03,0.035,0.04,0.05,0.06,0.07],cols=[C.coral,C.teal,C.blue,C.purple,C.amber];
+    S.charts.str=new Chart(sEl,{type:"line",data:{labels:rates.map(function(r){return(r*100).toFixed(1)+"%"}),datasets:rs.map(function(r,j){return{label:(r.name||"?").slice(0,12),data:rates.map(function(rate){return Math.round(calcSR(f,S.prospects[j],rate))}),borderColor:cols[j%5],backgroundColor:cols[j%5]+"18",fill:true,tension:0.3,pointRadius:2,borderWidth:2}})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc}}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:tc}},y:{grid:{color:gc},ticks:{font:{size:9},color:tc,callback:function(v){var a=Math.abs(v);return(v<0?"−":"")+(a>=1000?Math.round(a/1000)+"k":a)}},border:{display:false}}}}})}
 }
 
-if(saved){S.hid=saved;connect(saved)}else render();
+var saved=localStorage.getItem("hid");if(saved){S.hid=saved;connect(saved)}else render();
 </script>
 </body>
 </html>

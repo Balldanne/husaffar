@@ -77,20 +77,21 @@ function ptax(gm,by,c,id=0){const b=gm*12+by,g=ga(b),be=Math.max(0,b-g),sg=64300
 function bb(n){const t={0:0,1:1250,2:2650,3:4480,4:6740,5:9240,6:11740};return n<=0?0:n in t?t[n]:11740+(n-6)*2500}
 
 function calcProspect(f,p){
-  const bba=bb(f.children),sc=p.apt_sale-p.apt_sale*p.apt_cost-.mortgage_exist_val(f),rep=Math.min(p.parent_repay,p.parent_loan),eq=sc-rep;
-  const ta=p.price+p.reno,nm=Math.max(0,ta-eq),er=p.rate_ov!==null?p.rate_ov:f.rate;
-  const im=Math.round(nm*er/12),yi=nm*er;
-  const gi=f.persons.reduce((s,pe)=>s+pe.gm*12+pe.by,0);
-  const ltv=p.price>0?nm/p.price:0,dti=gi>0?(nm+p.parent_loan-rep)/gi:0;
-  let ar=ltv>.7?.02:ltv>.5?.01:0;
-  const ea=p.amort_ov!==null?p.amort_ov:ar,am=Math.round(nm*ea/12);
-  const d=p.drift,dt=Object.values(d).reduce((s,v)=>s+v,0);
-  const op=im+dt,th=op+am;
-  const taxes=f.persons.map((pe,i)=>{const sh=pe.intShare??((i===0)?1:0);return ptax(pe.gm,pe.by,{ks:f.ks,ka:f.ka,ch:pe.church},yi*sh)});
-  const fd=taxes.reduce((s,t)=>s+t.n,0)+bba;
-  const bu=Object.values(f.budget).reduce((s,v)=>s+v,0);
-  const lf=Math.round(p.price*.015)+825,npb=Math.max(0,nm-(p.pantbrev||0)),pb=npb>0?Math.round(npb*.02)+375:0;
-  const surplus=fd-th-bu;
+  var aptSale=f.curr_value||10000000;var aptCost=0.02;var currMtg=f.curr_mortgage||5416460;
+  var bba=bb(f.children);var sc=aptSale-aptSale*aptCost-currMtg;var rep=Math.min(p.parent_repay,p.parent_loan);var eq=sc-rep;
+  var ta=p.price+p.reno;var nm=Math.max(0,ta-eq);var er=(p.rate_ov!==null)?p.rate_ov:f.rate;
+  var im=Math.round(nm*er/12);var yi=nm*er;
+  var gi=f.persons.reduce(function(s,pe){return s+pe.gm*12+pe.by},0);
+  var ltv=p.price>0?nm/p.price:0;var dti=gi>0?(nm+p.parent_loan-rep)/gi:0;
+  var ar=0;if(ltv>0.7){ar=0.02}else if(ltv>0.5){ar=0.01}
+  var ea=(p.amort_ov!==null)?p.amort_ov:ar;var am=Math.round(nm*ea/12);
+  var d=p.drift;var dt=0;for(var k in d){dt+=d[k]||0}
+  var op=im+dt;var th=op+am;
+  var taxes=f.persons.map(function(pe,i){var sh=(pe.intShare!==undefined)?pe.intShare:((i===0)?1:0);return ptax(pe.gm,pe.by,{ks:f.ks,ka:f.ka,ch:pe.church},yi*sh)});
+  var fd=taxes.reduce(function(s,t){return s+t.n},0)+bba;
+  var bu=0;for(var bk in f.budget){bu+=f.budget[bk]||0}
+  var lf=Math.round(p.price*0.015)+825;var npb=Math.max(0,nm-(p.pantbrev||0));var pb=npb>0?Math.round(npb*0.02)+375:0;
+  var surplus=fd-th-bu;
   // Risk score
   const risks=[];let riskScore=0;
   if(ltv>.85){risks.push({t:"Hög belåningsgrad",d:`${(ltv*100).toFixed(0)}% — svårt att få lån`,l:"high"});riskScore+=3}
@@ -99,6 +100,12 @@ function calcProspect(f,p){
   else if(dti>3.5){risks.push({t:"Förhöjd skuldkvot",d:`${dti.toFixed(1)}x`,l:"med"});riskScore+=1}
   if(p.dd.byggar&&p.dd.byggar<1980){risks.push({t:"Äldre hus",d:`Byggt ${p.dd.byggar} — räkna med underhåll`,l:"med"});riskScore+=1}
   if(p.dd.energiklass&&"EFG".includes(p.dd.energiklass)){risks.push({t:"Dålig energiklass",d:`Klass ${p.dd.energiklass} — höga driftkostnader`,l:"med"});riskScore+=1}
+  var yr=new Date().getFullYear();
+  if(p.dd.tak_ar&&(yr-p.dd.tak_ar)>25){risks.push({t:"Tak behöver ses över",d:`${yr-p.dd.tak_ar} år sedan takbyte — livslängd 30-40 år`,l:"med"});riskScore+=1}
+  if(p.dd.fasad_ar&&(yr-p.dd.fasad_ar)>20){risks.push({t:"Fasad kan behöva åtgärd",d:`${yr-p.dd.fasad_ar} år sedan senaste — räkna 100-300k`,l:"med"});riskScore+=1}
+  if(p.dd.vp_ar&&(yr-p.dd.vp_ar)>15){risks.push({t:"Värmepump nära slutet",d:`${yr-p.dd.vp_ar} år gammal — livslängd 15-20 år, byt kostar 80-150k`,l:"med"});riskScore+=1}
+  if(p.dd.badrum_ar&&(yr-p.dd.badrum_ar)>25){risks.push({t:"Badrum behöver renoveras",d:`${yr-p.dd.badrum_ar} år gammalt — tätskikt åldras`,l:"med"});riskScore+=1}
+  if(!p.dd.tak_ar&&p.dd.byggar&&(yr-p.dd.byggar)>30){risks.push({t:"Okänt takskick",d:`Huset ${yr-p.dd.byggar} år — fråga om tak`,l:"med"});riskScore+=1}
   if(surplus<0){risks.push({t:"Negativt överskott",d:`${fSEK(surplus)}/mån — inte hållbart`,l:"high"});riskScore+=3}
   else if(surplus<5000){risks.push({t:"Tight marginal",d:`Bara ${fSEK(surplus)}/mån kvar`,l:"med"});riskScore+=1}
   // Stress
@@ -107,18 +114,20 @@ function calcProspect(f,p){
   if(risks.length===0)risks.push({t:"Inga större risker identifierade",d:"God marginal och rimlig belåning",l:"low"});
   const riskLevel=riskScore>=4?"high":riskScore>=2?"med":"low";
   // Missing data
-  const missing=[];
-  if(!p.dd.byggar)missing.push("Byggår");if(!p.dd.energiklass)missing.push("Energiklass");if(!p.dd.tomtarea)missing.push("Tomtarea");if(!p.dd.uppvarmning)missing.push("Uppvärmningstyp");if(!p.dd.taxvarde)missing.push("Taxeringsvärde");
+  var missing=[];
+  if(!p.dd.byggar)missing.push("Byggår");if(!p.dd.energiklass)missing.push("Energiklass");if(!p.dd.tomtarea)missing.push("Tomtarea");if(!p.dd.uppvarmning)missing.push("Uppvärmningstyp");if(!p.dd.taxvarde)missing.push("Taxeringsvärde");if(!p.dd.boarea)missing.push("Boarea");if(!p.dd.vatten_avlopp)missing.push("Vatten/avlopp");if(!p.dd.tak_ar&&p.dd.byggar&&p.dd.byggar<2000)missing.push("Tak (senaste åtgärd)");
   return{name:p.name,price:p.price,reno:p.reno,mortgage:nm,rate:er,intMonth:im,amortRate:ea,amortMonth:am,drift:dt,driftItems:d,opCost:op,totalHousing:th,disp:fd,bb:bba,ltv,dti,surplus,lagfart:lf,pantbrev:pb,txCost:lf+pb,equity:eq,parentRem:p.parent_loan-rep,risks,riskLevel,riskScore,missing,taxes,gross:gi,budget:bu,s5,s7}
 }
 function calcSurplusAtRate(f,p,rate){
-  const bba=bb(f.children),sc=p.apt_sale-p.apt_sale*p.apt_cost-mortgage_exist_val(f),rep=Math.min(p.parent_repay,p.parent_loan),eq=sc-rep;
-  const nm=Math.max(0,p.price+p.reno-eq),im=Math.round(nm*rate/12);
-  const ltv=p.price>0?nm/p.price:0;let ar=ltv>.7?.02:ltv>.5?.01:0;
-  const am=Math.round(nm*ar/12),dt=Object.values(p.drift).reduce((s,v)=>s+v,0);
-  const taxes=f.persons.map((pe,i)=>ptax(pe.gm,pe.by,{ks:f.ks,ka:f.ka,ch:pe.church},nm*rate*(pe.intShare??((i===0)?1:0))));
-  const fd=taxes.reduce((s,t)=>s+t.n,0)+bba;
-  return fd-(im+dt+am)-Object.values(f.budget).reduce((s,v)=>s+v,0);
+  var aptSale=f.curr_value||10000000;var currMtg=f.curr_mortgage||5416460;
+  var bba=bb(f.children);var sc=aptSale-aptSale*0.02-currMtg;var rep=Math.min(p.parent_repay,p.parent_loan);var eq=sc-rep;
+  var nm=Math.max(0,p.price+p.reno-eq);var im=Math.round(nm*rate/12);
+  var ltv=p.price>0?nm/p.price:0;var ar=0;if(ltv>0.7){ar=0.02}else if(ltv>0.5){ar=0.01}
+  var am=Math.round(nm*ar/12);var dt=0;for(var k in p.drift){dt+=p.drift[k]||0}
+  var taxes=f.persons.map(function(pe,i){var sh=(pe.intShare!==undefined)?pe.intShare:((i===0)?1:0);return ptax(pe.gm,pe.by,{ks:f.ks,ka:f.ka,ch:pe.church},nm*rate*sh)});
+  var fd=taxes.reduce(function(s,t){return s+t.n},0)+bba;
+  var bu=0;for(var bk in f.budget){bu+=f.budget[bk]||0}
+  return fd-(im+dt+am)-bu;
 }
 function mortgage_exist_val(f){return f.curr_mortgage||5416460}
 
@@ -132,7 +141,7 @@ curr_int:10100,curr_amort:5400,curr_brf:12307,curr_garage:1250,curr_mortgage:541
 budget:{mat:9000,hushall:3000,transport:5000,forskola:2620,klader:2500,nojen:3000,forsakring:2500,abo:2000,spar:5000,ovrigt:3000}};
 const PDEF={name:"",addr:"",notes:"",status:"intressant",apt_sale:10000000,apt_cost:.02,parent_loan:1200000,parent_repay:1200000,price:0,reno:0,
 drift:{heat:2000,el:1500,water:500,waste:300,ins:500,tax:869,garden:500,other:0},rate_ov:null,amort_ov:null,pantbrev:0,
-dd:{byggar:null,energiklass:"",boarea:null,tomtarea:null,uppvarmning:"",taxvarde:null,rum:null,hustyp:"",beskrivning:"",visning_notes:"",maklare_fragor:""}};
+dd:{byggar:null,energiklass:"",energiprestanda:null,boarea:null,biarea:null,tomtarea:null,uppvarmning:"",taxvarde:null,rum:null,vaningar:null,hustyp:"",vatten_avlopp:"",senaste_reno:"",tak_ar:null,fasad_ar:null,vp_ar:null,badrum_ar:null,beskrivning:"",visning_notes:"",maklare_fragor:"",hemnet_url:"",pris_m2:null}};
 const DRIFT_L={heat:"Uppvärmning",el:"El",water:"Vatten/avlopp",waste:"Sopor",ins:"Försäkring",tax:"Fastighetsavg.",garden:"Tomt",other:"Övrigt"};
 const BUD_L={mat:"Mat",hushall:"Hushåll",transport:"Transport",forskola:"Förskola",klader:"Kläder",nojen:"Nöjen",forsakring:"Försäkring",abo:"Abonnemang",spar:"Sparande",ovrigt:"Övrigt"};
 const STATUS_L={intressant:"Intressant",visning:"Visning bokad",budgivning:"Budgivning",avvakta:"Avvakta",avslag:"Avslag"};
@@ -354,17 +363,46 @@ function rProspectDetail(f){
   </div></div>
 
   <div class="card"><div class="card-b" style="padding-top:12px">
-    <div style="font-size:11px;font-weight:600">🔎 Due diligence</div>
-    <div class="fg fg3 mt6">
+    <div class="flex aic jcb"><div style="font-size:11px;font-weight:600">🔎 Due diligence</div><button class="btn btn-s btn-sm" id="autoschab">⚡ Beräkna schabloner</button></div>
+    <div style="font-size:10px;color:var(--fg3);margin:4px 0 8px">Fyll i det du vet — saknade fält markeras som frågor till mäklaren</div>
+
+    <div style="font-size:10px;font-weight:600;color:var(--coral);margin-bottom:4px">Grunddata</div>
+    <div class="fg fg4 mt6">
       <div class="fi"><label><span class="prov"><span class="d" style="background:var(--blue)"></span>Annons</span> Byggår</label><input type="number" value="${p.dd.byggar||""}" data-dk="byggar" class="dd" placeholder="—"></div>
       <div class="fi"><label><span class="prov"><span class="d" style="background:var(--blue)"></span>Annons</span> Boarea m²</label><input type="number" value="${p.dd.boarea||""}" data-dk="boarea" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Biarea m²</label><input type="number" value="${p.dd.biarea||""}" data-dk="biarea" class="dd" placeholder="—"></div>
       <div class="fi"><label>Tomtarea m²</label><input type="number" value="${p.dd.tomtarea||""}" data-dk="tomtarea" class="dd" placeholder="—"></div>
     </div>
-    <div class="fg fg3 mt6">
-      <div class="fi"><label>Energiklass</label><input value="${p.dd.energiklass||""}" data-dk="energiklass" class="dd" placeholder="A-G"></div>
-      <div class="fi"><label>Uppvärmning</label><input value="${p.dd.uppvarmning||""}" data-dk="uppvarmning" class="dd" placeholder="Fjärrvärme, VP..."></div>
-      <div class="fi"><label><span class="prov"><span class="d" style="background:var(--green)"></span>Mynd.</span> Taxeringsvärde</label><input type="number" value="${p.dd.taxvarde||""}" data-dk="taxvarde" class="dd" placeholder="—"></div>
+    <div class="fg fg4 mt6">
+      <div class="fi"><label>Antal rum</label><input type="number" value="${p.dd.rum||""}" data-dk="rum" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Våningar</label><input type="number" value="${p.dd.vaningar||""}" data-dk="vaningar" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Hustyp</label><input value="${p.dd.hustyp||""}" data-dk="hustyp" class="dd" placeholder="Villa, radhus..."></div>
+      <div class="fi"><label>Pris/m²</label><input type="number" value="${p.dd.pris_m2||(p.dd.boarea&&p.price?Math.round(p.price/p.dd.boarea):"")}" data-dk="pris_m2" class="dd" placeholder="auto"></div>
     </div>
+
+    <div style="font-size:10px;font-weight:600;color:var(--teal);margin:10px 0 4px">Energi & teknik</div>
+    <div class="fg fg3 mt6">
+      <div class="fi"><label><span class="prov"><span class="d" style="background:var(--green)"></span>Mynd.</span> Energiklass</label><input value="${p.dd.energiklass||""}" data-dk="energiklass" class="dd" placeholder="A-G"></div>
+      <div class="fi"><label>kWh/m²/år</label><input type="number" value="${p.dd.energiprestanda||""}" data-dk="energiprestanda" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Uppvärmning</label><input value="${p.dd.uppvarmning||""}" data-dk="uppvarmning" class="dd" placeholder="Fjärrvärme, VP..."></div>
+    </div>
+    <div class="fg fg3 mt6">
+      <div class="fi"><label>Vatten/avlopp</label><input value="${p.dd.vatten_avlopp||""}" data-dk="vatten_avlopp" class="dd" placeholder="Kommunalt, enskilt..."></div>
+      <div class="fi"><label><span class="prov"><span class="d" style="background:var(--green)"></span>Mynd.</span> Taxeringsvärde</label><input type="number" value="${p.dd.taxvarde||""}" data-dk="taxvarde" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Hemnet/Booli URL</label><input value="${p.dd.hemnet_url||""}" data-dk="hemnet_url" class="dd" placeholder="https://..."></div>
+    </div>
+
+    <div style="font-size:10px;font-weight:600;color:var(--amber);margin:10px 0 4px">Underhållshistorik (senaste åtgärd)</div>
+    <div class="fg fg4 mt6">
+      <div class="fi"><label>Tak (år)</label><input type="number" value="${p.dd.tak_ar||""}" data-dk="tak_ar" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Fasad (år)</label><input type="number" value="${p.dd.fasad_ar||""}" data-dk="fasad_ar" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Värmepump (år)</label><input type="number" value="${p.dd.vp_ar||""}" data-dk="vp_ar" class="dd" placeholder="—"></div>
+      <div class="fi"><label>Badrum (år)</label><input type="number" value="${p.dd.badrum_ar||""}" data-dk="badrum_ar" class="dd" placeholder="—"></div>
+    </div>
+
+    <div class="fi mt8"><label>Anteckningar (visning, iakttagelser)</label><textarea data-dk="visning_notes" class="dd" placeholder="T.ex: Bra kök, gammalt tak, bullrig gata, fin trädgård...">${p.dd.visning_notes||""}</textarea></div>
+    <div class="fi mt6"><label>Frågor till mäklaren</label><textarea data-dk="maklare_fragor" class="dd" placeholder="T.ex: Senaste takbyte? Radonmätning? Servitut? Dolda fel?">${p.dd.maklare_fragor||""}</textarea></div>
+    ${r.missing.length?`<div class="quest mt8">📋 <b>Saknar data:</b> ${r.missing.join(", ")} — fråga mäklaren eller kolla Lantmäteriet/Energideklarationsregistret</div>`:""}
     <div class="fi mt6"><label>Anteckningar (visning, iakttagelser)</label><textarea data-dk="visning_notes" class="dd" placeholder="T.ex: Bra kök, dåligt tak, bullrig gata...">${p.dd.visning_notes||""}</textarea></div>
     <div class="fi mt6"><label>Frågor till mäklaren</label><textarea data-dk="maklare_fragor" class="dd" placeholder="T.ex: Senaste takbyte? Radonmätning? Servitut?">${p.dd.maklare_fragor||""}</textarea></div>
     ${r.missing.length?`<div class="quest mt8">📋 Saknar data: ${r.missing.join(", ")} — bra att fråga mäklaren eller kolla Lantmäteriet</div>`:""}
@@ -423,6 +461,21 @@ function bind(){
   document.querySelectorAll(".ps").forEach(el=>el.addEventListener("input",e=>{const ps=dc(S.prospects);ps[S.viewIdx][e.target.dataset.sk]=+e.target.value;ss({prospects:ps})}));
   document.querySelectorAll(".dd").forEach(el=>el.addEventListener("change",e=>{const ps=dc(S.prospects);const v=e.target.type==="number"?(+e.target.value||null):e.target.value;ps[S.viewIdx].dd[e.target.dataset.dk]=v;ss({prospects:ps})}));
   document.querySelectorAll(".dri").forEach(el=>el.addEventListener("change",e=>{const ps=dc(S.prospects);ps[S.viewIdx].drift[e.target.dataset.drk]=Math.max(0,+e.target.value||0);ss({prospects:ps})}));
+  // Auto schabloner
+  document.getElementById("autoschab")?.addEventListener("click",function(){
+    var ps=dc(S.prospects);var p=ps[S.viewIdx];if(!p)return;
+    var boa=p.dd.boarea||150;var bygg=p.dd.byggar||2000;var upv=(p.dd.uppvarmning||"").toLowerCase();
+    var heatSqm=15;if(upv.indexOf("pump")>=0||upv.indexOf("frånluft")>=0)heatSqm=10;else if(upv.indexOf("fjärr")>=0)heatSqm=12;else if(upv.indexOf("direkt")>=0)heatSqm=20;
+    if(bygg<1990)heatSqm=Math.round(heatSqm*1.2);
+    p.drift.heat=Math.round(boa*heatSqm/12);
+    p.drift.el=Math.round(boa*3);
+    p.drift.water=500;p.drift.waste=300;
+    p.drift.ins=Math.round(300+boa*1.5);
+    var tv=p.dd.taxvarde||0;var avgAr=tv>0?Math.min(Math.round(tv*0.0075),10425):10425;
+    p.drift.tax=Math.round(avgAr/12);
+    p.drift.garden=(p.dd.tomtarea||0)>500?500:300;
+    ss({prospects:ps});
+  });
 }
 
 // CHARTS

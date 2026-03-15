@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Husaffär & Familjeekonomi</title>
+<meta name="description" content="Simulera husaffär, bolån och driftkostnader för svensk familjeekonomi">
+<meta name="theme-color" content="#C2532E">
+<link rel="manifest" href="data:application/json,{}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#FDFBF7;--bg2:#F7F3EC;--fg:#2D2519;--fg2:#6B6358;--fg3:#9C9588;--border:#E8E3DA;--card:#FFFFFF;--coral:#C2532E;--coral-light:#FAECE7;--amber:#D4890F;--amber-light:#FFF4DE;--teal:#1A8A65;--teal-light:#E6F5EE;--purple:#6B4DAA;--blue:#2E78B7;--rose:#C04050;--rose-light:#FCE8EB;--radius:12px;--font:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}
+.dark{--bg:#141210;--bg2:#1E1B17;--fg:#E8E3DA;--fg2:#9C9588;--fg3:#6B6358;--border:#2D2A24;--card:#1E1B17;--coral:#E07050;--coral-light:#2D1A14;--amber:#F0A030;--amber-light:#2D2214;--teal:#3DB88A;--teal-light:#142D22;--purple:#9B7DD8;--blue:#5098D8;--rose:#E06070;--rose-light:#2D141A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--fg);line-height:1.5;-webkit-font-smoothing:antialiased}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+.app{max-width:900px;margin:0 auto;padding:0 12px 40px}
+/* Header */
+.header{position:sticky;top:0;z-index:50;background:rgba(253,251,247,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);margin:0 -12px;padding:0 12px}
+.dark .header{background:rgba(20,18,16,.9)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;height:52px}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--coral),var(--amber));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
+.header-title{margin-left:10px;flex:1;min-width:0}
+.header-title h1{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-title p{font-size:10px;color:var(--fg2)}
+.header-pills{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.pill{font-size:10px;padding:3px 8px;border-radius:20px;background:var(--bg2);color:var(--fg2);white-space:nowrap}
+.pill b{font-weight:600;color:var(--fg)}
+.pill.green b{color:var(--teal)}
+.pill.red b{color:var(--rose)}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:none;color:var(--fg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+.icon-btn:hover{background:var(--bg2)}
+/* Login */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:16px;text-align:center;padding:20px}
+.login-screen h2{font-size:20px;font-weight:600}
+.login-screen p{font-size:13px;color:var(--fg2);max-width:360px}
+.login-input{width:100%;max-width:300px;height:40px;border-radius:10px;border:1px solid var(--border);padding:0 14px;font-size:14px;font-family:var(--mono);text-align:center;background:var(--card);color:var(--fg)}
+.login-input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(194,83,46,.15)}
+.btn{height:40px;padding:0 20px;border-radius:10px;border:none;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.btn-primary{background:linear-gradient(135deg,var(--coral),#D4650F);color:#fff;box-shadow:0 2px 8px rgba(194,83,46,.25)}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-secondary{background:var(--bg2);color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-sm{height:32px;padding:0 12px;font-size:12px;border-radius:8px}
+.btn-danger{background:var(--rose-light);color:var(--rose)}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none}
+.card-header:hover{background:var(--bg2)}
+.card-body{padding:0 16px 16px}
+.section-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.icon-warm{background:var(--coral-light);color:var(--coral)}
+.icon-teal{background:var(--teal-light);color:var(--teal)}
+.icon-amber{background:var(--amber-light);color:var(--amber)}
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
+@media(min-width:640px){.metrics{grid-template-columns:repeat(4,1fr)}}
+.metric{background:var(--bg2);border-radius:var(--radius);padding:12px 14px}
+.metric-label{font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px}
+.metric-value{font-size:18px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.metric-sub{font-size:10px;color:var(--fg3);margin-top:2px}
+.metric-value.green{color:var(--teal)}
+.metric-value.red{color:var(--rose)}
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:var(--radius);margin:12px 0}
+.tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;color:var(--fg2);transition:all .15s;border:none;background:none;font-family:var(--font)}
+.tab.active{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+/* Form */
+.form-grid{display:grid;gap:10px}
+.form-grid-2{grid-template-columns:1fr 1fr}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+@media(max-width:640px){.form-grid-3,.form-grid-4{grid-template-columns:1fr 1fr}}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:10px;color:var(--fg2);display:flex;align-items:center;gap:4px}
+.field input,.field select{height:30px;border-radius:8px;border:1px solid var(--border);padding:0 8px;font-size:12px;font-family:var(--mono);background:var(--card);color:var(--fg)}
+.field input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(194,83,46,.12)}
+/* Slider */
+.slider-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.slider-row label{font-size:11px;color:var(--fg2);min-width:100px;flex-shrink:0}
+.slider-row input[type=range]{flex:1;accent-color:var(--coral);height:6px}
+.slider-row .slider-val{font-size:12px;font-family:var(--mono);font-weight:500;min-width:80px;text-align:right}
+/* Scenario card */
+.scenario-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.scenario-name{font-size:14px;font-weight:600}
+.scenario-addr{font-size:11px;color:var(--fg2)}
+.scenario-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.stat{text-align:center;background:var(--bg2);border-radius:8px;padding:8px 4px}
+.stat-label{font-size:10px;color:var(--fg2)}
+.stat-value{font-size:14px;font-weight:600;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.stat-value.green{color:var(--teal)}
+.stat-value.amber{color:var(--amber)}
+.stat-value.red{color:var(--rose)}
+/* Cost bar */
+.cost-bar{background:var(--bg2);border-radius:10px;padding:10px 12px;margin-top:10px}
+.cost-bar-header{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+.cost-bar-header span{color:var(--fg2)}
+.cost-bar-header b{color:var(--fg);font-weight:600}
+.bar-track{height:5px;border-radius:3px;background:var(--border);overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.cost-checks{display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:6px}
+.cost-check{font-size:10px;display:flex;align-items:center;gap:3px;color:var(--fg2)}
+.dot{width:6px;height:6px;border-radius:50%}
+.dot-ok{background:var(--teal)}
+.dot-no{background:var(--border)}
+/* Chart */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.chart-title{font-size:12px;font-weight:500;color:var(--fg2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chart-wrap{position:relative;height:200px}
+/* Table */
+.compare-table{width:100%;border-collapse:collapse;font-size:12px}
+.compare-table th{text-align:right;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--fg2);font-weight:500;border-bottom:1px solid var(--border)}
+.compare-table th:first-child{text-align:left}
+.compare-table td{padding:6px 10px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--mono);font-size:11px}
+.compare-table td:first-child{text-align:left;font-family:var(--font);color:var(--fg2)}
+.compare-table tr:hover td{background:var(--bg2)}
+/* Preview */
+.preview{background:var(--bg2);border-radius:var(--radius);padding:12px 14px;margin-top:12px}
+.preview h4{font-size:12px;font-weight:500;color:var(--fg2);margin-bottom:8px}
+.preview-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 16px}
+@media(min-width:640px){.preview-grid{grid-template-columns:repeat(4,1fr)}}
+.preview-item{font-size:11px}
+.preview-item span{color:var(--fg2);display:block}
+.preview-item b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+/* Drift grid */
+.drift-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:640px){.drift-grid{grid-template-columns:repeat(4,1fr)}}
+/* Person card */
+.person-card{background:var(--bg2);border-radius:var(--radius);padding:12px 14px}
+.person-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.avatar-0{background:#EEEDFE;color:#534AB7}.dark .avatar-0{background:#26215C;color:#AFA9EC}
+.avatar-1{background:#E1F5EE;color:#0F6E56}.dark .avatar-1{background:#04342C;color:#5DCAA5}
+.person-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px}
+.person-row+.person-row{border-top:1px solid var(--border)}
+.person-row span{color:var(--fg2)}
+.person-row b{font-family:var(--mono);font-weight:500}
+/* Misc */
+.empty{text-align:center;padding:40px 20px;color:var(--fg2)}
+.empty-icon{font-size:36px;opacity:.3;margin-bottom:8px}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+.hidden{display:none}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.gap8{gap:8px}.gap12{gap:12px}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}
+.text-xs{font-size:11px}.text-sm{font-size:12px}.text-muted{color:var(--fg2)}
+.font-mono{font-family:var(--mono)}.font-medium{font-weight:500}.font-semibold{font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ═══════════════════════════════════════════
+//  FIREBASE CONFIG
+// ═══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDmQKsqqai1DKB2sJ4F0hIbX1EbknLNpA4",
+  authDomain: "hus-och-budget.firebaseapp.com",
+  databaseURL: "https://hus-och-budget-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hus-och-budget",
+  storageBucket: "hus-och-budget.firebasestorage.app",
+  messagingSenderId: "1019610713349",
+  appId: "1:1019610713349:web:26c9ec60dfd8009c1b3b6c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ═══════════════════════════════════════════
+//  SWEDISH TAX ENGINE 2026
+// ═══════════════════════════════════════════
+const PBB=58800;
+function grundavdrag(inc){if(inc<=0)return 0;if(inc<=.99*PBB)return Math.round(.423*PBB);if(inc<=2.72*PBB)return Math.round(.423*PBB+.2*(inc-.99*PBB));if(inc<=3.41*PBB)return Math.round(.77*PBB);if(inc<=8.08*PBB)return Math.round(.77*PBB-.1*(inc-3.41*PBB));return Math.max(Math.round(.293*PBB),17400)}
+function jsa(inc,ks){if(inc<=0)return 0;if(inc<=.91*PBB)return Math.round(ks*inc);if(inc<=3.24*PBB)return Math.round(ks*.91*PBB+.332*(inc-.91*PBB));if(inc<=8.08*PBB)return Math.round(ks*.91*PBB+.332*(3.24-.91)*PBB);if(inc<=13.54*PBB)return Math.round(Math.max(0,ks*.91*PBB+.332*(3.24-.91)*PBB-.03*(inc-8.08*PBB)));return Math.round(Math.max(0,ks*.91*PBB+.332*(3.24-.91)*PBB-.03*(13.54-8.08)*PBB))}
+function personTax(gm,by,cfg,intDed=0){const ba=gm*12+by,ga=grundavdrag(ba),besk=Math.max(0,ba-ga),sg=643000,ks=Math.round(besk*cfg.ks),ss=besk>sg?Math.round((besk-sg)*.2):0,pa=Math.round(Math.min(ba,590700)*.07),ka=cfg.church?Math.round(besk*cfg.ka):0,beg=Math.round(besk*.00293),ps=Math.min(Math.round(besk*.01),1349),tot=ks+ss+pa+ka+beg+ps;let rk=0;if(intDed>0)rk=intDed<=1e5?Math.round(intDed*.3):Math.round(1e5*.3+(intDed-1e5)*.21);const red=jsa(ba,cfg.ks)+pa+1500+rk,slut=Math.max(0,tot-red),mg=ba>(sg+ga)?cfg.ks+.2:cfg.ks;return{netto:Math.round((ba-slut)/12),brutto:Math.round(ba/12),slut,ks:ks,ss,ka,mg:Math.round(mg*1000)/1000}}
+function barnbidrag(n){const t={0:0,1:1250,2:2650,3:4480,4:6740,5:9240,6:11740};return n<=0?0:n in t?t[n]:11740+(n-6)*2500}
+function computeScenario(f,inp){const bb=barnbidrag(f.children),sc=inp.apt_sale-inp.apt_sale*inp.apt_cost_rate-inp.mortgage_exist,rep=Math.min(inp.parent_repay,inp.parent_loan),eq=sc-rep,ta=inp.price+inp.reno,nm=Math.max(0,ta-eq),er=inp.rate_override!==null?inp.rate_override:f.rate,im=Math.round(nm*er/12),yi=nm*er,gi=f.persons.reduce((s,p)=>s+p.gm*12+p.by,0),ltv=inp.price>0?nm/inp.price:0,dti=gi>0?(nm+inp.parent_loan-rep)/gi:0;let ar=ltv>.7?.02:ltv>.5?.01:0,ae=ltv>.7?`2% (LTV ${(ltv*100).toFixed(1)}%>70%)`:ltv>.5?`1% (LTV 50-70%)`:`0% (LTV<50%)`;const ea=inp.amort_override!==null?inp.amort_override:ar,am=Math.round(nm*ea/12),d=inp.drift,dt=d.heat+d.el+d.water+d.waste+d.ins+d.tax+d.garden+d.other,op=im+dt,th=op+am;const co=f.curr_int+f.curr_brf+f.curr_garage,ct=co+f.curr_amort;const b=f.budget,tb=Object.values(b).reduce((s,v)=>s+v,0);const pts=f.persons.map((p,i)=>{const share=p.intShare??((i===0)?1:0);return personTax(p.gm,p.by,{ks:f.ks,ka:f.ka,church:p.church},yi*share)});const fd=pts.reduce((s,t)=>s+t.netto,0)+bb;const lf=Math.round(inp.price*.015)+825,npb=Math.max(0,nm-(inp.pantbrev||0)),pb=npb>0?Math.round(npb*.02)+375:0;return{name:inp.name,addr:inp.addr,price:inp.price,reno:inp.reno,apt:inp.apt_sale,net:sc,equity:eq,mortgage:nm,rate:er,intMonth:im,amortRate:ea,amortMonth:am,amortExpl:inp.amort_override!==null?`Manuell ${(ea*100).toFixed(1)}%`:ae,drift:dt,driftItems:d,opCost:op,totalHousing:th,currOp:co,currTotal:ct,diffOp:op-co,diffTotal:th-ct,budget:b,totalBudget:tb,disp:fd,bb,ltv:Math.round(ltv*1000)/1000,dti:Math.round(dti*10)/10,gross:gi,surplus:fd-th-tb,lagfart:lf,pantbrev:pb,txCost:lf+pb,parentRem:inp.parent_loan-rep,personTaxes:pts}}
+
+// ═══════════════════════════════════════════
+//  DEFAULTS
+// ═══════════════════════════════════════════
+const FAMILY_DEF={persons:[{name:"Daniel",gm:77500,by:77500,church:true,intShare:1},{name:"Malin",gm:41100,by:0,church:true,intShare:0}],ks:.326,ka:.0085,rate:.022,children:2,curr_int:10100,curr_amort:5400,curr_brf:12307,curr_garage:1250,budget:{mat:9000,hushall:3000,transport:5000,forskola:2620,klader:2500,nojen:3000,forsakring:2500,abo:2000,spar:5000,ovrigt:3000}};
+const SCEN_DEF={name:"",addr:"",notes:"",apt_sale:10000000,apt_cost_rate:.02,mortgage_exist:5416460,parent_loan:1200000,parent_repay:1200000,price:11000000,reno:500000,drift:{heat:2000,el:1500,water:500,waste:300,ins:500,tax:869,garden:500,other:0},rate_override:null,amort_override:null,pantbrev:0};
+const DRIFT_LABELS={heat:"Uppvärmning",el:"El",water:"Vatten/avlopp",waste:"Sopor",ins:"Försäkring",tax:"Fastighetsavg.",garden:"Tomtskötsel",other:"Övrigt"};
+const BUDGET_LABELS={mat:"Mat",hushall:"Hushåll",transport:"Transport",forskola:"Förskola",klader:"Kläder",nojen:"Nöjen/semester",forsakring:"Försäkring",abo:"Abonnemang",spar:"Sparande",ovrigt:"Övrigt"};
+
+// ═══════════════════════════════════════════
+//  FORMATTERS
+// ═══════════════════════════════════════════
+const fSEK=v=>Math.abs(v)>=1e6?`${(v/1e6).toFixed(2)} mkr`:`${Math.round(v).toLocaleString("sv-SE")} kr`;
+const fNum=v=>Math.round(v).toLocaleString("sv-SE");
+const fPct=(v,d=1)=>`${(v*100).toFixed(d)}%`;
+
+// ═══════════════════════════════════════════
+//  APP STATE
+// ═══════════════════════════════════════════
+let state={screen:"login",dark:false,householdId:"",family:JSON.parse(JSON.stringify(FAMILY_DEF)),scenarios:[],input:JSON.parse(JSON.stringify(SCEN_DEF)),tab:"create",familyOpen:false,editId:null,charts:{}};
+let dbRef=null;
+let skipSync=false;
+
+function setState(patch){Object.assign(state,patch);render();if(state.screen==="app"&&dbRef&&!skipSync){dbRef.set({family:state.family,scenarios:state.scenarios})}}
+function deepClone(o){return JSON.parse(JSON.stringify(o))}
+
+// ═══════════════════════════════════════════
+//  FIREBASE SYNC
+// ═══════════════════════════════════════════
+function connectHousehold(id){
+  dbRef=db.ref("households/"+id);
+  dbRef.on("value",snap=>{
+    const d=snap.val();
+    if(!d)return;
+    skipSync=true;
+    if(d.family)state.family={...FAMILY_DEF,...d.family,persons:d.family.persons||FAMILY_DEF.persons,budget:d.family.budget?{...FAMILY_DEF.budget,...d.family.budget}:FAMILY_DEF.budget};
+    if(d.scenarios)state.scenarios=d.scenarios;
+    state.screen="app";
+    skipSync=false;
+    render();
+    updateCharts();
+  });
+  // Initialize if empty
+  dbRef.once("value",snap=>{if(!snap.val()){dbRef.set({family:state.family,scenarios:[]})}});
+  state.screen="app";
+  localStorage.setItem("husaffar_hid",id);
+  render();
+}
+
+// Auto-login
+const savedHid=localStorage.getItem("husaffar_hid");
+
+// ═══════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════
+function render(){
+  const app=document.getElementById("app");
+  app.className=state.dark?"dark":"";
+  if(state.screen==="login")return renderLogin(app);
+  renderApp(app);
+}
+
+function renderLogin(el){
+  const hid=state.householdId;
+  el.innerHTML=`<div class="login-screen">
+    <div class="logo" style="width:64px;height:64px;border-radius:16px;font-size:28px">🏠</div>
+    <h2>Husaffär & Familjeekonomi</h2>
+    <p>Ange ert hushålls-ID för att komma åt er delade data. Första gången? Välj valfri kod (min 6 tecken) — den blir ert lösenord.</p>
+    <input class="login-input" id="hid-input" type="text" placeholder="t.ex. familjen-andersson-2025" value="${hid}" minlength="6">
+    <button class="btn btn-primary" id="hid-btn">Anslut</button>
+    <p style="font-size:11px;color:var(--fg3);margin-top:8px">Datan synkas i realtid mellan alla enheter med samma ID</p>
+  </div>`;
+  document.getElementById("hid-input").addEventListener("input",e=>{state.householdId=e.target.value});
+  document.getElementById("hid-btn").addEventListener("click",()=>{
+    const id=state.householdId.trim();
+    if(id.length<6)return alert("Hushålls-ID måste vara minst 6 tecken");
+    connectHousehold(id);
+  });
+  document.getElementById("hid-input").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("hid-btn").click()});
+}
+
+function renderApp(el){
+  const f=state.family,s=state.scenarios;
+  // KPIs
+  const taxes=f.persons.map(p=>personTax(p.gm,p.by,{ks:f.ks,ka:f.ka,church:p.church}));
+  const bb=barnbidrag(f.children);
+  const netto=taxes.reduce((s,t)=>s+t.netto,0);
+  const disp=netto+bb;
+  const budgetTot=Object.values(f.budget).reduce((s,v)=>s+v,0);
+  const housing=f.curr_int+f.curr_amort+f.curr_brf+f.curr_garage;
+  const surplus=disp-budgetTot-housing;
+
+  el.innerHTML=`
+  <div class="app">
+    <div class="header"><div class="header-inner">
+      <div class="flex items-center" style="min-width:0">
+        <div class="logo">🏠</div>
+        <div class="header-title"><h1>Husaffär & Familjeekonomi</h1><p>Simulera, jämför, besluta</p></div>
+      </div>
+      <div class="header-pills">
+        <span class="pill hidden-mobile">Disp <b>${fSEK(disp)}</b></span>
+        <span class="pill ${surplus>=0?"green":"red"}">Översk <b>${surplus>=0?"+":""}${fSEK(surplus)}</b></span>
+        <button class="icon-btn" id="toggle-dark">${state.dark?"☀️":"🌙"}</button>
+        <button class="icon-btn" id="logout-btn" title="Byt hushåll">🔑</button>
+      </div>
+    </div></div>
+
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">💰 Nettoinkomst</div><div class="metric-value">${fSEK(disp)}</div><div class="metric-sub">/mån efter skatt + barnbidrag</div></div>
+      <div class="metric"><div class="metric-label">👶 Barnbidrag</div><div class="metric-value">${fSEK(bb)}</div><div class="metric-sub">${f.children} barn</div></div>
+      <div class="metric"><div class="metric-label">🛒 Budget</div><div class="metric-value">${fSEK(budgetTot)}</div><div class="metric-sub">10 poster</div></div>
+      <div class="metric"><div class="metric-label">${surplus>=0?"📈":"📉"} Överskott</div><div class="metric-value ${surplus>=0?"green":"red"}">${surplus>=0?"+":""}${fSEK(surplus)}</div><div class="metric-sub">efter alla kostnader</div></div>
+    </div>
+
+    <div id="charts-area">${s.length>0?`
+      <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr" class="chart-row-grid">
+        <div class="chart-card"><div class="chart-title">📊 Boendekostnad per scenario</div><div class="chart-wrap"><canvas id="barChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">🥧 Kostnadsfördelning</div><div class="chart-wrap"><canvas id="donutChart"></canvas></div></div>
+      </div>
+      <div class="chart-card"><div class="chart-title">⚠️ Stresstest — överskott vid stigande räntor</div><div class="chart-wrap"><canvas id="stressChart"></canvas></div></div>
+    `:""}</div>
+
+    <div class="card">
+      <div class="card-header" id="family-toggle">
+        <div class="flex items-center gap8"><div class="section-icon icon-warm">👥</div><span class="font-medium text-sm">Familjeekonomi</span></div>
+        <div class="flex items-center gap8"><span class="text-xs text-muted font-mono">${fSEK(disp)}/mån</span><span>${state.familyOpen?"▲":"▼"}</span></div>
+      </div>
+      <div class="card-body ${state.familyOpen?"":"hidden"}" id="family-body">
+        <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr" class="person-grid-wrap">
+          ${f.persons.map((p,i)=>`<div class="person-card">
+            <div class="flex items-center gap8" style="margin-bottom:10px">
+              <div class="person-avatar avatar-${i}">${p.name[0]}</div>
+              <input value="${p.name}" data-person="${i}" data-field="name" class="person-input" style="font-size:13px;font-weight:600;background:none;border:none;color:var(--fg);width:100px">
+            </div>
+            <div class="form-grid form-grid-2">
+              <div class="field"><label>Bruttolön/mån</label><input type="number" value="${p.gm}" data-person="${i}" data-field="gm" class="person-input"></div>
+              <div class="field"><label>Bonus/år</label><input type="number" value="${p.by}" data-person="${i}" data-field="by" class="person-input"></div>
+            </div>
+            <div class="person-row mt8"><span>Netto/mån</span><b>${fSEK(taxes[i].netto)}</b></div>
+            <div class="person-row"><span>Marginalskatt</span><b>${fPct(taxes[i].mg)}</b></div>
+            ${taxes[i].ss>0?`<div class="person-row"><span>Statlig skatt/år</span><b style="color:var(--rose)">${fSEK(taxes[i].ss)}</b></div>`:""}
+          </div>`).join("")}
+        </div>
+        <div class="slider-row mt12"><label>Barn (${f.children})</label><input type="range" min="0" max="6" step="1" value="${f.children}" id="children-slider"><span class="slider-val">${fSEK(bb)}/mån</span></div>
+        <div class="slider-row"><label>Ränta</label><input type="range" min="1" max="10" step="0.1" value="${f.rate*100}" id="rate-slider"><span class="slider-val">${fPct(f.rate)}</span></div>
+        <hr class="divider">
+        <div class="flex items-center justify-between"><span class="text-xs font-medium">Hushållsbudget</span><span class="text-xs font-mono font-semibold">${fSEK(budgetTot)}/mån</span></div>
+        <div class="form-grid form-grid-4 mt8" id="budget-grid">
+          ${Object.entries(BUDGET_LABELS).map(([k,l])=>`<div class="field"><label>${l}</label><input type="number" value="${f.budget[k]||0}" data-budget="${k}" class="budget-input"></div>`).join("")}
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab ${state.tab==="create"?"active":""}" data-tab="create">➕ Skapa</button>
+      <button class="tab ${state.tab==="scenarios"?"active":""}" data-tab="scenarios">📁 Sparade (${s.length})</button>
+      <button class="tab ${state.tab==="compare"?"active":""}" data-tab="compare">📊 Jämför</button>
+    </div>
+
+    <div id="tab-content">${renderTab()}</div>
+  </div>`;
+
+  bindEvents();
+  setTimeout(updateCharts,50);
+}
+
+function renderTab(){
+  if(state.tab==="create")return renderCreate();
+  if(state.tab==="scenarios")return renderScenarios();
+  return renderCompare();
+}
+
+function renderCreate(){
+  const inp=state.input;
+  const r=computeScenario(state.family,inp);
+  const driftKeys=Object.keys(DRIFT_LABELS);
+  const checks=[["Ränta",true],["Amortering",true],["Uppvärmning",inp.drift.heat>0],["El",inp.drift.el>0],["Vatten",inp.drift.water>0],["Sopor",inp.drift.waste>0],["Försäkring",inp.drift.ins>0],["Fastighetsavg.",inp.drift.tax>0],["Tomtskötsel",inp.drift.garden>0],["Renovering",inp.reno>0]];
+  const filled=checks.filter(c=>c[1]).length,pct=Math.round(filled/checks.length*100);
+  return `<div class="card" style="border:none;box-shadow:none">
+    <div class="card-body" style="padding-top:4px">
+      <h3 class="text-sm font-semibold" style="margin-bottom:12px">${state.editId?"✏️ Redigera scenario":"🏡 Nytt scenario"}</h3>
+      <div class="form-grid form-grid-2">
+        <div class="field"><label>Namn</label><input id="inp-name" value="${inp.name}" placeholder="T.ex. Villan i Bromma"></div>
+        <div class="field"><label>Adress</label><input id="inp-addr" value="${inp.addr}" placeholder="Gatuadress, stad"></div>
+      </div>
+      <div class="form-grid form-grid-3 mt8">
+        <div class="field"><label>Huspris</label><input type="number" id="inp-price" value="${inp.price}"></div>
+        <div class="field"><label>Renovering</label><input type="number" id="inp-reno" value="${inp.reno}"></div>
+        <div class="field"><label>Försäljningspris BRF</label><input type="number" id="inp-apt" value="${inp.apt_sale}"></div>
+      </div>
+      <div class="slider-row mt12"><label>Huspris</label><input type="range" min="2000000" max="20000000" step="100000" value="${inp.price}" id="sl-price"><span class="slider-val">${fSEK(inp.price)}</span></div>
+      <div class="slider-row"><label>Renovering</label><input type="range" min="0" max="3000000" step="50000" value="${inp.reno}" id="sl-reno"><span class="slider-val">${fSEK(inp.reno)}</span></div>
+      <div class="slider-row"><label>Föräldralån åter</label><input type="range" min="0" max="${inp.parent_loan}" step="50000" value="${inp.parent_repay}" id="sl-parent"><span class="slider-val">${fSEK(inp.parent_repay)}</span></div>
+      <div class="form-grid form-grid-3 mt8">
+        <div class="field"><label>Befintligt bolån</label><input type="number" id="inp-mexist" value="${inp.mortgage_exist}"></div>
+        <div class="field"><label>Föräldralån</label><input type="number" id="inp-ploan" value="${inp.parent_loan}"></div>
+        <div class="field"><label>Återbet. föräldralån</label><input type="number" id="inp-prepay" value="${inp.parent_repay}"></div>
+      </div>
+      <hr class="divider">
+      <div class="text-xs font-medium" style="margin-bottom:8px">Driftkostnader (kr/mån)</div>
+      <div class="drift-grid">
+        ${driftKeys.map(k=>`<div class="field"><label>${DRIFT_LABELS[k]}</label><input type="number" value="${inp.drift[k]}" data-drift="${k}" class="drift-input"></div>`).join("")}
+      </div>
+      <div class="cost-bar mt12">
+        <div class="cost-bar-header"><span>Kostnadstäckning</span><b>${filled}/${checks.length}</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${pct===100?"var(--teal)":pct>=70?"var(--amber)":"var(--rose)"}"></div></div>
+        <div class="cost-checks">${checks.map(([l,ok])=>`<span class="cost-check"><span class="dot ${ok?"dot-ok":"dot-no"}"></span>${l}</span>`).join("")}</div>
+      </div>
+      <div class="preview mt12">
+        <h4>📋 Förhandsvisning (live)</h4>
+        <div class="preview-grid">
+          <div class="preview-item"><span>Nytt bolån</span><b>${fSEK(r.mortgage)}</b></div>
+          <div class="preview-item"><span>Belåningsgrad</span><b style="color:${r.ltv>.85?"var(--rose)":r.ltv>.7?"var(--amber)":"var(--teal)"}">${fPct(r.ltv)}</b></div>
+          <div class="preview-item"><span>Total boende/mån</span><b>${fSEK(r.totalHousing)}</b></div>
+          <div class="preview-item"><span>Överskott/mån</span><b style="color:${r.surplus>=0?"var(--teal)":"var(--rose)"}">${r.surplus>=0?"+":""}${fSEK(r.surplus)}</b></div>
+          <div class="preview-item"><span>Ränta/mån</span><b>${fSEK(r.intMonth)}</b></div>
+          <div class="preview-item"><span>Amortering/mån</span><b>${fSEK(r.amortMonth)}</b></div>
+          <div class="preview-item"><span>Drift/mån</span><b>${fSEK(r.drift)}</b></div>
+          <div class="preview-item"><span>Skuldkvot</span><b>${r.dti}x</b></div>
+        </div>
+        <div class="text-xs text-muted mt8">Amorteringskrav: ${r.amortExpl} · Lagfart: ${fSEK(r.lagfart)} · Pantbrev: ${fSEK(r.pantbrev)}</div>
+      </div>
+      <div class="flex gap8 mt12">
+        <button class="btn btn-primary" style="flex:1" id="save-btn">💾 ${state.editId?"Uppdatera":"Spara scenario"}</button>
+        <button class="btn btn-secondary" id="reset-btn">↩️ Återställ</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderScenarios(){
+  if(state.scenarios.length===0)return `<div class="empty"><div class="empty-icon">📁</div><p class="text-sm">Inga sparade scenarier ännu</p></div>`;
+  return state.scenarios.map((s,i)=>{
+    const r=computeScenario(state.family,s);
+    return `<div class="scenario-card">
+      <div class="flex justify-between items-center">
+        <div><div class="scenario-name">${r.name||"Namnlöst"}</div>${s.addr?`<div class="scenario-addr">${s.addr}</div>`:""}</div>
+        <div class="flex gap8">
+          <button class="btn btn-sm btn-secondary edit-sc" data-idx="${i}">✏️</button>
+          <button class="btn btn-sm btn-danger del-sc" data-idx="${i}">🗑️</button>
+        </div>
+      </div>
+      <div class="scenario-stats">
+        ${[["Huspris",fSEK(r.price),""],["Bolån",fSEK(r.mortgage),""],["LTV",fPct(r.ltv),r.ltv>.85?"red":r.ltv>.7?"amber":"green"],["Skuldkvot",`${r.dti}x`,r.dti>4.5?"red":r.dti>3.5?"amber":"green"],["Boende/mån",fSEK(r.totalHousing),""],["Överskott",`${r.surplus>=0?"+":""}${fSEK(r.surplus)}`,r.surplus>=0?"green":"red"]].map(([l,v,c])=>`<div class="stat"><div class="stat-label">${l}</div><div class="stat-value ${c}">${v}</div></div>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderCompare(){
+  if(state.scenarios.length<1)return `<div class="empty"><div class="empty-icon">📊</div><p class="text-sm">Spara minst ett scenario</p></div>`;
+  const rows=[["Huspris",r=>fSEK(r.price)],["Nytt bolån",r=>fSEK(r.mortgage)],["Eget kapital",r=>fSEK(r.equity)],["LTV",r=>fPct(r.ltv)],["Skuldkvot",r=>`${r.dti}x`],["Ränta/mån",r=>`${fNum(r.intMonth)} kr`],["Amortering/mån",r=>`${fNum(r.amortMonth)} kr`],["Drift/mån",r=>`${fNum(r.drift)} kr`],["Total boende",r=>`${fNum(r.totalHousing)} kr`],["Skillnad vs idag",r=>`${r.diffTotal>=0?"+":""}${fNum(r.diffTotal)} kr`],["Överskott",r=>`${r.surplus>=0?"+":""}${fNum(r.surplus)} kr`]];
+  const results=state.scenarios.map(s=>computeScenario(state.family,s));
+  return `<div class="card" style="overflow-x:auto"><table class="compare-table">
+    <thead><tr><th>Nyckeltal</th>${results.map(r=>`<th>${r.name||"?"}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(([l,fn])=>`<tr><td>${l}</td>${results.map(r=>{const v=fn(r);const isSurp=l==="Överskott",isDiff=l==="Skillnad vs idag";const c=isSurp?(r.surplus>=0?"color:var(--teal)":"color:var(--rose)"):isDiff?(r.diffTotal<=0?"color:var(--teal)":"color:var(--rose)"):"";return `<td style="${c}">${v}</td>`}).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  EVENTS
+// ═══════════════════════════════════════════
+function bindEvents(){
+  document.getElementById("toggle-dark")?.addEventListener("click",()=>{state.dark=!state.dark;render()});
+  document.getElementById("logout-btn")?.addEventListener("click",()=>{localStorage.removeItem("husaffar_hid");if(dbRef)dbRef.off();dbRef=null;state.screen="login";state.householdId="";render()});
+  document.getElementById("family-toggle")?.addEventListener("click",()=>{state.familyOpen=!state.familyOpen;render()});
+  // Tabs
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{state.tab=t.dataset.tab;render()}));
+  // Person inputs
+  document.querySelectorAll(".person-input").forEach(el=>el.addEventListener("change",e=>{
+    const i=+e.target.dataset.person,field=e.target.dataset.field;
+    const persons=[...state.family.persons];
+    persons[i]={...persons[i],[field]:field==="name"?e.target.value:Math.max(0,+e.target.value||0)};
+    setState({family:{...state.family,persons}});
+  }));
+  // Budget
+  document.querySelectorAll(".budget-input").forEach(el=>el.addEventListener("change",e=>{
+    const budget={...state.family.budget,[e.target.dataset.budget]:Math.max(0,+e.target.value||0)};
+    setState({family:{...state.family,budget}});
+  }));
+  // Sliders (family)
+  document.getElementById("children-slider")?.addEventListener("input",e=>{setState({family:{...state.family,children:+e.target.value}})});
+  document.getElementById("rate-slider")?.addEventListener("input",e=>{setState({family:{...state.family,rate:+e.target.value/100}})});
+  // Scenario sliders
+  const bindSlider=(id,field,parse)=>{
+    document.getElementById(id)?.addEventListener("input",e=>{
+      const v=parse?parse(e.target.value):+e.target.value;
+      state.input={...state.input,[field]:v};render();
+    });
+  };
+  bindSlider("sl-price","price");
+  bindSlider("sl-reno","reno");
+  bindSlider("sl-parent","parent_repay");
+  // Scenario text inputs
+  const bindInp=(id,field,isNum)=>{
+    document.getElementById(id)?.addEventListener("change",e=>{state.input={...state.input,[field]:isNum?Math.max(0,+e.target.value||0):e.target.value};render()});
+  };
+  bindInp("inp-name","name");bindInp("inp-addr","addr");
+  bindInp("inp-price","price",true);bindInp("inp-reno","reno",true);bindInp("inp-apt","apt_sale",true);
+  bindInp("inp-mexist","mortgage_exist",true);bindInp("inp-ploan","parent_loan",true);bindInp("inp-prepay","parent_repay",true);
+  // Drift
+  document.querySelectorAll(".drift-input").forEach(el=>el.addEventListener("change",e=>{
+    state.input={...state.input,drift:{...state.input.drift,[e.target.dataset.drift]:Math.max(0,+e.target.value||0)}};render();
+  }));
+  // Save/Reset
+  document.getElementById("save-btn")?.addEventListener("click",()=>{
+    const name=state.input.name.trim()||`Scenario ${state.scenarios.length+1}`;
+    const entry={...deepClone(state.input),name};
+    let scenarios;
+    if(state.editId!==null){scenarios=[...state.scenarios];scenarios[state.editId]=entry;}
+    else{scenarios=[...state.scenarios,entry]}
+    setState({scenarios,input:deepClone(SCEN_DEF),editId:null,tab:"scenarios"});
+  });
+  document.getElementById("reset-btn")?.addEventListener("click",()=>{setState({input:deepClone(SCEN_DEF),editId:null})});
+  // Edit/Delete scenario
+  document.querySelectorAll(".edit-sc").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.idx;setState({input:deepClone(state.scenarios[i]),editId:i,tab:"create"});
+  }));
+  document.querySelectorAll(".del-sc").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.idx;const scenarios=state.scenarios.filter((_,j)=>j!==i);setState({scenarios});
+  }));
+}
+
+// ═══════════════════════════════════════════
+//  CHARTS
+// ═══════════════════════════════════════════
+function updateCharts(){
+  if(state.scenarios.length===0)return;
+  const f=state.family,sc=state.scenarios;
+  const results=sc.map(s=>computeScenario(f,s));
+  const currTotal=f.curr_int+f.curr_amort+f.curr_brf+f.curr_garage;
+  const C={coral:"#C2532E",amber:"#D4890F",teal:"#1A8A65",purple:"#6B4DAA",blue:"#2E78B7",rose:"#C04050"};
+  const txtC=state.dark?"#9C9588":"#6B6358";
+  const gridC=state.dark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)";
+  // Destroy old
+  Object.values(state.charts).forEach(c=>{try{c.destroy()}catch(e){}});
+  state.charts={};
+  // Bar
+  const barEl=document.getElementById("barChart");
+  if(barEl){state.charts.bar=new Chart(barEl,{type:"bar",data:{labels:results.map(r=>(r.name||"?").slice(0,12)),datasets:[
+    {label:"Ränta",data:results.map(r=>r.intMonth),backgroundColor:C.coral},
+    {label:"Drift",data:results.map(r=>r.drift),backgroundColor:C.teal},
+    {label:"Amortering",data:results.map(r=>r.amortMonth),backgroundColor:C.amber,borderRadius:{topLeft:3,topRight:3}},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:txtC}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fNum(ctx.parsed.y)} kr`}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10},color:txtC}},y:{stacked:true,grid:{color:gridC},ticks:{font:{size:10},color:txtC,callback:v=>`${Math.round(v/1000)}k`},border:{display:false}}}}});}
+  // Donut
+  const donutEl=document.getElementById("donutChart");
+  if(donutEl&&results[0]){const r=results[0];state.charts.donut=new Chart(donutEl,{type:"doughnut",data:{labels:["Ränta","Amortering","Drift"],datasets:[{data:[r.intMonth,r.amortMonth,r.drift],backgroundColor:[C.coral,C.amber,C.teal],borderWidth:2,borderColor:state.dark?"#1E1B17":"#fff"}]},options:{responsive:true,maintainAspectRatio:false,cutout:"60%",plugins:{legend:{labels:{font:{size:10},color:txtC}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fNum(ctx.parsed)} kr/mån`}}}}});}
+  // Stress
+  const stressEl=document.getElementById("stressChart");
+  if(stressEl){const rates=[.02,.025,.03,.035,.04,.05,.06,.07];const colors=[C.coral,C.teal,C.blue,C.purple,C.amber,C.rose];
+    const datasets=results.map((r,i)=>({label:r.name||"?",data:rates.map(rate=>{const sr=computeScenario({...f,rate},sc[i]);return Math.round(sr.surplus)}),borderColor:colors[i%colors.length],backgroundColor:colors[i%colors.length]+"18",fill:true,tension:.3,pointRadius:2,borderWidth:2}));
+    state.charts.stress=new Chart(stressEl,{type:"line",data:{labels:rates.map(r=>`${(r*100).toFixed(1)}%`),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:txtC}},tooltip:{callbacks:{label:ctx=>{const v=ctx.parsed.y;return `${ctx.dataset.label}: ${v>=0?"+":"−"}${fNum(Math.abs(v))} kr`}}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:txtC}},y:{grid:{color:gridC},ticks:{font:{size:10},color:txtC,callback:v=>{const a=Math.abs(v);return `${v<0?"−":""}${a>=1000?Math.round(a/1000)+"k":a}`}},border:{display:false}}}}});
+  }
+}
+
+// ═══════════════════════════════════════════
+//  RESPONSIVE
+// ═══════════════════════════════════════════
+const style=document.createElement("style");
+style.textContent=`@media(max-width:640px){.hidden-mobile{display:none}.chart-row-grid{grid-template-columns:1fr !important}.person-grid-wrap{grid-template-columns:1fr !important}.header-pills{gap:2px}.pill{font-size:9px;padding:2px 6px}}`;
+document.head.appendChild(style);
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+if(savedHid){state.householdId=savedHid;connectHousehold(savedHid)}else{render()}
+</script>
+</body>
+</html>

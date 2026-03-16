@@ -59,6 +59,17 @@ header .inner{display:flex;align-items:center;justify-content:space-between;heig
 hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .hidden{display:none}.mt6{margin-top:6px}.mt8{margin-top:8px}
 .flex{display:flex}.aic{align-items:center}.jcb{justify-content:space-between}.gap4{gap:4px}.gap6{gap:6px}.gap8{gap:8px}
+/* Risk profile */
+.rp{padding:6px 10px;margin:3px 0;border-radius:6px;font-size:10px}.rp-h{border-left:3px solid var(--rose);background:var(--roseL)}.rp-m{border-left:3px solid var(--amber);background:var(--amberL)}.rp-l{border-left:3px solid var(--teal);background:var(--tealL)}.rp b{display:block;font-size:11px}
+/* Macro panel */
+.macro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}@media(max-width:640px){.macro{grid-template-columns:1fr 1fr}}
+.macro-c{background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center}.macro-c .val{font-size:16px;font-weight:600;font-family:var(--m)}.macro-c .lab{font-size:9px;color:var(--fg2);margin-top:2px}
+/* Lifecycle */
+.lc-bar{display:flex;height:20px;border-radius:6px;overflow:hidden;margin:6px 0}.lc-seg{display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#fff}
+/* Nearby */
+.nb{font-size:10px;display:flex;align-items:center;gap:4px;padding:2px 0;color:var(--fg2)}.nb b{color:var(--fg);font-weight:500}.nb .dst{font-family:var(--m);color:var(--fg3);font-size:9px}
+/* Mobile responsive — stack columns on small screens */
+@media(max-width:640px){.fg2{grid-template-columns:1fr}.fg3,.fg4{grid-template-columns:1fr 1fr}.hpills .pill:first-child{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.macro{grid-template-columns:1fr 1fr}}
 .login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:14px;text-align:center;padding:20px}
 .login h2{font-size:18px;font-weight:600}.login p{font-size:12px;color:var(--fg2);max-width:340px}
 .login input{width:100%;max-width:280px;height:38px;border-radius:10px;border:1px solid var(--border);padding:0 12px;font-size:13px;font-family:var(--m);text-align:center;background:var(--card);color:var(--fg)}
@@ -175,7 +186,240 @@ function calcP(f,p){
 }
 function calcSR(f,p,rate){var aptSale=N(f.curr_value)||10000000,currMtg=N(f.curr_mortgage)||5416460;var bba=barnbidrag(f.children),sc=aptSale-aptSale*0.02-currMtg;var rep=Math.min(N(p.parent_repay),N(p.parent_loan)),eq=sc-rep;var nm=Math.max(0,N(p.price)+N(p.reno)-eq),im=Math.round(nm*rate/12);var ltv=N(p.price)>0?nm/N(p.price):0,ar=0;if(ltv>0.7)ar=0.02;else if(ltv>0.5)ar=0.01;var am=Math.round(nm*ar/12);var d=p.drift||{},dt=0;for(var k in d){if(k[0]!=="_")dt+=N(d[k])}var fks=N(f.ks)||0.326,fka=N(f.ka)||0.0085;var taxes=f.persons.map(function(pe,i){var sh=pe.intShare!==undefined?N(pe.intShare):(i===0?1:0);return ptax(pe.gm,pe.by,{ks:fks,ka:fka,ch:pe.church},nm*rate*sh)});var fd=taxes.reduce(function(s,t){return s+t.n},0)+bba;return fd-(im+dt+am)-calcBudgetTotal(f)}
 
-// === FAMILY CALC ===
+// === VÄRDERING ===
+function calcValuation(p){
+  var dd=p.dd||{},price=N(p.price),boa=N(dd.boarea);
+  var v={ortspris:null,taxmethod:null,nybygg:null,prisM2:boa>0?Math.round(price/boa):null};
+  // Ortspris: if we have boarea, estimate from typical range
+  if(boa>0&&price>0){v.ortspris={low:Math.round(boa*38000),mid:Math.round(boa*48000),high:Math.round(boa*58000)}}
+  // Tax method: 1.3-1.5x taxeringsvärde
+  var tv=N(dd.taxvarde);
+  if(tv>0){v.taxmethod={low:Math.round(tv*1.25),mid:Math.round(tv*1.4),high:Math.round(tv*1.55)}}
+  // Nybyggnadskostnad: 35-45k/m2 + tomtvärde
+  if(boa>0){var tomtv=N(dd.tomtarea)>0?N(dd.tomtarea)*2500:500000;v.nybygg={low:Math.round(boa*32000+tomtv),mid:Math.round(boa*40000+tomtv),high:Math.round(boa*48000+tomtv)}}
+  return v;
+}
+
+// === AFFÄRSANALYS ===
+function calcDeal(f,p,r){
+  var price=N(p.price),reno=N(p.reno);
+  var engangskostnad=r.txCost+reno;
+  var currH=N(f.curr_int)+N(f.curr_amort)+N(f.curr_brf)+N(f.curr_garage);
+  var diffMon=r.totalHousing-currH;
+  // Total ägandekostnad 5 år
+  var kostnad5ar=engangskostnad+r.totalHousing*60;
+  var nuvarande5ar=currH*60;
+  // Break-even (om dyrare: när tjänar man in flytten via värdeutveckling?)
+  var breakEvenYears=null;
+  if(engangskostnad>0){
+    var uppg=price*0.02;// 2%/år värdeutveckling
+    if(uppg>0)breakEvenYears=Math.round(engangskostnad/uppg*10)/10;
+  }
+  // Värdeutveckling 5 år (2% scenario)
+  var varde5ar=Math.round(price*Math.pow(1.02,5));
+  var equity5ar=varde5ar-Math.max(0,r.mortgage-r.amortMonth*60);
+  // Underhållsreserv
+  var dd=p.dd||{},boa=N(dd.boarea)||150,byggar=N(dd.byggar)||2000;
+  var husAlder=new Date().getFullYear()-byggar;
+  // Schablon: nyare hus 100 kr/m2/år, äldre 200-300
+  var underhallM2=husAlder<10?80:husAlder<25?150:husAlder<40?220:300;
+  var underhallAr=Math.round(boa*underhallM2);
+  var underhallMan=Math.round(underhallAr/12);
+  return{engangskostnad:engangskostnad,diffMon:diffMon,kostnad5ar:kostnad5ar,nuvarande5ar:nuvarande5ar,breakEvenYears:breakEvenYears,varde5ar:varde5ar,equity5ar:equity5ar,underhallAr:underhallAr,underhallMan:underhallMan,husAlder:husAlder}
+}
+
+// === RENOVERINGS-ESTIMAT ===
+var RENO_DB={
+  "badrum":{base:8000,unit:"m2",min:6000,max:14000,desc:"Helrenovering badrum"},
+  "kök":{base:5000,unit:"m2",min:3000,max:10000,desc:"Helrenovering kök"},
+  "tak":{base:800,unit:"m2",min:500,max:1500,desc:"Ombyte takpannor/plåt"},
+  "fasad":{base:1200,unit:"m2",min:800,max:2000,desc:"Fasadrenovering"},
+  "fönster":{base:8000,unit:"st",min:5000,max:15000,desc:"Fönsterbyte per st"},
+  "golv":{base:800,unit:"m2",min:400,max:1500,desc:"Nytt golv"},
+  "vägg":{base:15000,unit:"st",min:8000,max:40000,desc:"Riva/flytta vägg"},
+  "målning":{base:250,unit:"m2",min:150,max:400,desc:"Invändig målning"},
+  "el":{base:2500,unit:"m2",min:1500,max:4000,desc:"Omdragning el"},
+  "vvs":{base:3000,unit:"m2",min:2000,max:5000,desc:"Rördragning"},
+  "dränering":{base:4000,unit:"lm",min:2500,max:6000,desc:"Dränering runt hus"},
+  "värmepump":{base:120000,unit:"st",min:80000,max:180000,desc:"Ny värmepump"},
+  "pool":{base:250000,unit:"st",min:150000,max:500000,desc:"Pool installation"},
+  "altan":{base:3500,unit:"m2",min:2000,max:6000,desc:"Ny altan/trädäck"},
+  "garage":{base:200000,unit:"st",min:120000,max:350000,desc:"Nytt garage"},
+  "tillbyggnad":{base:35000,unit:"m2",min:25000,max:55000,desc:"Tillbyggnad"},
+};
+function estimateReno(text){
+  text=(text||"").toLowerCase();
+  var matches=[];var totalLow=0,totalMid=0,totalHigh=0;
+  // Extract size numbers
+  var sizeMatch=text.match(/(\d+)\s*(kvm|m2|m²|kvadrat)/);
+  var size=sizeMatch?N(sizeMatch[1]):0;
+  var stMatch=text.match(/(\d+)\s*st/);
+  var count=stMatch?N(stMatch[1]):1;
+  // Check keywords
+  for(var key in RENO_DB){
+    if(text.indexOf(key)>=0||(key==="vägg"&&text.indexOf("riv")>=0)){
+      var r=RENO_DB[key];var qty=r.unit==="m2"?(size||15):r.unit==="lm"?(size||30):(count||1);
+      var low=Math.round(r.min*qty),mid=Math.round(r.base*qty),high=Math.round(r.max*qty);
+      // Hög/låg standard
+      if(text.indexOf("hög")>=0||text.indexOf("lyx")>=0||text.indexOf("premium")>=0){low=mid;mid=high;high=Math.round(high*1.3)}
+      if(text.indexOf("enkel")>=0||text.indexOf("budget")>=0){high=mid;mid=low;low=Math.round(low*0.8)}
+      matches.push({name:r.desc+(r.unit==="m2"?" "+qty+"m²":r.unit==="lm"?" "+qty+"lm":qty>1?" ×"+qty:""),low:low,mid:mid,high:high});
+      totalLow+=low;totalMid+=mid;totalHigh+=high;
+    }
+  }
+  if(!matches.length&&size>0){
+    matches.push({name:"Renovering "+size+"m²",low:size*3000,mid:size*5000,high:size*8000});
+    totalLow+=size*3000;totalMid+=size*5000;totalHigh+=size*8000;
+  }
+  return{matches:matches,totalLow:totalLow,totalMid:totalMid,totalHigh:totalHigh}
+}
+
+// === UNDERHÅLLSPROGNOS ===
+function calcMaintenance(p){
+  var dd=p.dd||{},yr=new Date().getFullYear(),byggar=N(dd.byggar)||2000;
+  var items=[];
+  // Tak
+  var takSenast=N(dd.tak_ar)||byggar;var takAge=yr-takSenast;
+  items.push({name:"Tak",age:takAge,life:35,cost:"200–400 tkr",priority:takAge>30?"high":takAge>20?"med":"low",year:takAge>25?yr+Math.max(0,35-takAge):takSenast+35});
+  // Fasad
+  var fasadSenast=N(dd.fasad_ar)||byggar;var fasadAge=yr-fasadSenast;
+  items.push({name:"Fasad/målning",age:fasadAge,life:25,cost:"150–300 tkr",priority:fasadAge>20?"high":fasadAge>12?"med":"low",year:fasadSenast+25});
+  // VP
+  if(N(dd.vp_ar)){var vpAge=yr-N(dd.vp_ar);items.push({name:"Värmepump",age:vpAge,life:18,cost:"80–150 tkr",priority:vpAge>15?"high":vpAge>10?"med":"low",year:N(dd.vp_ar)+18})}
+  // Badrum
+  if(N(dd.badrum_ar)){var badAge=yr-N(dd.badrum_ar);items.push({name:"Badrum",age:badAge,life:25,cost:"150–350 tkr",priority:badAge>20?"high":badAge>12?"med":"low",year:N(dd.badrum_ar)+25})}
+  // Fönster
+  var fonsterAge=yr-byggar;
+  if(fonsterAge>25)items.push({name:"Fönster",age:fonsterAge,life:30,cost:"100–250 tkr",priority:fonsterAge>30?"high":"med",year:byggar+30});
+  // Dränering
+  if(yr-byggar>30)items.push({name:"Dränering",age:yr-byggar,life:40,cost:"150–300 tkr",priority:yr-byggar>35?"high":"med",year:byggar+40});
+  items.sort(function(a,b){return a.year-b.year});
+  return items;
+}
+
+// === BYGGTEKNISK RISKPROFIL ===
+function calcBuildRisk(p){
+  var dd=p.dd||{},yr=new Date().getFullYear(),byggar=N(dd.byggar);
+  if(!byggar)return[];
+  var age=yr-byggar,risks=[];
+  // Fukt
+  if(byggar>=1950&&byggar<=1975)risks.push({t:"Platta på mark utan isolering",d:"Hög risk för fukt underifrån. Kontrollera med fuktmätning.",l:"h",cost:"50–150 tkr åtgärd"});
+  if(byggar>=1960&&byggar<=1985)risks.push({t:"Krypgrund-era",d:"Vanligt med dålig ventilation i krypgrund. Fukt och mögel.",l:"m",cost:"30–100 tkr"});
+  if(byggar>=1968&&byggar<=1978)risks.push({t:"\"Sjuka hus\"-eran",d:"Cellplast mot betong, dåliga tätskikt, platta badrum.",l:"h",cost:"100–400 tkr"});
+  // Asbest
+  if(byggar>=1930&&byggar<=1986)risks.push({t:"Eternit (asbest) möjlig",d:"Kan finnas i tak, fasad, ventilation. Inte farligt om intakt.",l:"m",cost:"Sanering 100–300 tkr vid reno"});
+  if(byggar>=1950&&byggar<=1980)risks.push({t:"Asbest i golvplattor/rör",d:"Vanligt i denna period. Undersök före renovering.",l:"m",cost:"Ingår i renokostnad"});
+  // Radon
+  if(byggar>=1929&&byggar<=1975)risks.push({t:"Blåbetong möjlig (radon)",d:"Användes 1929–1975. Kräver radonmätning.",l:"m",cost:"Radonåtgärd 30–80 tkr"});
+  // El
+  if(byggar<1970)risks.push({t:"Tvåledarsystem (el utan jord)",d:"Brandrisk, kräver omdragning vid renovering.",l:"h",cost:"Omdragning 100–300 tkr"});
+  if(byggar>=1960&&byggar<=1975)risks.push({t:"Aluminiumkablage möjligt",d:"Ökad brandrisk. Kontrollera elcentral.",l:"m",cost:"Byte 80–200 tkr"});
+  // Isolering
+  if(byggar<1973)risks.push({t:"Dålig isolering (pre-energikris)",d:"Byggt före krav. Höga uppvärmningskostnader.",l:"m",cost:"Tilläggsisolering 50–150 tkr"});
+  // Dränering
+  if(age>30)risks.push({t:"Dränering troligen uttjänt",d:"Livslängd 30–40 år. Risk för fukt i grund.",l:age>40?"h":"m",cost:"150–400 tkr"});
+  // Rör
+  if(byggar>=1960&&byggar<=1985)risks.push({t:"Kopparrör nära slutet",d:"Livslängd 40–60 år. Risk för vattenskador.",l:age>50?"h":"m",cost:"Stambyte 100–250 tkr"});
+  // Kustnära (generell flagga)
+  risks.push({t:"Kustnära läge (Billdal/Göteborg)",d:"Saltluft kan skada fasad snabbare. Kontrollera rostskador.",l:"l",cost:"Underhåll +20%"});
+  return risks;
+}
+
+// === ROT-AVDRAG ===
+function calcROT(renoPlans){
+  var totalLabor=0;
+  (renoPlans||[]).forEach(function(pl){
+    var e=estimateReno(pl.desc);
+    // Schablon: 60% av renoveringskostnad är arbetskostnad
+    totalLabor+=Math.round(e.totalMid*0.6);
+  });
+  var rotPerPerson=Math.min(50000,Math.round(totalLabor*0.3));
+  var totalROT=rotPerPerson*2;// 2 personer
+  return{totalLabor:totalLabor,rotPerPerson:rotPerPerson,totalROT:totalROT};
+}
+
+// === RÄNTEAVDRAG ===
+function calcInterestDeduction(yearlyInterest){
+  var yi=N(yearlyInterest);
+  if(yi<=0)return{deduction:0,monthlySaving:0};
+  var ded=yi<=100000?Math.round(yi*0.3):Math.round(100000*0.3+(yi-100000)*0.21);
+  return{deduction:ded,monthlySaving:Math.round(ded/12),effectiveRate:yi>0?Math.round((1-ded/yi)*1000)/1000:0};
+}
+
+// === MAKRODATA (hardcoded 2026 values) ===
+var MACRO={
+  styrr:2.25,// Riksbankens styrränta mars 2025
+  kpif:1.5,// KPIF-prognos
+  bostadsPrisUtvGbg:3.2,// % senaste 12 mån Gbg villor
+  snittRanta3m:2.8,
+  snittRanta1ar:2.9,
+  snittRanta3ar:3.1,
+  snittRanta5ar:3.3,
+  hyraVilla150m2Gbg:22000 // schablonhyra
+};
+
+// === LIVSCYKELANALYS ===
+function calcLifecycle(f,p,r,years){
+  years=years||10;
+  var totalHousing=r.totalHousing*12*years;
+  var engangskost=r.txCost+N(p.reno);
+  var underhall=Math.round((N(p.dd?.boarea)||150)*(N(p.dd?.byggar)?((new Date().getFullYear()-N(p.dd.byggar))<25?150:250):200))*years;
+  var totalCost=totalHousing+engangskost+underhall;
+  // Value appreciation
+  var endValue=Math.round(N(p.price)*Math.pow(1.02,years));
+  var endMortgage=Math.max(0,r.mortgage-r.amortMonth*12*years);
+  var endEquity=endValue-endMortgage;
+  // vs renting
+  var rentCost=MACRO.hyraVilla150m2Gbg*12*years;
+  var rentSaving=rentCost-totalHousing;// positive = owning is cheaper
+  // Net position
+  var netPosition=endEquity-totalCost;
+  return{years:years,totalCost:totalCost,engangskost:engangskost,underhall:underhall,totalHousing:totalHousing,endValue:endValue,endMortgage:endMortgage,endEquity:endEquity,rentCost:rentCost,netPosition:netPosition};
+}
+
+// === ENERGIBESPARING ===
+function calcEnergySaving(p){
+  var dd=p.dd||{},boa=N(dd.boarea)||150,byggar=N(dd.byggar)||2000;
+  var items=[];
+  var upv=(dd.uppvarmning||"").toLowerCase();
+  // VP potential
+  if(upv.indexOf("pump")<0&&upv.indexOf("fjärr")<0){
+    var currHeatYear=boa*180;// schablon kWh/m2/år för direktel
+    var vpHeatYear=boa*60;// med VP
+    var saving=Math.round((currHeatYear-vpHeatYear)*1.5/12);// ~1.5 kr/kWh
+    items.push({name:"Värmepump (berg/luft-vatten)",invest:"80–150 tkr",savingMon:saving,roi:Math.round(120000/saving/12*10)/10,co2:"~60% mindre"});
+  }
+  // Solceller
+  if(boa>80){
+    var paneler=Math.min(20,Math.round(boa*0.3/1.7));// ~30% av tak, 1.7m²/panel
+    var prod=paneler*1000;// ~1000 kWh/panel/år i Gbg
+    var solSaving=Math.round(prod*1.2/12);// ~1.2 kr/kWh snitt
+    items.push({name:"Solceller ("+paneler+" paneler)",invest:(paneler*8000/1000).toFixed(0)+"–"+(paneler*12000/1000).toFixed(0)+" tkr",savingMon:solSaving,roi:Math.round(paneler*10000/solSaving/12*10)/10,co2:"~"+Math.round(prod*0.04)+" kg CO₂/år"});
+  }
+  // Tilläggsisolering
+  if(byggar<1980){
+    var isoSaving=Math.round(boa*2);
+    items.push({name:"Tilläggsisolering vind",invest:"30–80 tkr",savingMon:isoSaving,roi:Math.round(50000/isoSaving/12*10)/10,co2:"~20% lägre"});
+  }
+  // Fönsterbyte
+  if(byggar<1990){
+    var fonSaving=Math.round(boa*1.5);
+    items.push({name:"Energifönster",invest:"100–250 tkr",savingMon:fonSaving,roi:Math.round(150000/fonSaving/12*10)/10,co2:"~15% lägre"});
+  }
+  return items;
+}
+
+// === WORKER FETCH ===
+var WORKER_URL="https://husaffar-api.daniel-w-mansson.workers.dev";
+async function fetchPropertyData(addr,urls){
+  var params="?addr="+encodeURIComponent(addr.replace(/,/g," "));
+  if(urls&&urls.length>0){var u=urls.find(function(x){return x.url});if(u)params+="&url="+encodeURIComponent(u.url)}
+  try{
+    var resp=await fetch(WORKER_URL+params);
+    var data=await resp.json();
+    return data;
+  }catch(e){return{error:e.message}}
+}
 function calcFamily(f){var taxes=f.persons.map(function(p){return ptax(p.gm,p.by,{ks:N(f.ks)||0.326,ka:N(f.ka)||0.0085,ch:p.church})});var bba=barnbidrag(f.children);var netto=taxes.reduce(function(s,t){return s+t.n},0);var disp=netto+bba;
   var housing=N(f.curr_int)+N(f.curr_amort)+N(f.curr_brf)+N(f.curr_garage);
   var icaTotal=0,hushallTotal=0;
@@ -201,7 +445,7 @@ function calcFamily(f){var taxes=f.persons.map(function(p){return ptax(p.gm,p.by
 
 // === DEFAULTS ===
 var FDEF={persons:[{name:"Daniel",gm:77500,by:77500,church:true,intShare:1,personal_budget:[{name:"Kläder",amount:1500},{name:"Hobby",amount:500}]},{name:"Malin",gm:41100,by:0,church:true,intShare:0,personal_budget:[{name:"Kläder",amount:1500},{name:"Hobby",amount:500}]}],ks:0.326,ka:0.0085,rate:0.022,children:2,barnbidrag_person:0,split_boende:0.65,split_ica:0.80,split_hushall:0.50,curr_int:10100,curr_amort:5400,curr_brf:12307,curr_garage:1250,curr_mortgage:5416460,curr_value:10000000,curr_addr:"Hovås Allé 32",budget_shared:[{name:"Mat (ICA)",amount:10000,account:"ica"},{name:"Hushåll",amount:3000,account:"hushall"},{name:"Transport",amount:3000,account:"hushall"},{name:"Förskola",amount:2620,account:"hushall"},{name:"Nöjen/semester",amount:3000,account:"hushall"},{name:"Försäkring",amount:3000,account:"hushall"},{name:"Abonnemang",amount:1000,account:"hushall"},{name:"Sparande",amount:5000,account:"hushall"},{name:"Övrigt",amount:3000,account:"hushall"}]};
-var PDEF={name:"",addr:"",notes:"",status:"intressant",parent_loan:1200000,parent_repay:1200000,price:0,reno:0,drift:{heat:2000,el:1500,water:500,waste:300,ins:500,tax:869,garden:500,other:0},pantbrev:0,urls:[],dd:{byggar:null,energiklass:"",boarea:null,tomtarea:null,uppvarmning:"",taxvarde:null,rum:null,tak_ar:null,fasad_ar:null,vp_ar:null,badrum_ar:null,visning_notes:"",maklare_fragor:"",hemnet_url:""},checklist:{}};
+var PDEF={name:"",addr:"",notes:"",status:"intressant",parent_loan:1200000,parent_repay:1200000,price:0,reno:0,drift:{heat:2000,el:1500,water:500,waste:300,ins:500,tax:869,garden:500,other:0},pantbrev:0,urls:[],reno_plan:[],dd:{byggar:null,energiklass:"",boarea:null,tomtarea:null,uppvarmning:"",taxvarde:null,rum:null,tak_ar:null,fasad_ar:null,vp_ar:null,badrum_ar:null,visning_notes:"",maklare_fragor:"",hemnet_url:""},checklist:{}};
 var STATUS_L={intressant:"Intressant",visning:"Visning bokad",budgivning:"Budgivning",avvakta:"Avvakta",avslag:"Avslag"};
 var STATUS_C={intressant:"b-blue",visning:"b-teal",budgivning:"b-amber",avvakta:"b-purple",avslag:"b-red"};
 var DRIFT_L={heat:"Uppvärmning",el:"El",water:"Vatten/avlopp",waste:"Sopor",ins:"Försäkring",tax:"Fastighetsavg.",garden:"Tomt",other:"Övrigt"};
@@ -331,7 +575,7 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
   return '<button class="btn btn-s btn-sm" id="backp">← Tillbaka</button>'+
   // Header
   '<div class="card"><div class="card-b"><div class="flex aic jcb"><div class="flex aic gap6"><span style="font-size:15px;font-weight:600">'+(p.name||"Namnlöst")+'</span><select id="ps" style="font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg)">'+Object.keys(STATUS_L).map(function(k){return '<option value="'+k+'"'+(p.status===k?" selected":"")+'>'+STATUS_L[k]+'</option>'}).join('')+'</select></div><button class="btn btn-d btn-sm" id="delp">🗑️</button></div>'+
-  '<div class="fg fg2 mt6"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><input value="'+(p.addr||"")+'" data-pk="addr" class="pp"></div></div>'+
+  '<div class="fg fg2 mt6"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><div class="flex gap4"><input value="'+(p.addr||"")+'" data-pk="addr" class="pp" style="flex:1"><button class="btn btn-p btn-sm" id="searchData" style="white-space:nowrap">🔍 Sök</button></div></div></div>'+
   // Data quality bar
   '<div class="dq mt8"><span class="dq-label">Datakvalitet</span><div class="dq-bar"><div class="dq-fill" style="width:'+r.dataQuality+'%;background:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'"></div></div><span class="dq-pct" style="color:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'">'+r.dataQuality+'%</span></div>'+
   '<div class="src-legend mt6"><span>'+srcDot("auth")+' Myndighet</span><span>'+srcDot("listing")+' Annons</span><span>'+srcDot("user")+' Egen</span><span>'+srcDot("est")+' Schablon</span></div>'+
@@ -359,10 +603,158 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
   '</div></div>'+
   // Risk
   '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600">⚠️ Risk — <span class="badge '+(r.riskLevel==="low"?"b-green":r.riskLevel==="med"?"b-amber":"b-red")+'">'+(r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög")+'</span></div>'+r.risks.map(function(ri){return '<div class="risk-card '+ri.l+'"><b>'+ri.t+'</b> — '+ri.d+'</div>'}).join('')+'</div></div>'+
+
+  // === VÄRDERING ===
+  (function(){var v=calcValuation(p);var bars="";
+    function vBar(label,range,price){if(!range)return "";var min=range.low,max=range.high,mid=range.mid;var pPct=price>0?Math.min(100,Math.round((price-min)/(max-min+1)*100)):50;
+      return '<div style="margin:6px 0"><div class="flex aic jcb" style="font-size:10px"><span style="color:var(--fg2)">'+label+'</span><span style="font-family:var(--m)">'+fSEK(mid)+'</span></div>'+
+      '<div style="position:relative;height:8px;background:var(--border);border-radius:4px;margin:3px 0"><div style="position:absolute;left:0;height:100%;width:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal),var(--amber),var(--rose))"></div>'+(price>0?'<div style="position:absolute;left:'+pPct+'%;top:-2px;width:3px;height:12px;background:var(--fg);border-radius:2px" title="Utgångspris"></div>':'')+'</div>'+
+      '<div class="flex aic jcb" style="font-size:9px;color:var(--fg3)"><span>'+fSEK(min)+'</span><span>'+fSEK(max)+'</span></div></div>'}
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">📊 Värdering</div>'+
+    (v.prisM2?'<div class="pr"><span>Pris/m²</span><b>'+fN(v.prisM2)+' kr/m²</b></div>':'')+
+    vBar("Ortspris (pris/m² i området)",v.ortspris,N(p.price))+
+    vBar("Taxeringsvärde ×1.25–1.55",v.taxmethod,N(p.price))+
+    vBar("Nybyggnadskostnad",v.nybygg,N(p.price))+
+    (!v.ortspris&&!v.taxmethod?'<div style="font-size:10px;color:var(--fg3)">Fyll i boarea och/eller taxeringsvärde för värdering</div>':'')+
+    '</div></div>'})()+ 
+
+  // === AFFÄRSANALYS ===
+  (function(){var d=calcDeal(f,p,r);
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">💼 Affärsanalys</div>'+
+    '<div class="metrics"><div class="met"><div class="met-l">Engångskostnad</div><div class="met-v r" style="font-size:14px">'+fSEK(d.engangskostnad)+'</div><div class="met-s">lagfart+pantbrev+reno</div></div>'+
+    '<div class="met"><div class="met-l">Ägandekostnad 5 år</div><div class="met-v" style="font-size:14px">'+fSEK(d.kostnad5ar)+'</div><div class="met-s">engång+boende×60</div></div>'+
+    '<div class="met"><div class="met-l">Värde om 5 år (2%/år)</div><div class="met-v g" style="font-size:14px">'+fSEK(d.varde5ar)+'</div><div class="met-s">värdeutveckling</div></div>'+
+    '<div class="met"><div class="met-l">Er equity om 5 år</div><div class="met-v g" style="font-size:14px">'+fSEK(d.equity5ar)+'</div><div class="met-s">värde−kvar lån</div></div></div>'+
+    '<div class="pr"><span>Skillnad boende vs nuvarande</span><b style="color:'+(d.diffMon<=0?'var(--teal)':'var(--rose)')+'">'+(d.diffMon>=0?"+":"")+fSEK(d.diffMon)+'/mån</b></div>'+
+    (d.breakEvenYears?'<div class="pr"><span>Break-even på flytten (via 2% värdeutveckling)</span><b>'+d.breakEvenYears+' år</b></div>':'')+
+    '<div class="pr"><span>Underhållsreserv (schablon)</span><b>'+fSEK(d.underhallMan)+'/mån</b></div>'+
+    '<div style="font-size:9px;color:var(--fg3);margin-top:4px">Baserat på '+d.husAlder+' år gammalt hus, '+fSEK(d.underhallAr)+'/år</div>'+
+    '</div></div>'})()+ 
+
+  // === RENOVERINGSPLAN ===
+  (function(){var plans=p.reno_plan||[];
+    var totalLow=0,totalMid=0,totalHigh=0;
+    plans.forEach(function(pl){var e=estimateReno(pl.desc);totalLow+=e.totalLow;totalMid+=e.totalMid;totalHigh+=e.totalHigh});
+    return '<div class="card"><div class="card-b"><div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🔨 Renoveringsplan</span><button class="btn btn-s btn-sm" id="add-reno">+ Lägg till åtgärd</button></div>'+
+    (plans.length?'<div style="font-size:10px;color:var(--fg2);margin:4px 0">Estimat totalt: '+fSEK(totalLow)+' – '+fSEK(totalHigh)+' (medel '+fSEK(totalMid)+')</div>':'')+
+    plans.map(function(pl,j){
+      var e=estimateReno(pl.desc);
+      return '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;margin-top:6px"><div class="flex aic jcb"><div class="flex aic gap4"><div class="fi" style="flex:1"><label>Beskrivning</label><textarea style="height:32px;width:100%;min-width:200px" data-ri="'+j+'" class="reno-desc">'+pl.desc+'</textarea></div><div class="fi" style="width:60px"><label>År</label><input type="number" value="'+(pl.year||new Date().getFullYear())+'" data-ri="'+j+'" class="reno-year" style="width:60px"></div></div><button class="del-item del-reno" data-ri="'+j+'">×</button></div>'+
+      (e.matches.length?'<div style="margin-top:4px">'+e.matches.map(function(m){return '<div class="flex aic jcb" style="font-size:10px;padding:2px 0"><span style="color:var(--fg2)">'+m.name+'</span><span style="font-family:var(--m)">'+fSEK(m.low)+' – '+fSEK(m.high)+'</span></div>'}).join('')+'</div>':'<div style="font-size:10px;color:var(--fg3);margin-top:2px">Skriv t.ex. "badrum 15 kvm hög standard" eller "riva vägg" för estimat</div>')+
+      '</div>'
+    }).join('')+
+    '<div style="font-size:9px;color:var(--fg3);margin-top:6px">Tips: skriv yta i kvm, antal i st, och "hög standard"/"budget" för att justera estimat</div>'+
+    '</div></div>'})()+ 
+
+  // === UNDERHÅLLSPROGNOS ===
+  (function(){var items=calcMaintenance(p);var yr=new Date().getFullYear();
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">🔧 Underhållsprognos</div>'+
+    (items.length?items.map(function(it){
+      var yearsLeft=it.year-yr;var pct=Math.min(100,Math.round(it.age/it.life*100));
+      var col=it.priority==="high"?"var(--rose)":it.priority==="med"?"var(--amber)":"var(--teal)";
+      return '<div style="padding:6px 0;'+(items.indexOf(it)?'border-top:1px solid var(--border)':'')+'"><div class="flex aic jcb"><span style="font-size:11px;font-weight:500">'+it.name+'</span><span class="badge '+(it.priority==="high"?"b-red":it.priority==="med"?"b-amber":"b-green")+'">'+(yearsLeft<=0?"Akut":yearsLeft<=5?"Inom "+yearsLeft+" år":"~"+it.year)+'</span></div>'+
+      '<div style="height:4px;background:var(--border);border-radius:2px;margin:4px 0"><div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:2px"></div></div>'+
+      '<div class="flex aic jcb" style="font-size:9px;color:var(--fg3)"><span>'+it.age+' år / '+it.life+' år livslängd</span><span>'+it.cost+'</span></div></div>'
+    }).join(''):'<div style="font-size:10px;color:var(--fg3)">Fyll i byggår och underhållshistorik för prognos</div>')+
+    '</div></div>'})()+ 
+
+  // === INVESTERINGSKORT (SAMMANFATTNING) ===
+  (function(){var d=calcDeal(f,p,r);var v=calcValuation(p);var maint=calcMaintenance(p);var urgent=maint.filter(function(m){return m.priority==="high"}).length;
+    var score=0;var maxS=10;
+    if(r.surplus>=10000)score+=3;else if(r.surplus>=5000)score+=2;else if(r.surplus>=0)score+=1;
+    if(r.ltv<=0.7)score+=2;else if(r.ltv<=0.85)score+=1;
+    if(r.s5>=0)score+=2;else if(r.s7>=0)score+=1;
+    if(r.dataQuality>=70)score+=1;
+    if(urgent===0)score+=2;else if(urgent<=1)score+=1;
+    var grade=score>=8?"A":score>=6?"B":score>=4?"C":"D";
+    var gradeCol=grade==="A"?"var(--teal)":grade==="B"?"var(--blue)":grade==="C"?"var(--amber)":"var(--rose)";
+    return '<div class="card" style="border:2px solid '+gradeCol+'"><div class="card-b"><div class="flex aic jcb"><span style="font-size:13px;font-weight:600">📋 Investeringsbetyg</span><span style="font-size:24px;font-weight:700;color:'+gradeCol+'">'+grade+'</span></div>'+
+    '<div style="font-size:10px;color:var(--fg2);margin:4px 0">'+score+'/'+maxS+' poäng — '+(grade==="A"?"Stark affär":grade==="B"?"Bra affär med marginal":grade==="C"?"Acceptabel men tight":"Riskfyllt — tänk om")+'</div>'+
+    '<div class="metrics mt6"><div class="met"><div class="met-l">Överskott</div><div class="met-v '+(r.surplus>=0?"g":"r")+'" style="font-size:13px">'+(r.surplus>=0?"+":"")+fSEK(r.surplus)+'/mån</div></div>'+
+    '<div class="met"><div class="met-l">Stresstest 5%</div><div class="met-v '+(r.s5>=0?"g":"r")+'" style="font-size:13px">'+(r.s5>=0?"+":"")+fSEK(r.s5)+'</div></div>'+
+    '<div class="met"><div class="met-l">Underhållsrisker</div><div class="met-v '+(urgent>0?"r":"g")+'" style="font-size:13px">'+urgent+' akuta</div></div>'+
+    '<div class="met"><div class="met-l">Datakvalitet</div><div class="met-v '+(r.dataQuality>=70?"g":r.dataQuality>=40?"a":"r")+'" style="font-size:13px">'+r.dataQuality+'%</div></div></div>'+
+    '<div class="pr"><span>Equity efter 5 år (2%/år)</span><b style="color:var(--teal)">'+fSEK(d.equity5ar)+'</b></div>'+
+    '<div class="pr"><span>Max-pris</span><b>'+fSEK(r.maxPrice)+'</b></div>'+
+    '<div class="pr"><span>Komfortpris</span><b>'+fSEK(r.comfortPrice)+'</b></div>'+
+    '</div></div>'})()+ 
   // Checklist
   '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">✅ Checklista</div>'+CHECK_SECTIONS.map(function(sec){var cl=p.checklist||{};var done=sec.items.filter(function(it){return cl[it.k]}).length;return '<div style="margin-top:6px"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:3px">'+sec.title+' ('+done+'/'+sec.items.length+')</div><div class="fg fg3">'+sec.items.map(function(it){return '<label style="font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" '+(cl[it.k]?"checked":"")+' data-ck="'+it.k+'" class="ckb" style="accent-color:var(--teal)">'+it.l+'</label>'}).join('')+'</div></div>'}).join('')+'</div></div>'+
   // Drift
-  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">Drift (kr/mån)</div><div class="fg fg4">'+Object.keys(DRIFT_L).map(function(k){return '<div class="fi"><label>'+srcDot(p.drift["_src_"+k]||"user")+' '+DRIFT_L[k]+'</label><input type="number" value="'+N(p.drift[k])+'" data-drk="'+k+'" class="dri"></div>'}).join('')+'</div></div></div>'
+  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">Drift (kr/mån)</div><div class="fg fg4">'+Object.keys(DRIFT_L).map(function(k){return '<div class="fi"><label>'+srcDot(p.drift["_src_"+k]||"user")+' '+DRIFT_L[k]+'</label><input type="number" value="'+N(p.drift[k])+'" data-drk="'+k+'" class="dri"></div>'}).join('')+'</div></div></div>'+
+
+  // === BYGGTEKNISK RISKPROFIL ===
+  (function(){var brisks=calcBuildRisk(p);if(!brisks.length)return '';
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">🏗️ Byggteknisk riskprofil'+(N((p.dd||{}).byggar)?' (byggt '+p.dd.byggar+')':'')+'</div>'+
+    brisks.map(function(r){return '<div class="rp rp-'+(r.l==="h"?"h":r.l==="m"?"m":"l")+'"><b>'+r.t+'</b>'+r.d+'<span style="float:right;font-family:var(--m)">'+r.cost+'</span></div>'}).join('')+
+    '</div></div>'})()+
+
+  // === RÄNTEAVDRAG ===
+  (function(){var yi=r.mortgage*r.rate;var rd=calcInterestDeduction(yi);if(!yi)return '';
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">💰 Ränteavdrag</div>'+
+    '<div class="pr"><span>Årlig räntekostnad</span><b>'+fSEK(yi)+'</b></div>'+
+    '<div class="pr"><span>Ränteavdrag (30%/21%)</span><b style="color:var(--teal)">−'+fSEK(rd.deduction)+'/år</b></div>'+
+    '<div class="pr"><span>Besparing per månad</span><b style="color:var(--teal)">'+fSEK(rd.monthlySaving)+'/mån</b></div>'+
+    '<div class="pr"><span>Effektiv ränta efter avdrag</span><b>'+fP(r.rate*rd.effectiveRate)+'</b></div>'+
+    '</div></div>'})()+
+
+  // === MAKROPANEL ===
+  '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">📈 Makroläge</div>'+
+  '<div class="macro">'+
+  '<div class="macro-c"><div class="val">'+MACRO.styrr+'%</div><div class="lab">Styrränta</div></div>'+
+  '<div class="macro-c"><div class="val">'+MACRO.kpif+'%</div><div class="lab">KPIF-prognos</div></div>'+
+  '<div class="macro-c"><div class="val">'+MACRO.bostadsPrisUtvGbg+'%</div><div class="lab">Villor Gbg 12 mån</div></div>'+
+  '</div>'+
+  '<div style="font-size:10px;font-weight:500;margin-top:6px">Bindningstidsanalys</div>'+
+  '<div class="pr"><span>Rörlig (3 mån)</span><b>~'+MACRO.snittRanta3m+'%  →  '+fSEK(Math.round(r.mortgage*MACRO.snittRanta3m/100/12))+'/mån</b></div>'+
+  '<div class="pr"><span>1 år bunden</span><b>~'+MACRO.snittRanta1ar+'%  →  '+fSEK(Math.round(r.mortgage*MACRO.snittRanta1ar/100/12))+'/mån</b></div>'+
+  '<div class="pr"><span>3 år bunden</span><b>~'+MACRO.snittRanta3ar+'%  →  '+fSEK(Math.round(r.mortgage*MACRO.snittRanta3ar/100/12))+'/mån</b></div>'+
+  '<div class="pr"><span>5 år bunden</span><b>~'+MACRO.snittRanta5ar+'%  →  '+fSEK(Math.round(r.mortgage*MACRO.snittRanta5ar/100/12))+'/mån</b></div>'+
+  '</div></div>'+
+
+  // === NEARBY ===
+  (function(){var nb=(p._nearby||{});if(!nb.skolor&&!nb.kollektivtrafik)return '';
+    var html='<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">📍 Närområde</div>';
+    if(nb.skolor&&nb.skolor.length)html+='<div style="font-size:10px;font-weight:500;margin-top:4px">Skolor</div>'+nb.skolor.map(function(s){return '<div class="nb">🏫 <b>'+s.name+'</b>'+(s.dist?' <span class="dst">'+s.dist+'m</span>':'')+'</div>'}).join('');
+    if(nb.forskolor&&nb.forskolor.length)html+='<div style="font-size:10px;font-weight:500;margin-top:4px">Förskolor</div>'+nb.forskolor.map(function(s){return '<div class="nb">👶 <b>'+s.name+'</b>'+(s.dist?' <span class="dst">'+s.dist+'m</span>':'')+'</div>'}).join('');
+    if(nb.matbutiker&&nb.matbutiker.length)html+='<div style="font-size:10px;font-weight:500;margin-top:4px">Matbutiker</div>'+nb.matbutiker.map(function(s){return '<div class="nb">🛒 <b>'+s.name+'</b>'+(s.dist?' <span class="dst">'+s.dist+'m</span>':'')+'</div>'}).join('');
+    if(nb.kollektivtrafik&&nb.kollektivtrafik.length)html+='<div style="font-size:10px;font-weight:500;margin-top:4px">Kollektivtrafik</div>'+nb.kollektivtrafik.map(function(s){return '<div class="nb">🚌 <b>'+s.name+'</b>'+(s.dist?' <span class="dst">'+s.dist+'m</span>':'')+'</div>'}).join('');
+    return html+'</div></div>'})()+ 
+
+  // === ROT-AVDRAG ===
+  (function(){var plans=p.reno_plan||[];if(!plans.length)return '';var rot=calcROT(plans);if(!rot.totalLabor)return '';
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">🧾 ROT-avdrag på renoveringar</div>'+
+    '<div class="pr"><span>Estimerad arbetskostnad (60% av reno)</span><b>'+fSEK(rot.totalLabor)+'</b></div>'+
+    '<div class="pr"><span>ROT-avdrag per person (30%, max 50k)</span><b style="color:var(--teal)">'+fSEK(rot.rotPerPerson)+'</b></div>'+
+    '<div class="pr" style="font-weight:600"><span>Totalt ROT-avdrag (2 pers)</span><b style="color:var(--teal)">'+fSEK(rot.totalROT)+'</b></div>'+
+    '</div></div>'})()+
+
+  // === ENERGIBESPARING ===
+  (function(){var items=calcEnergySaving(p);if(!items.length)return '';
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">⚡ Energibesparingspotential</div>'+
+    items.map(function(it){return '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;margin:4px 0"><div class="flex aic jcb"><b style="font-size:11px">'+it.name+'</b><span class="badge b-green">−'+fSEK(it.savingMon)+'/mån</span></div>'+
+    '<div class="pr"><span>Investering</span><b>'+it.invest+'</b></div>'+
+    '<div class="pr"><span>ROI</span><b>'+it.roi+' år</b></div>'+
+    '<div class="pr"><span>CO₂</span><b>'+it.co2+'</b></div></div>'}).join('')+
+    '</div></div>'})()+
+
+  // === LIVSCYKELANALYS ===
+  (function(){if(!N(p.price))return '';var lc=calcLifecycle(f,p,r,10);
+    var own=lc.totalCost,rent=lc.rentCost;var cheaper=own<rent;
+    return '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">📅 Livscykelanalys ('+lc.years+' år)</div>'+
+    '<div class="lc-bar"><div class="lc-seg" style="flex:'+Math.round(lc.engangskost/lc.totalCost*100)+';background:var(--coral)">Eng.</div><div class="lc-seg" style="flex:'+Math.round(lc.totalHousing/lc.totalCost*100)+';background:var(--amber)">Boende</div><div class="lc-seg" style="flex:'+Math.round(lc.underhall/lc.totalCost*100)+';background:var(--purple)">Underh.</div></div>'+
+    '<div class="pr"><span>Engångskostnad</span><b>'+fSEK(lc.engangskost)+'</b></div>'+
+    '<div class="pr"><span>Boende '+lc.years+' år</span><b>'+fSEK(lc.totalHousing)+'</b></div>'+
+    '<div class="pr"><span>Underhåll (schablon)</span><b>'+fSEK(lc.underhall)+'</b></div>'+
+    '<div class="pr" style="font-weight:600"><span>Total ägandekostnad</span><b>'+fSEK(lc.totalCost)+'</b></div>'+
+    '<hr>'+
+    '<div class="pr"><span>Husvärde om '+lc.years+' år (2%/år)</span><b style="color:var(--teal)">'+fSEK(lc.endValue)+'</b></div>'+
+    '<div class="pr"><span>Kvar bolån</span><b>'+fSEK(lc.endMortgage)+'</b></div>'+
+    '<div class="pr" style="font-weight:600"><span>Er equity</span><b style="color:var(--teal)">'+fSEK(lc.endEquity)+'</b></div>'+
+    '<hr>'+
+    '<div class="pr"><span>Att hyra motsvarande '+lc.years+' år</span><b>'+fSEK(lc.rentCost)+'</b></div>'+
+    '<div class="pr" style="font-weight:600"><span>'+(cheaper?'Äga billigare med':'Hyra billigare med')+'</span><b style="color:'+(cheaper?'var(--teal)':'var(--rose)')+'">'+fSEK(Math.abs(own-rent))+'</b></div>'+
+    '</div></div>'})()
 }
 
 // === COMPARE ===
@@ -432,6 +824,48 @@ function bindAll(f,c){
     p.drift.garden=(N(dd.tomtarea)||0)>500?500:300;p.drift._src_garden="est";count++;
     ss({prospects:ps});
     toast(count+" driftposter beräknade från "+boa+"m² "+(upv||"okänd uppvärmning"));
+  });
+  // Reno plan
+  var addReno=document.getElementById("add-reno");if(addReno)addReno.addEventListener("click",function(){var ps=dc(S.prospects);if(!ps[S.viewIdx].reno_plan)ps[S.viewIdx].reno_plan=[];ps[S.viewIdx].reno_plan.push({desc:"",year:new Date().getFullYear()});ss({prospects:ps})});
+  document.querySelectorAll(".reno-desc").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);if(!ps[S.viewIdx].reno_plan)ps[S.viewIdx].reno_plan=[];ps[S.viewIdx].reno_plan[N(e.target.dataset.ri)].desc=e.target.value;ss({prospects:ps})})});
+  document.querySelectorAll(".reno-year").forEach(function(el){el.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].reno_plan[N(e.target.dataset.ri)].year=N(e.target.value);ss({prospects:ps})})});
+  document.querySelectorAll(".del-reno").forEach(function(el){el.addEventListener("click",function(){var ps=dc(S.prospects);ps[S.viewIdx].reno_plan.splice(N(el.dataset.ri),1);ss({prospects:ps})})});
+  // Search data from worker
+  var searchBtn=document.getElementById("searchData");
+  if(searchBtn)searchBtn.addEventListener("click",async function(){
+    var ps=dc(S.prospects),p=ps[S.viewIdx];if(!p||!p.addr){toast("Fyll i adress först");return}
+    searchBtn.textContent="⏳ Söker...";searchBtn.disabled=true;
+    try{
+      var result=await fetchPropertyData(p.addr,p.urls);
+      if(result&&result.data){
+        var d=result.data,s=result.sources||{};
+        if(!p.dd)p.dd={};
+        // Map worker data to prospect fields
+        if(d.kommun&&!p.dd.kommun)p.dd.kommun=d.kommun;
+        if(d.omrade&&!p.dd.omrade)p.dd.omrade=d.omrade;
+        if(d.postnummer&&!p.dd.postnummer)p.dd.postnummer=d.postnummer;
+        if(d.hustyp)p.dd.hustyp=d.hustyp;
+        if(d.byggar){p.dd.byggar=d.byggar;p.dd._src_byggar=s.byggar||"listing"}
+        if(d.boarea){p.dd.boarea=d.boarea;p.dd._src_boarea=s.boarea||"listing"}
+        if(d.tomtarea){p.dd.tomtarea=d.tomtarea;p.dd._src_tomtarea=s.tomtarea||"auth"}
+        if(d.rum){p.dd.rum=d.rum;p.dd._src_rum=s.rum||"listing"}
+        if(d.energiklass){p.dd.energiklass=d.energiklass;p.dd._src_energiklass=s.energiklass||"listing"}
+        if(d.uppvarmning){p.dd.uppvarmning=d.uppvarmning;p.dd._src_uppvarmning=s.uppvarmning||"listing"}
+        if(d.taxvarde){p.dd.taxvarde=d.taxvarde;p.dd._src_taxvarde=s.taxvarde||"auth"}
+        if(d.fastighetsbeteckning)p.dd.fastighetsbeteckning=d.fastighetsbeteckning;
+        if(d.byggnadsarea)p.dd.byggnadsarea=d.byggnadsarea;
+        if(d.image&&!p.image)p.image=d.image;
+        if(d.price&&!p.price)p.price=d.price;
+        if(d.nearby)p._nearby=d.nearby;
+        if(d.narmaste_skola)p.dd.narmaste_skola=d.narmaste_skola;
+        if(d.narmaste_hpl)p.dd.narmaste_hpl=d.narmaste_hpl;
+        var found=Object.keys(d).filter(function(k){return d[k]&&k[0]!=="_"}).length;
+        ss({prospects:ps});
+        toast("Hittade "+found+" datapunkter från "+(result.sources_checked||[]).join(", "));
+        if(result._suggestions&&result._suggestions.length){setTimeout(function(){toast(result._suggestions[0])},3000)}
+      }else{toast("Inga data hittades")}
+    }catch(e){toast("Fel: "+e.message)}
+    searchBtn.textContent="🔍 Sök";searchBtn.disabled=false;
   });
 }
 

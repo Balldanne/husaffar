@@ -103,7 +103,8 @@ var db=firebase.database();
 // === UTILS ===
 function N(v){var n=Number(v);return isNaN(n)?0:n}
 function dc(o){return JSON.parse(JSON.stringify(o))}
-function fSEK(v){v=N(v);return Math.abs(v)>=1e6?(v/1e6).toFixed(2)+" mkr":Math.round(v).toLocaleString("sv-SE")+" kr"}
+function fSEK(v){v=N(v);if(v===0)return "0 kr";return Math.abs(v)>=1e6?(v/1e6).toFixed(2)+" mkr":Math.round(v).toLocaleString("sv-SE")+" kr"}
+function fSEK0(v){v=N(v);if(v===0)return "—";return fSEK(v)}
 function fN(v){return Math.round(N(v)).toLocaleString("sv-SE")}
 function fP(v,d){return(N(v)*100).toFixed(d||1)+"%"}
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2500)}
@@ -297,23 +298,25 @@ function estimateReno(text){
 
 // === UNDERHÅLLSPROGNOS ===
 function calcMaintenance(p){
-  var dd=p.dd||{},yr=new Date().getFullYear(),byggar=N(dd.byggar)||2000;
-  var items=[];
+  var dd=p.dd||{},yr=new Date().getFullYear(),byggar=N(dd.byggar);
+  if(!byggar)return [];
+  var husAge=yr-byggar,items=[];
+  // Moderna material håller längre
+  var fasadLife=byggar>=2000?35:25,takLife=byggar>=2000?40:35,fonLife=byggar>=2000?35:30;
   // Tak
   var takSenast=N(dd.tak_ar)||byggar;var takAge=yr-takSenast;
-  items.push({name:"Tak",age:takAge,life:35,cost:"200–400 tkr",priority:takAge>30?"high":takAge>20?"med":"low",year:takAge>25?yr+Math.max(0,35-takAge):takSenast+35});
+  if(takAge>15)items.push({name:"Tak",age:takAge,life:takLife,cost:"200–400 tkr",priority:takAge>takLife?"high":takAge>(takLife*0.7)?"med":"low",year:takSenast+takLife});
   // Fasad
   var fasadSenast=N(dd.fasad_ar)||byggar;var fasadAge=yr-fasadSenast;
-  items.push({name:"Fasad/målning",age:fasadAge,life:25,cost:"150–300 tkr",priority:fasadAge>20?"high":fasadAge>12?"med":"low",year:fasadSenast+25});
+  if(fasadAge>12)items.push({name:"Fasad/målning",age:fasadAge,life:fasadLife,cost:"150–300 tkr",priority:fasadAge>fasadLife?"high":fasadAge>(fasadLife*0.7)?"med":"low",year:fasadSenast+fasadLife});
   // VP
   if(N(dd.vp_ar)){var vpAge=yr-N(dd.vp_ar);items.push({name:"Värmepump",age:vpAge,life:18,cost:"80–150 tkr",priority:vpAge>15?"high":vpAge>10?"med":"low",year:N(dd.vp_ar)+18})}
   // Badrum
   if(N(dd.badrum_ar)){var badAge=yr-N(dd.badrum_ar);items.push({name:"Badrum",age:badAge,life:25,cost:"150–350 tkr",priority:badAge>20?"high":badAge>12?"med":"low",year:N(dd.badrum_ar)+25})}
-  // Fönster
-  var fonsterAge=yr-byggar;
-  if(fonsterAge>25)items.push({name:"Fönster",age:fonsterAge,life:30,cost:"100–250 tkr",priority:fonsterAge>30?"high":"med",year:byggar+30});
-  // Dränering
-  if(yr-byggar>30)items.push({name:"Dränering",age:yr-byggar,life:40,cost:"150–300 tkr",priority:yr-byggar>35?"high":"med",year:byggar+40});
+  // Fönster — bara om äldre
+  if(husAge>25){var fonSenast=byggar;items.push({name:"Fönster",age:yr-fonSenast,life:fonLife,cost:"100–250 tkr",priority:(yr-fonSenast)>fonLife?"high":"med",year:fonSenast+fonLife})}
+  // Dränering — bara om äldre
+  if(husAge>30)items.push({name:"Dränering",age:husAge,life:40,cost:"150–300 tkr",priority:husAge>40?"high":"med",year:byggar+40});
   items.sort(function(a,b){return a.year-b.year});
   return items;
 }
@@ -508,7 +511,7 @@ function connect(id){
     if(d.family){var fam=dc(FDEF);for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]};if(d.family.persons)fam.persons=d.family.persons;if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
     if(d.family.budget&&!d.family.budget_shared){var items=[];for(var bk in d.family.budget)items.push({name:bk,amount:N(d.family.budget[bk])});fam.budget_shared=items}
     S.family=fam}
-    if(d.prospects)S.prospects=d.prospects;S.screen="app";skipSync=false;render();setTimeout(updateCharts,80)});
+    if(d.prospects)S.prospects=d.prospects;S.screen="app";skipSync=false;render();setTimeout(updateCharts,200);setTimeout(updateCharts,600)});
   dbRef.once("value",function(snap){if(!snap.val())dbRef.set({family:S.family,prospects:[]})});
   S.screen="app";localStorage.setItem("hid",id);render()
 }
@@ -625,7 +628,7 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
   // AFFÄRSCASE
   var caseB='<div class="sr"><label>Huspris</label><input type="range" min="1000000" max="20000000" step="100000" value="'+N(p.price)+'" data-sk="price" class="psl"><input type="number" value="'+N(p.price)+'" data-sk="price" class="pnm"></div><div class="sr"><label>Renovering</label><input type="range" min="0" max="3000000" step="50000" value="'+N(p.reno)+'" data-sk="reno" class="psl"><input type="number" value="'+N(p.reno)+'" data-sk="reno" class="pnm"></div><div class="sr"><label>Föräldr.lån</label><input type="range" min="0" max="'+(N(p.parent_loan)||1200000)+'" step="50000" value="'+N(p.parent_repay)+'" data-sk="parent_repay" class="psl"><input type="number" value="'+N(p.parent_repay)+'" data-sk="parent_repay" class="pnm"></div><div class="pr mt6"><span>Bolån '+fSEK(r.mortgage)+' · LTV '+fP(r.ltv)+'</span><b>Skuldkvot '+r.dti+'x</b></div><div class="pr"><span>Ränta ('+fP(r.rate)+')</span><b>'+fSEK(r.intMonth)+'/mån</b></div><div class="pr"><span>Amortering ('+fP(r.amortRate)+')</span><b>'+fSEK(r.amortMonth)+'/mån</b></div><div class="pr"><span>Drift</span><b>'+fSEK(r.drift)+'/mån</b></div><div class="pr"><span>Stresstest 5%/7%</span><b>'+(r.s5>=0?"+":"")+fSEK(r.s5)+' / '+(r.s7>=0?"+":"")+fSEK(r.s7)+'</b></div><div class="pr"><span>Lagfart+pantbrev</span><b>'+fSEK(r.txCost)+'</b></div>';
   // PRISANALYS
-  var prisB='<div class="pr"><span>Max-pris (överskott=0)</span><b style="color:var(--rose)">'+fSEK(r.maxPrice)+'</b></div><div class="pr"><span>Komfortpris (5k kvar)</span><b style="color:var(--amber)">'+fSEK(r.comfortPrice)+'</b></div><div class="pr"><span>Marginal</span><b style="color:var(--teal)">'+fSEK(r.maxPrice-r.price)+'</b></div>';
+  var prisB='<div class="pr"><span>Max-pris (överskott=0)</span><b style="color:var(--rose)">'+fSEK0(r.maxPrice)+'</b></div><div class="pr"><span>Komfortpris (5k kvar)</span><b style="color:var(--amber)">'+fSEK0(r.comfortPrice)+'</b></div><div class="pr"><span>Marginal</span><b style="color:var(--teal)">'+fSEK0(r.maxPrice-r.price)+'</b></div>';
   // URLS
   var urlB=(p.urls||[]).map(function(u,j){return '<div class="url-item"><select data-ui="'+j+'" class="url-src"><option value="hemnet"'+(u.src==="hemnet"?" selected":"")+'>Hemnet</option><option value="booli"'+(u.src==="booli"?" selected":"")+'>Booli</option><option value="other"'+(u.src==="other"?" selected":"")+'>Annan</option></select><input value="'+(u.url||"")+'" data-ui="'+j+'" class="url-val" style="flex:1"><button class="del-item del-url" data-ui="'+j+'">×</button></div>'}).join('')+'<button class="btn btn-s btn-sm mt6" id="add-url">+ Länk</button>';
   // DD
@@ -779,28 +782,23 @@ function bindAll(f,c){
       if(result&&result.data){
         var d=result.data,s=result.sources||{};
         if(!p.dd)p.dd={};
-        // Map worker data to prospect fields
-        if(d.kommun&&!p.dd.kommun)p.dd.kommun=d.kommun;
-        if(d.omrade&&!p.dd.omrade)p.dd.omrade=d.omrade;
-        if(d.postnummer&&!p.dd.postnummer)p.dd.postnummer=d.postnummer;
-        if(d.hustyp)p.dd.hustyp=d.hustyp;
-        if(d.byggar){p.dd.byggar=d.byggar;p.dd._src_byggar=s.byggar||"listing"}
-        if(d.boarea){p.dd.boarea=d.boarea;p.dd._src_boarea=s.boarea||"listing"}
-        if(d.tomtarea){p.dd.tomtarea=d.tomtarea;p.dd._src_tomtarea=s.tomtarea||"auth"}
-        if(d.rum){p.dd.rum=d.rum;p.dd._src_rum=s.rum||"listing"}
-        if(d.energiklass){p.dd.energiklass=d.energiklass;p.dd._src_energiklass=s.energiklass||"listing"}
-        if(d.uppvarmning){p.dd.uppvarmning=d.uppvarmning;p.dd._src_uppvarmning=s.uppvarmning||"listing"}
-        if(d.taxvarde){p.dd.taxvarde=d.taxvarde;p.dd._src_taxvarde=s.taxvarde||"auth"}
-        if(d.fastighetsbeteckning)p.dd.fastighetsbeteckning=d.fastighetsbeteckning;
-        if(d.byggnadsarea)p.dd.byggnadsarea=d.byggnadsarea;
-        if(d.image&&!p.image)p.image=d.image;
-        if(d.price&&!p.price)p.price=d.price;
+        // Map worker data to prospect — overwrite with better data
+        var mapped=0;
+        function mp(dk,wk,src){var v=d[wk||dk];if(v!==null&&v!==undefined&&v!==""){p.dd[dk]=v;if(src)p.dd["_src_"+dk]=s[wk||dk]||src;mapped++}}
+        mp("kommun","kommun","auth");mp("omrade","omrade","auth");mp("postnummer","postnummer","auth");
+        mp("hustyp","hustyp","auth");
+        mp("byggar","byggar","listing");mp("boarea","boarea","listing");mp("biarea","biarea","listing");
+        mp("tomtarea","tomtarea","auth");mp("rum","rum","listing");
+        mp("energiklass","energiklass","listing");mp("uppvarmning","uppvarmning","listing");
+        mp("taxvarde","taxvarde","auth");mp("fastighetsbeteckning","fastighetsbeteckning","auth");
+        mp("byggnadsarea","byggnadsarea","auth");mp("vaningar","vaningar","auth");
+        if(d.image)p.image=d.image;
+        if(d.price&&N(d.price)>0&&!N(p.price))p.price=N(d.price);
         if(d.nearby)p._nearby=d.nearby;
         if(d.narmaste_skola)p.dd.narmaste_skola=d.narmaste_skola;
         if(d.narmaste_hpl)p.dd.narmaste_hpl=d.narmaste_hpl;
-        var found=Object.keys(d).filter(function(k){return d[k]&&k[0]!=="_"}).length;
         ss({prospects:ps});
-        toast("Hittade "+found+" datapunkter från "+(result.sources_checked||[]).join(", "));
+        toast("✓ "+mapped+" fält från "+(result.sources_checked||[]).join(", "));
         if(result._suggestions&&result._suggestions.length){setTimeout(function(){toast(result._suggestions[0])},3000)}
       }else{toast("Inga data hittades")}
     }catch(e){toast("Fel: "+e.message)}

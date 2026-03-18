@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Family Command</title>
-<meta name="theme-color" content="#C2532E">
+<meta name="theme-color" content="#0f3460">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -38,8 +38,6 @@ header .inner{display:flex;align-items:center;justify-content:space-between;heig
 .badge{display:inline-flex;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600}
 .b-green{background:var(--greenL);color:var(--green)}.b-amber{background:var(--amberL);color:var(--amber)}.b-red{background:var(--roseL);color:var(--rose)}.b-blue{background:var(--blueL);color:var(--blue)}.b-purple{background:var(--purpleL);color:var(--purple)}.b-teal{background:var(--tealL);color:var(--teal)}
 .risk-card{border-left:3px solid;padding:6px 10px;margin:4px 0;background:var(--bg2);font-size:11px;border-radius:0 6px 6px 0}.risk-card.low{border-color:var(--teal)}.risk-card.med{border-color:var(--amber)}.risk-card.high{border-color:var(--rose)}
-.cost-bar{background:var(--bg2);border-radius:8px;padding:8px 10px;margin-top:8px}.bar-t{height:4px;border-radius:2px;background:var(--border);overflow:hidden}.bar-f{height:100%;border-radius:2px;transition:width .3s}
-.cks{display:flex;flex-wrap:wrap;gap:2px 6px;margin-top:4px}.ck{font-size:9px;display:flex;align-items:center;gap:2px;color:var(--fg2)}.dt{width:5px;height:5px;border-radius:50%}.dt-ok{background:var(--teal)}.dt-no{background:var(--border)}
 /* Source dots */
 .src{display:inline-flex;width:6px;height:6px;border-radius:50%;flex-shrink:0}.src-auth{background:var(--green)}.src-listing{background:var(--blue)}.src-user{background:var(--amber)}.src-est{background:var(--rose)}
 .src-legend{display:flex;gap:8px;font-size:9px;color:var(--fg3);flex-wrap:wrap;margin:4px 0}.src-legend span{display:flex;align-items:center;gap:3px}
@@ -114,6 +112,16 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .shop-item .actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s}.shop-item:hover .actions{opacity:1}
 .inv-grid{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.inv-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-size:11px;cursor:pointer;transition:all 0.15s}.inv-btn:hover{background:var(--bg2)}.inv-btn.sel{background:var(--tealL);border-color:var(--teal);color:var(--teal)}
 .shop-total{background:var(--bg2);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;margin:8px 0}
+/* Tasks */
+.task-add{display:flex;gap:6px;margin-bottom:10px}.task-add input{flex:1;font-size:14px;padding:10px 12px}
+.task-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;transition:all 0.15s}.task-item:hover{background:var(--bg2)}
+.task-item.done{opacity:0.35;text-decoration:line-through}.task-item .t-chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;transition:all 0.2s}
+.task-item.done .t-chk{background:var(--teal);border-color:var(--teal);color:#fff}
+.task-item .t-body{flex:1;min-width:0}.task-item .t-name{font-size:13px;font-weight:500}.task-item .t-meta{font-size:9px;color:var(--fg3);display:flex;gap:6px;margin-top:1px}
+.task-item .t-type{font-size:10px;padding:1px 6px;border-radius:4px;background:var(--bg2);cursor:pointer;white-space:nowrap}
+.task-item .t-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s}.task-item:hover .t-actions{opacity:1}
+.task-shortcut{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12px;cursor:pointer;transition:all 0.15s;font-weight:500}.task-shortcut:hover{background:var(--bg2);transform:translateY(-1px)}
+.task-filter{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap}.task-filter button{padding:2px 10px;border-radius:12px;border:1px solid var(--border);background:var(--card);font-size:10px;cursor:pointer}.task-filter button.a{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:14px;text-align:center;padding:20px}
 .login h2{font-size:18px;font-weight:600}.login p{font-size:12px;color:var(--fg2);max-width:340px}
 .login input{width:100%;max-width:280px;height:38px;border-radius:10px;border:1px solid var(--border);padding:0 12px;font-size:13px;font-family:var(--m);text-align:center;background:var(--card);color:var(--fg)}
@@ -609,7 +617,12 @@ var CHECK_SECTIONS=[
 var S={screen:"login",dark:false,hid:"",family:dc(FDEF),prospects:[],tab:"dash",viewIdx:null,charts:{}};
 var dbRef=null,shopRef=null,skipSync=false;
 // Shopping state
-var SHOP={items:[],stores:[{name:"ICA Hovås",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]}],activeStore:0,history:{},mode:"list",actualTotal:null};
+var SHOP={items:[],stores:[{name:"ICA Hovås",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},{name:"Systembolaget",cats:["Rött vin","Vitt vin","Öl","Sprit","Cider","Alkoholfritt","Övrigt"]}],activeStore:0,history:{},mode:"list",actualTotal:null};
+// Tasks
+var TASKS={items:[],categories:["Hem","Inköp","Husjakten","Barn","Övrigt"]};
+var TASK_TYPES={"shop":"🛒","systemet":"🍷","visning":"🏠","kalender":"📅","samtal":"📞","boka":"🎟️","task":"✅"};
+function tasksRef_(){return shopRef?shopRef.parent.child("tasks"):null}
+function taskSync(){var r=tasksRef_();if(r&&!skipSync)r.set(TASKS)}
 var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦"};
 // Guess category from item name
 function guessCat(name){var n=name.toLowerCase();
@@ -626,7 +639,9 @@ function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!sk
 function connect(id){
   dbRef=db.ref("households/"+id);
   shopRef=db.ref("households/"+id+"/shop");
-  shopRef.on("value",function(snap){var d=snap.val();if(d){skipSync=true;SHOP=Object.assign(SHOP,d);if(S.tab==="shop"){var el=document.getElementById("shopContent");if(el)el.innerHTML=rShopContent()};skipSync=false}});
+  shopRef.on("value",function(snap){var d=snap.val();if(d){skipSync=true;SHOP=Object.assign(SHOP,d);if(S.tab==="todo"){var el=document.getElementById("shopContent");if(el)el.innerHTML=rShopContent()};skipSync=false}});
+  var tRef=shopRef.parent.child("tasks");
+  tRef.on("value",function(snap){var d=snap.val();if(d){skipSync=true;TASKS=Object.assign(TASKS,d);if(S.tab==="todo"||S.tab==="dash"){render()};skipSync=false}});
   dbRef.on("value",function(snap){var d=snap.val();if(!d)return;skipSync=true;
     if(d.family){var fam=dc(FDEF);for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]};if(d.family.persons)fam.persons=d.family.persons;if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
     if(d.family.budget&&!d.family.budget_shared){var items=[];for(var bk in d.family.budget)items.push({name:bk,amount:N(d.family.budget[bk])});fam.budget_shared=items}
@@ -642,11 +657,15 @@ function render(){var a=document.getElementById("app");a.className=S.dark?"dark"
 function rLogin(el){el.innerHTML='<div class="login"><div class="logo" style="width:64px;height:64px;border-radius:16px"><svg viewBox="0 0 36 36" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><h2>Family Command</h2><p>Ange ert hushålls-ID (min 6 tecken)</p><input id="hi" type="text" placeholder="t.ex. familjen-2025" value="'+S.hid+'"><button class="btn btn-p" id="hb">Anslut</button><p style="font-size:10px;color:var(--fg3)">Data synkas i realtid mellan familjemedlemmar</p></div>';document.getElementById("hi").addEventListener("input",function(e){S.hid=e.target.value});document.getElementById("hb").addEventListener("click",function(){var id=S.hid.trim();if(id.length<6)return alert("Minst 6 tecken");connect(id)});document.getElementById("hi").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("hb").click()})}
 
 function rApp(el){var f=S.family,c=calcFamily(f);
-  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Husaffär · Inköp</p></div></div><div class="hpills"><span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span><button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
-  '<div class="tabs"><button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Dashboard</button><button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏠 Hem & ekonomi</button><button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Prospekt'+(S.prospects.length?" ("+S.prospects.length+")":"")+'</button><button class="tab '+(S.tab==="compare"?"a":"")+'" data-t="compare">⚖️ Jämför</button><button class="tab '+(S.tab==="shop"?"a":"")+'" data-t="shop">🛒 Inköp</button></div>'+
+  var pillsHtml='';
+  if(S.tab==="dash"||S.tab==="bostad"){pillsHtml='<span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span>'}
+  else if(S.tab==="prospekt"){pillsHtml='<span class="pill">'+S.prospects.length+' prospekt</span>'}
+  else if(S.tab==="todo"){var pt=(TASKS.items||[]).filter(function(t){return!t.done}).length;var ps2=(SHOP.items||[]).filter(function(t){return!t.done}).length;pillsHtml='<span class="pill">'+(pt+ps2)+' kvar</span>'}
+  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
+  '<div class="tabs"><button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Översikt</button><button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏠 Ekonomi</button><button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Husjakten</button><button class="tab '+(S.tab==="todo"?"a":"")+'" data-t="todo">📋 Att göra</button></div>'+
   '<div id="tc">'+rTab(f,c)+'</div></div>';bindAll(f,c)}
 
-function rTab(f,c){if(S.tab==="dash")return rDash(f,c);if(S.tab==="bostad")return rBostad(f,c);if(S.tab==="prospekt")return S.viewIdx!==null?rPD(f,c):rPL(f,c);if(S.tab==="shop")return rShop();return rCmp(f,c)}
+function rTab(f,c){if(S.tab==="dash")return rDash(f,c);if(S.tab==="bostad")return rBostad(f,c);if(S.tab==="prospekt")return S.viewIdx!==null?rPD(f,c):rPL(f,c);if(S.tab==="todo")return rTodo();return rDash(f,c)}
 
 // === DASHBOARD ===
 function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var currH=c.housing;var totalUt=c.totalBudget+c.housing;
@@ -661,15 +680,21 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   var gaugeCol=gaugeVal>=20?"var(--teal)":gaugeVal>=5?"var(--amber)":"var(--rose)";
   var circumf=2*Math.PI*50;var offset=circumf-(gaugeVal/100*circumf);
   // Build todos from all prospects
+  // Build action items from all sources
   var todos=[];
-  S.prospects.forEach(function(p,i){var r=ps[i];var dd=p.dd||{};
-    if(!dd.byggar)todos.push({text:"Fyll i byggår för "+(p.name||"prospekt"),type:"a",pi:i});
-    if(!dd.boarea)todos.push({text:"Fyll i boarea för "+(p.name||"prospekt"),type:"a",pi:i});
-    if(!N(p.price))todos.push({text:"Sätt huspris för "+(p.name||"prospekt"),type:"r",pi:i});
-    if(r.dataQuality<50)todos.push({text:"Öka datakvalitet för "+(p.name||"prospekt")+" ("+r.dataQuality+"%)",type:"a",pi:i});
-    var cl=p.checklist||{};if(!cl.besiktning&&p.status==="budgivning")todos.push({text:"Boka besiktning — "+(p.name||"prospekt"),type:"r",pi:i});
+  // From tasks
+  (TASKS.items||[]).filter(function(t){return!t.done}).forEach(function(t){
+    todos.push({text:(TASK_TYPES[t.type]||"✅")+" "+t.text,type:t.pri==="hög"?"r":"g",goto:t.type==="shop"?"shop":t.type==="systemet"?"shop":t.type==="visning"?"prospekt":"tasks"})
   });
-  if(!S.prospects.length)todos.push({text:"Lägg till ert första prospekt!",type:"g"});
+  // From shopping
+  var shopPending=(SHOP.items||[]).filter(function(it){return!it.done}).length;
+  if(shopPending)todos.push({text:"🛒 Handla — "+shopPending+" varor på listan",type:"a",goto:"shop"});
+  // From prospects
+  S.prospects.forEach(function(p,i){var r=ps[i];var dd=p.dd||{};
+    if(!N(p.price)&&p.addr)todos.push({text:"🏠 Sätt huspris för "+(p.name||"prospekt"),type:"a",goto:"prospekt",pi:i});
+    if(r.dataQuality<40&&p.addr)todos.push({text:"🔎 Fyll i data för "+(p.name||"prospekt")+" ("+r.dataQuality+"%)",type:"a",goto:"prospekt",pi:i});
+  });
+  if(!S.prospects.length&&!(TASKS.items||[]).length)todos.push({text:"👋 Välkommen! Lägg till uppgifter eller prospekt för att komma igång",type:"g"});
 
   return '<div class="anim-in"><div class="greeting">'+greet+', '+f.persons[0].name+' & '+f.persons[1].name+' 👋</div><div class="greeting-sub">'+dateStr+'</div></div>'+
 
@@ -707,12 +732,20 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
     '<div class="card"><div class="card-b"><div style="font-size:11px;font-weight:500;color:var(--fg2);margin-bottom:4px">Stresstest — ränta 2→7%</div><div class="chw"><canvas id="dStress"></canvas></div></div></div>'+
   '</div>':'')+
 
+  // Jämförelse (integrerad från gamla Jämför-fliken)
+  (ps.length>0?sec("d-cmp","⚖️","Jämför prospekt",'<span class="kpi">'+ps.length+' st</span>',rCmpBody(f,c),false):'')+
+
   // Att göra
-  '<div class="card anim-in anim-d5"><div class="card-b"><div style="font-size:12px;font-weight:600;margin-bottom:6px">📋 Att göra</div>'+
-  (todos.length?todos.slice(0,6).map(function(t){return '<div class="todo-item"><div class="todo-dot" style="background:'+(t.type==="r"?"var(--rose)":t.type==="a"?"var(--amber)":"var(--teal)")+'"></div><span>'+t.text+'</span></div>'}).join('')+
-  (todos.length>6?'<div style="font-size:10px;color:var(--fg2);margin-top:4px">+ '+(todos.length-6)+' till...</div>':''):
+  '<div class="card anim-in anim-d5"><div class="card-b"><div class="flex aic jcb"><span style="font-size:12px;font-weight:600">📋 Att göra</span><button class="btn btn-s btn-sm" style="font-size:9px" data-todogoto="todo">Visa alla →</button></div>'+
+  (todos.length?todos.slice(0,8).map(function(t){return '<div class="todo-item" style="cursor:pointer" data-todogoto="'+(t.goto||"todo")+'"'+(t.pi!==undefined?' data-todopi="'+t.pi+'"':'')+'><div class="todo-dot" style="background:'+(t.type==="r"?"var(--rose)":t.type==="a"?"var(--amber)":"var(--teal)")+'"></div><span>'+t.text+'</span></div>'}).join('')+
+  (todos.length>8?'<div style="font-size:10px;color:var(--fg2);margin-top:4px">+ '+(todos.length-8)+' till...</div>':''):
   '<div style="font-size:11px;color:var(--teal);padding:8px 0">✓ Allt under kontroll!</div>')+
   '</div></div>'
+}
+// Jämförelsetabell body (used in dashboard)
+function rCmpBody(f,c){if(!S.prospects.length)return '';var rs=S.prospects.map(function(p){return calcP(f,p)}),currH=c.housing;
+  var rows=[["Boende/mån",function(r){return fN(r.totalHousing)+" kr"},null,fN(currH)+" kr"],["vs nuvarande",function(r){var d=r.totalHousing-currH;return(d>=0?"+":"")+fN(d)+" kr"},function(r){return(r.totalHousing-currH)<=0?"g":"r"},"—"],["Överskott",function(r){return(r.surplus>=0?"+":"")+fN(r.surplus)+" kr"},function(r){return r.surplus>=0?"g":"r"},(c.surplus>=0?"+":"")+fN(c.surplus)+" kr"],["LTV",function(r){return fP(r.ltv)},function(r){return r.ltv>0.85?"r":r.ltv>0.7?"a":""},"—"],["Stresstest 5%",function(r){return(r.s5>=0?"+":"")+fN(r.s5)+" kr"},function(r){return r.s5>=0?"g":"r"},"—"],["Risk",function(r){return r.riskLevel==="low"?"Låg":r.riskLevel==="med"?"Medel":"Hög"},function(r){return r.riskLevel==="low"?"g":r.riskLevel==="med"?"a":"r"},"—"],["Data",function(r){return r.dataQuality+"%"},function(r){return r.dataQuality>=70?"g":r.dataQuality>=40?"a":"r"},"—"]];
+  return '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th style="text-align:left;padding:6px;font-size:9px;color:var(--fg2);border-bottom:1px solid var(--border)"></th><th style="text-align:right;padding:6px;font-size:9px;color:var(--teal);border-bottom:1px solid var(--border)">'+(f.curr_addr||"Nuv.")+'</th>'+rs.map(function(r){return '<th style="text-align:right;padding:6px;font-size:9px;color:var(--fg2);border-bottom:1px solid var(--border)">'+r.name+'</th>'}).join('')+'</tr></thead><tbody>'+rows.map(function(row){var label=row[0],fn=row[1],cfn=row[2],cv=row[3];return '<tr><td style="padding:4px 6px;border-bottom:1px solid var(--bg2);color:var(--fg2);font-size:10px">'+label+'</td><td style="padding:4px 6px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--m);color:var(--teal);font-size:10px">'+cv+'</td>'+rs.map(function(r){var cl=cfn?cfn(r):"";var st=cl==="g"?"color:var(--teal)":cl==="r"?"color:var(--rose)":cl==="a"?"color:var(--amber)":"";return '<td style="padding:4px 6px;border-bottom:1px solid var(--bg2);text-align:right;font-family:var(--m);font-size:10px;'+st+'">'+fn(r)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'
 }
 
 // === BOSTAD (abbreviated for space — same as v4) ===
@@ -932,6 +965,94 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     sec("p-notes","📝","Anteckningar & länkar",'<span class="kpi">'+ckDone+'/'+ckTotal+' klart</span>'+(p.urls&&p.urls.length?'<span class="kpi">'+p.urls.length+' länkar</span>':''),s7b,false)
 }
 
+// === TODO (tasks + shopping combined) ===
+function rTodo(){
+  var shopPending=(SHOP.items||[]).filter(function(it){return!it.done}).length;
+  var tasksPending=(TASKS.items||[]).filter(function(t){return!t.done}).length;
+  return '<div class="task-add"><input id="taskInput" placeholder="Lägg till uppgift..." autofocus><select id="taskType" style="width:50px;border-radius:8px;border:1px solid var(--border);font-size:14px;background:var(--card);text-align:center">'+Object.keys(TASK_TYPES).map(function(k){return '<option value="'+k+'">'+TASK_TYPES[k]+'</option>'}).join('')+'</select><button class="btn btn-p btn-sm" id="taskAdd">+</button></div>'+
+    sec("td-tasks","✅","Uppgifter"+(tasksPending?' ('+tasksPending+')':''),'<span class="kpi">'+tasksPending+' kvar</span>',rTasksContent(),true)+
+    sec("td-shop","🛒","Inköpslista"+(shopPending?' ('+shopPending+')':''),'<span class="kpi">'+shopPending+' varor</span>'+(SHOP.activeStore!==undefined?'<span class="kpi">'+(SHOP.stores[SHOP.activeStore]||{}).name+'</span>':''),'<div id="shopContent">'+rShopContent()+'</div>',false)
+}
+function rTasksContent(){
+  var items=TASKS.items||[];
+  var pending=items.filter(function(t){return!t.done});
+  var done=items.filter(function(t){return t.done});
+  var shopPending=(SHOP.items||[]).filter(function(it){return!it.done}).length;
+  var filter=S.taskFilter||"alla";
+  if(filter!=="alla")pending=pending.filter(function(t){return t.cat===filter});
+
+  // Sort: priority high first, then by date added
+  var priOrd={hög:0,medel:1,låg:2};
+  pending.sort(function(a,b){return(priOrd[a.pri]||1)-(priOrd[b.pri]||1)||(a.added||0)-(b.added||0)});
+
+  return ''+
+
+    // Filter
+    '<div class="task-filter"><button class="'+(filter==="alla"?"a":"")+'" data-tf="alla">Alla ('+pending.length+')</button>'+
+    TASKS.categories.map(function(c){var cnt=items.filter(function(t){return!t.done&&t.cat===c}).length;return '<button class="'+(filter===c?"a":"")+'" data-tf="'+c+'">'+c+(cnt?' ('+cnt+')':'')+'</button>'}).join('')+'</div>'+
+
+    // Pending
+    pending.map(function(t){var idx=items.indexOf(t);
+      return '<div class="task-item'+(t.done?" done":"")+'" data-ti="'+idx+'">'+
+        '<div class="t-chk" data-tcheck="'+idx+'">'+(t.done?"✓":"")+'</div>'+
+        '<div class="t-body"><div class="t-name">'+(TASK_TYPES[t.type]||"✅")+' '+t.text+'</div>'+
+        '<div class="t-meta"><span>'+t.cat+'</span>'+(t.pri==="hög"?'<span style="color:var(--rose)">⬆ Hög</span>':t.pri==="låg"?'<span style="color:var(--fg3)">⬇ Låg</span>':'')+(t.date?'<span>📅 '+t.date+'</span>':'')+(t.assignee?'<span>👤 '+t.assignee+'</span>':'')+'</div></div>'+
+        '<div class="t-actions"><button class="ib" data-tpri="'+idx+'" title="Prioritet">⬆</button><button class="ib" data-tassign="'+idx+'" title="Tilldela">👤</button><button class="del-item" data-tdel="'+idx+'">×</button></div></div>'
+    }).join('')+
+
+    (pending.length===0?'<div class="empty" style="padding:20px"><div style="font-size:28px;margin-bottom:6px">'+(filter==="alla"?"🎉":"📋")+'</div><div style="font-size:13px;font-weight:600">'+(filter==="alla"?"Allt klart!":"Inga uppgifter i "+filter)+'</div></div>':'')+
+
+    // Done (collapsed)
+    (done.length?'<div style="margin-top:16px"><div class="flex aic jcb"><span style="font-size:10px;color:var(--fg2)">✓ Klara ('+done.length+')</span><button class="btn btn-s btn-sm" id="clearTasks">Rensa</button></div>'+
+    done.slice(0,5).map(function(t){var idx=items.indexOf(t);return '<div class="task-item done"><div class="t-chk" data-tcheck="'+idx+'">✓</div><div class="t-body"><div class="t-name">'+(TASK_TYPES[t.type]||"✅")+' '+t.text+'</div></div></div>'}).join('')+
+    (done.length>5?'<div style="font-size:10px;color:var(--fg3);padding:4px 0">+ '+(done.length-5)+' till...</div>':'')+'</div>':'')
+}
+
+function bindTasks(){
+  var inp=document.getElementById("taskInput");if(!inp)return;
+  var typesel=document.getElementById("taskType");
+  function addTask(text){
+    text=text.trim();if(!text)return;
+    var type=typesel?typesel.value:"task";
+    // Auto-detect type from text
+    if(/handla|köp|ica|mat/i.test(text))type="shop";
+    if(/system|vin|öl/i.test(text))type="systemet";
+    if(/visning|hus|mäklar/i.test(text))type="visning";
+    if(/boka|beställ/i.test(text))type="boka";
+    if(/ring|samtal/i.test(text))type="samtal";
+    // Auto-detect category
+    var cat="Övrigt";
+    if(/städ|tvätt|disk|fixa|laga|monter|byt/i.test(text))cat="Hem";
+    if(/handla|köp|ica|mat|system/i.test(text))cat="Inköp";
+    if(/visning|hus|mäklar|bud|prospekt/i.test(text))cat="Husjakten";
+    if(/barn|skola|förskola|aktivitet/i.test(text))cat="Barn";
+    TASKS.items.push({text:text,type:type,cat:cat,done:false,pri:"medel",added:Date.now(),assignee:"",date:""});
+    taskSync();render();
+    setTimeout(function(){var i=document.getElementById("taskInput");if(i){i.focus();i.value=""}},50);
+  }
+  inp.addEventListener("keydown",function(e){if(e.key==="Enter"){addTask(inp.value);inp.value=""}});
+  var addBtn=document.getElementById("taskAdd");if(addBtn)addBtn.addEventListener("click",function(){addTask(inp.value);inp.value=""});
+  // Check/uncheck
+  document.querySelectorAll("[data-tcheck]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.tcheck);TASKS.items[idx].done=!TASKS.items[idx].done;taskSync();render()})});
+  // Delete
+  document.querySelectorAll("[data-tdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();TASKS.items.splice(N(el.dataset.tdel),1);taskSync();render()})});
+  // Priority cycle
+  document.querySelectorAll("[data-tpri]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tpri);var cycle=["medel","hög","låg"];var cur=TASKS.items[idx].pri||"medel";TASKS.items[idx].pri=cycle[(cycle.indexOf(cur)+1)%3];taskSync();render()})});
+  // Assign
+  document.querySelectorAll("[data-tassign]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tassign);var names=S.family.persons.map(function(p){return p.name});var cur=TASKS.items[idx].assignee||"";var next=names[(names.indexOf(cur)+1)%names.length]||names[0];TASKS.items[idx].assignee=(cur===next&&cur)?"":(next||"");taskSync();render()})});
+  // Filter
+  document.querySelectorAll("[data-tf]").forEach(function(el){el.addEventListener("click",function(){S.taskFilter=el.dataset.tf;render()})});
+  // Shortcuts
+  document.querySelectorAll("[data-goto]").forEach(function(el){el.addEventListener("click",function(){
+    var target=el.dataset.goto;
+    if(target==="shop"){S.tab="todo";SHOP.activeStore=0;EXP["td-shop"]=true;localStorage.setItem("exp",JSON.stringify(EXP));render()}
+    else if(target==="shop-sys"){S.tab="todo";SHOP.activeStore=N(el.dataset.store)||1;EXP["td-shop"]=true;localStorage.setItem("exp",JSON.stringify(EXP));shopSync();render()}
+    else if(target==="prospekt"){S.tab="prospekt";S.viewIdx=null;render()}
+    setTimeout(updateCharts,100)})});
+  // Clear done
+  var clr=document.getElementById("clearTasks");if(clr)clr.addEventListener("click",function(){TASKS.items=TASKS.items.filter(function(t){return!t.done});taskSync();render()});
+}
+
 // === SHOPPING ===
 function rShop(){
   return '<div id="shopContent">'+rShopContent()+'</div>'
@@ -1037,9 +1158,14 @@ function rCmp(f,c){if(!S.prospects.length)return '<div class="empty"><p>Lägg ti
 // === EVENTS ===
 function bindAll(f,c){
   document.getElementById("td").addEventListener("click",function(){S.dark=!S.dark;render()});
-  if(S.tab==="shop")bindShop();
+  if(S.tab==="todo"){bindTasks();bindShop()}
   // Dashboard prospect cards — click to open
   document.querySelectorAll(".prospect-card[data-opi]").forEach(function(el){el.addEventListener("click",function(){S.tab="prospekt";S.viewIdx=N(el.dataset.opi);render();setTimeout(updateCharts,100)})});
+  // Dashboard todo items — click to navigate
+  document.querySelectorAll("[data-todogoto]").forEach(function(el){el.addEventListener("click",function(){
+    var goto=el.dataset.todogoto;if(!goto)return;
+    if(goto==="shop"){S.tab="todo";EXP["td-shop"]=true;localStorage.setItem("exp",JSON.stringify(EXP))}else if(goto==="tasks"||goto==="todo"){S.tab="todo"}else if(goto==="prospekt"){S.tab="prospekt";if(el.dataset.todopi!==undefined)S.viewIdx=N(el.dataset.todopi)}
+    render();setTimeout(updateCharts,100)})});
   // Expand/collapse
   document.querySelectorAll(".sec-h").forEach(function(el){el.addEventListener("click",function(){toggleSec(el.dataset.sec)})});
   document.getElementById("lo").addEventListener("click",function(){localStorage.removeItem("hid");if(dbRef)dbRef.off();if(shopRef)shopRef.off();dbRef=null;shopRef=null;S.screen="login";S.hid="";render()});

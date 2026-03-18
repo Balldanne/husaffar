@@ -72,6 +72,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 @media(max-width:640px){.fg2{grid-template-columns:1fr}.fg3,.fg4{grid-template-columns:1fr 1fr}.hpills .pill:first-child{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.macro{grid-template-columns:1fr 1fr}}
 /* Expandable sections */
 .sec{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+/* Autocomplete */
+.ac-wrap{position:relative}.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:0 0 8px 8px;z-index:20;max-height:200px;overflow-y:auto;display:none}.ac-list.show{display:block}.ac-item{padding:6px 10px;font-size:11px;cursor:pointer;border-bottom:1px solid var(--bg2)}.ac-item:hover{background:var(--bg2)}.ac-item small{color:var(--fg3);font-size:9px;display:block}
+/* Search results banner */
+.search-res{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:10px}.search-ok{background:var(--tealL);color:var(--teal)}.search-ok b{color:var(--green)}.search-warn{background:var(--amberL);color:var(--amber)}.search-err{background:var(--roseL);color:var(--rose)}
 .sec-h{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;-webkit-user-select:none;user-select:none}.sec-h:hover{background:var(--bg2)}
 .sec-h .chv{font-size:10px;color:var(--fg3);transition:transform .2s;flex-shrink:0}.sec-h.open .chv{transform:rotate(90deg)}
 .sec-sum{display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex:1;min-width:0;margin-left:8px}
@@ -624,7 +628,12 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     '<div class="summary"><div class="flex aic jcb"><div class="flex aic gap6"><span style="font-size:16px;font-weight:700">'+(p.name||"Namnlöst")+'</span><select id="ps" style="font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg)">'+Object.keys(STATUS_L).map(function(k){return '<option value="'+k+'"'+(p.status===k?" selected":"")+'>'+STATUS_L[k]+'</option>'}).join('')+'</select></div><div class="flex aic gap6"><span style="font-size:28px;font-weight:700;color:'+gCol+'">'+grade+'</span><button class="btn btn-d btn-sm" id="delp">🗑️</button></div></div>'+
     '<div class="metrics mt6"><div class="met"><div class="met-l">Boende/mån</div><div class="met-v" style="font-size:15px">'+fSEK(r.totalHousing)+'</div></div><div class="met"><div class="met-l">Överskott</div><div class="met-v '+(r.surplus>=0?"g":"r")+'" style="font-size:15px">'+(r.surplus>=0?"+":"")+fSEK(r.surplus)+'</div></div><div class="met"><div class="met-l">vs nuvarande</div><div class="met-v '+(diff<=0?"g":"r")+'" style="font-size:15px">'+(diff>=0?"+":"")+fSEK(diff)+'</div></div><div class="met"><div class="met-l">Data</div><div class="met-v '+(r.dataQuality>=70?"g":r.dataQuality>=40?"a":"r")+'" style="font-size:15px">'+r.dataQuality+'%</div></div></div></div>';
   // GRUNDDATA
-  var grundB='<div class="fg fg2"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><div class="flex gap4"><input value="'+(p.addr||"")+'" data-pk="addr" class="pp" style="flex:1"><button class="btn btn-p btn-sm" id="searchData">🔍 Sök</button></div></div></div><div class="dq mt6"><span class="dq-label">Datakvalitet</span><div class="dq-bar"><div class="dq-fill" style="width:'+r.dataQuality+'%;background:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'"></div></div><span class="dq-pct">'+r.dataQuality+'%</span></div><div class="src-legend"><span>'+srcDot("auth")+' Mynd</span><span>'+srcDot("listing")+' Annons</span><span>'+srcDot("user")+' Egen</span><span>'+srcDot("est")+' Schablon</span></div>';
+  var searchRes=p._searchResult||null;
+  var grundB='<div class="fg fg2"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><div class="ac-wrap"><div class="flex gap4"><input value="'+(p.addr||"")+'" id="addrInput" class="pp" data-pk="addr" style="flex:1" placeholder="Skriv adress..." autocomplete="off"><button class="btn btn-p btn-sm" id="searchData">🔍 Sök</button></div><div class="ac-list" id="acList"></div></div></div></div>'+
+    (searchRes?'<div class="search-res '+(searchRes.ok?"search-ok":"search-warn")+'">'+searchRes.msg+'</div>':'')+
+    '<div class="fg fg3 mt6"><div class="fi"><label>'+srcDot("auth")+' Kommun</label><input value="'+(dd.kommun||"")+'" data-dk="kommun" class="dd" readonly style="background:var(--bg2)"></div><div class="fi"><label>'+srcDot("auth")+' Område</label><input value="'+(dd.omrade||"")+'" data-dk="omrade" class="dd" readonly style="background:var(--bg2)"></div><div class="fi"><label>'+srcDot("auth")+' Postnr</label><input value="'+(dd.postnummer||"")+'" data-dk="postnummer" class="dd" readonly style="background:var(--bg2)"></div></div>'+
+    (dd.hustyp?'<div class="flex gap6 mt6"><span class="kpi" style="font-size:10px">'+srcDot("auth")+' '+dd.hustyp+'</span>'+(dd.fastighetsbeteckning?'<span class="kpi" style="font-size:10px">'+srcDot("auth")+' '+dd.fastighetsbeteckning+'</span>':'')+(dd.narmaste_skola?'<span class="kpi" style="font-size:10px">🏫 '+dd.narmaste_skola+'</span>':'')+(dd.narmaste_hpl?'<span class="kpi" style="font-size:10px">🚌 '+dd.narmaste_hpl+'</span>':'')+'</div>':'')+
+    '<div class="dq mt6"><span class="dq-label">Datakvalitet</span><div class="dq-bar"><div class="dq-fill" style="width:'+r.dataQuality+'%;background:'+(r.dataQuality>=70?'var(--teal)':r.dataQuality>=40?'var(--amber)':'var(--rose)')+'"></div></div><span class="dq-pct">'+r.dataQuality+'%</span></div><div class="src-legend"><span>'+srcDot("auth")+' Mynd</span><span>'+srcDot("listing")+' Annons</span><span>'+srcDot("user")+' Egen</span><span>'+srcDot("est")+' Schablon</span></div>';
   // AFFÄRSCASE
   var caseB='<div class="sr"><label>Huspris</label><input type="range" min="1000000" max="20000000" step="100000" value="'+N(p.price)+'" data-sk="price" class="psl"><input type="number" value="'+N(p.price)+'" data-sk="price" class="pnm"></div><div class="sr"><label>Renovering</label><input type="range" min="0" max="3000000" step="50000" value="'+N(p.reno)+'" data-sk="reno" class="psl"><input type="number" value="'+N(p.reno)+'" data-sk="reno" class="pnm"></div><div class="sr"><label>Föräldr.lån</label><input type="range" min="0" max="'+(N(p.parent_loan)||1200000)+'" step="50000" value="'+N(p.parent_repay)+'" data-sk="parent_repay" class="psl"><input type="number" value="'+N(p.parent_repay)+'" data-sk="parent_repay" class="pnm"></div><div class="pr mt6"><span>Bolån '+fSEK(r.mortgage)+' · LTV '+fP(r.ltv)+'</span><b>Skuldkvot '+r.dti+'x</b></div><div class="pr"><span>Ränta ('+fP(r.rate)+')</span><b>'+fSEK(r.intMonth)+'/mån</b></div><div class="pr"><span>Amortering ('+fP(r.amortRate)+')</span><b>'+fSEK(r.amortMonth)+'/mån</b></div><div class="pr"><span>Drift</span><b>'+fSEK(r.drift)+'/mån</b></div><div class="pr"><span>Stresstest 5%/7%</span><b>'+(r.s5>=0?"+":"")+fSEK(r.s5)+' / '+(r.s7>=0?"+":"")+fSEK(r.s7)+'</b></div><div class="pr"><span>Lagfart+pantbrev</span><b>'+fSEK(r.txCost)+'</b></div>';
   // PRISANALYS
@@ -782,28 +791,85 @@ function bindAll(f,c){
       if(result&&result.data){
         var d=result.data,s=result.sources||{};
         if(!p.dd)p.dd={};
-        // Map worker data to prospect — overwrite with better data
-        var mapped=0;
-        function mp(dk,wk,src){var v=d[wk||dk];if(v!==null&&v!==undefined&&v!==""){p.dd[dk]=v;if(src)p.dd["_src_"+dk]=s[wk||dk]||src;mapped++}}
+        var mapped=0,fields=[];
+        function mp(dk,wk,src){var v=d[wk||dk];if(v!==null&&v!==undefined&&v!==""){p.dd[dk]=v;if(src)p.dd["_src_"+dk]=s[wk||dk]||src;mapped++;fields.push(dk)}}
         mp("kommun","kommun","auth");mp("omrade","omrade","auth");mp("postnummer","postnummer","auth");
-        mp("hustyp","hustyp","auth");
-        mp("byggar","byggar","listing");mp("boarea","boarea","listing");mp("biarea","biarea","listing");
-        mp("tomtarea","tomtarea","auth");mp("rum","rum","listing");
+        mp("hustyp","hustyp","auth");mp("byggar","byggar","listing");mp("boarea","boarea","listing");
+        mp("biarea","biarea","listing");mp("tomtarea","tomtarea","auth");mp("rum","rum","listing");
         mp("energiklass","energiklass","listing");mp("uppvarmning","uppvarmning","listing");
         mp("taxvarde","taxvarde","auth");mp("fastighetsbeteckning","fastighetsbeteckning","auth");
         mp("byggnadsarea","byggnadsarea","auth");mp("vaningar","vaningar","auth");
         if(d.image)p.image=d.image;
         if(d.price&&N(d.price)>0&&!N(p.price))p.price=N(d.price);
         if(d.nearby)p._nearby=d.nearby;
-        if(d.narmaste_skola)p.dd.narmaste_skola=d.narmaste_skola;
-        if(d.narmaste_hpl)p.dd.narmaste_hpl=d.narmaste_hpl;
+        if(d.narmaste_skola){p.dd.narmaste_skola=d.narmaste_skola;mapped++}
+        if(d.narmaste_hpl){p.dd.narmaste_hpl=d.narmaste_hpl;mapped++}
+        // Build feedback message
+        var src_list=(result.sources_checked||[]).join(", ");
+        var missing=(result._missing||[]);
+        var msg="<b>✓ "+mapped+" datapunkter</b> från "+src_list+"<br>"+
+          (fields.length?"Hittade: "+fields.join(", ")+"<br>":"")+
+          (missing.length?"<b>Saknas:</b> "+missing.join(", ")+" — fyll i manuellt eller fråga mäklaren":"Alla nyckelfält hittade!");
+        p._searchResult={ok:mapped>3,msg:msg};
         ss({prospects:ps});
-        toast("✓ "+mapped+" fält från "+(result.sources_checked||[]).join(", "));
+        toast("✓ "+mapped+" fält hittade");
         if(result._suggestions&&result._suggestions.length){setTimeout(function(){toast(result._suggestions[0])},3000)}
-      }else{toast("Inga data hittades")}
+      }else{
+        var ps2=dc(S.prospects);ps2[S.viewIdx]._searchResult={ok:false,msg:"Inga data hittades för denna adress. Kontrollera stavning."};
+        ss({prospects:ps2});
+        toast("Inga data hittades")
+      }
     }catch(e){toast("Fel: "+e.message)}
     searchBtn.textContent="🔍 Sök";searchBtn.disabled=false;
   });
+  // === AUTOCOMPLETE ===
+  var addrIn=document.getElementById("addrInput"),acList=document.getElementById("acList");
+  var acTimer=null;
+  if(addrIn&&acList){
+    addrIn.addEventListener("input",function(e){
+      clearTimeout(acTimer);
+      var q=e.target.value.trim();if(q.length<3){acList.classList.remove("show");return}
+      acTimer=setTimeout(async function(){
+        try{
+          // Photon search biased to Billdal/Hovås area
+          var resp=await fetch("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+"&limit=5&lat=57.58&lon=11.94&bbox=11.88,57.55,11.98,57.62");
+          var data=await resp.json();
+          if(data.features&&data.features.length){
+            acList.innerHTML=data.features.map(function(f,i){
+              var p=f.properties||{};
+              var name=[p.street,p.housenumber].filter(Boolean).join(" ");
+              var sub=[p.district||p.city,p.postcode].filter(Boolean).join(", ");
+              return '<div class="ac-item" data-aci="'+i+'"><b>'+name+'</b><small>'+sub+'</small></div>'
+            }).join('');
+            acList.classList.add("show");
+            // Store features for selection
+            acList._features=data.features;
+          }else{acList.classList.remove("show")}
+        }catch(e){acList.classList.remove("show")}
+      },300);
+    });
+    acList.addEventListener("click",function(e){
+      var item=e.target.closest(".ac-item");if(!item)return;
+      var idx=N(item.dataset.aci);
+      var feat=acList._features&&acList._features[idx];
+      if(feat){
+        var p=feat.properties||{};
+        var addr=[p.street,p.housenumber].filter(Boolean).join(" ");
+        var full=addr+(p.district?" "+p.district:"")+(p.city?" "+p.city:"");
+        addrIn.value=full;
+        acList.classList.remove("show");
+        // Save to prospect
+        var ps=dc(S.prospects);
+        ps[S.viewIdx].addr=full;
+        if(!ps[S.viewIdx].name||ps[S.viewIdx].name.indexOf("Prospekt")===0)ps[S.viewIdx].name=addr;
+        ss({prospects:ps});
+        // Auto-trigger search
+        setTimeout(function(){var btn=document.getElementById("searchData");if(btn)btn.click()},100);
+      }
+    });
+    // Close on click outside
+    document.addEventListener("click",function(e){if(!e.target.closest(".ac-wrap"))acList.classList.remove("show")});
+  }
 }
 
 // === CHARTS ===

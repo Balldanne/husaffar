@@ -527,7 +527,7 @@ function rLogin(el){el.innerHTML='<div class="login"><div class="logo" style="wi
 
 function rApp(el){var f=S.family,c=calcFamily(f);
   el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo">🏠</div><div class="htitle"><h1>Husaffär & Familjeekonomi</h1><p>Simulera · Jämför · Besluta</p></div></div><div class="hpills"><span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span><button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
-  '<div class="tabs"><button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Dashboard</button><button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏡 Bostad</button><button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Prospekt'+(S.prospects.length?" ("+S.prospects.length+")":"")+'</button><button class="tab '+(S.tab==="compare"?"a":"")+'" data-t="compare">⚖️ Jämför</button></div>'+
+  '<div class="tabs"><button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Dashboard</button><button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏠 Hem & ekonomi</button><button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Prospekt'+(S.prospects.length?" ("+S.prospects.length+")":"")+'</button><button class="tab '+(S.tab==="compare"?"a":"")+'" data-t="compare">⚖️ Jämför</button></div>'+
   '<div id="tc">'+rTab(f,c)+'</div></div>';bindAll(f,c)}
 
 function rTab(f,c){if(S.tab==="dash")return rDash(f,c);if(S.tab==="bostad")return rBostad(f,c);if(S.tab==="prospekt")return S.viewIdx!==null?rPD(f,c):rPL(f,c);return rCmp(f,c)}
@@ -545,12 +545,17 @@ function rBostad(f,c){var t=c.transfers;
   var prov=f.provision||{};var provAmount=calcProvision(N(f.curr_value),prov);var saleNet=N(f.curr_value)-provAmount-N(f.curr_mortgage);
   var bb_each=Math.round(barnbidrag(f.children)/f.persons.length);
   // === SUMMARY BAR ===
-  var sumBar='<div class="summary"><div style="font-size:11px;font-weight:600;margin-bottom:2px">Ekonomisk översikt</div>'+
-    '<div class="metrics"><div class="met"><div class="met-l">💰 Disponibelt</div><div class="met-v">'+fSEK(c.disp)+'</div><div class="met-s">/mån</div></div>'+
-    '<div class="met"><div class="met-l">🏠 Boende</div><div class="met-v">'+fSEK(c.housing)+'</div><div class="met-s">/mån</div></div>'+
+  var sumBar='<div class="summary"><div style="font-size:12px;font-weight:600;margin-bottom:2px">🏠 Hem & ekonomi — översikt</div>'+
+    '<div class="metrics"><div class="met"><div class="met-l">💰 Disponibelt</div><div class="met-v">'+fSEK(c.disp)+'</div><div class="met-s">/mån (netto+bb)</div></div>'+
+    '<div class="met"><div class="met-l">📤 Utgifter</div><div class="met-v">'+fSEK(c.housing+c.totalBudget)+'</div><div class="met-s">/mån totalt</div></div>'+
     '<div class="met"><div class="met-l">'+(c.surplus>=0?"📈":"📉")+' Överskott</div><div class="met-v '+(c.surplus>=0?"g":"r")+'">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</div><div class="met-s">/mån</div></div>'+
     '<div class="met"><div class="met-l">🏷️ Netto sälj</div><div class="met-v '+(saleNet>=0?"g":"r")+'">'+fSEK(saleNet)+'</div><div class="met-s">vid försäljning</div></div></div>'+
-    '<div class="sum-chart"><canvas id="bostadChart"></canvas></div></div>';
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
+    '<div style="height:160px;position:relative"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:4px">Månadsutgifter</div><canvas id="donutChart"></canvas></div>'+
+    '<div style="height:160px;position:relative"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:4px">Per person</div><canvas id="personChart"></canvas></div>'+
+    '</div>'+
+    '<div style="height:50px;margin-top:8px;position:relative"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:4px">Kassaflöde: inkomst → utgifter → kvar</div><canvas id="flowChart"></canvas></div>'+
+    '</div>';
 
   // === FAMILJ (collapsed by default) ===
   var famBody='<div class="fg fg2">'+f.persons.map(function(p,i){var tx=c.taxes[i];
@@ -629,7 +634,7 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     '<div class="metrics mt6"><div class="met"><div class="met-l">Boende/mån</div><div class="met-v" style="font-size:15px">'+fSEK(r.totalHousing)+'</div></div><div class="met"><div class="met-l">Överskott</div><div class="met-v '+(r.surplus>=0?"g":"r")+'" style="font-size:15px">'+(r.surplus>=0?"+":"")+fSEK(r.surplus)+'</div></div><div class="met"><div class="met-l">vs nuvarande</div><div class="met-v '+(diff<=0?"g":"r")+'" style="font-size:15px">'+(diff>=0?"+":"")+fSEK(diff)+'</div></div><div class="met"><div class="met-l">Data</div><div class="met-v '+(r.dataQuality>=70?"g":r.dataQuality>=40?"a":"r")+'" style="font-size:15px">'+r.dataQuality+'%</div></div></div></div>';
   // GRUNDDATA
   var searchRes=p._searchResult||null;
-  var grundB='<div class="fg fg2"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><div class="ac-wrap"><div class="flex gap4"><input value="'+(p.addr||"")+'" id="addrInput" class="pp" data-pk="addr" style="flex:1" placeholder="Skriv adress..." autocomplete="off"><button class="btn btn-p btn-sm" id="searchData">🔍 Sök</button></div><div class="ac-list" id="acList"></div></div></div></div>'+
+  var grundB='<div class="fg fg2"><div class="fi"><label>Namn</label><input value="'+(p.name||"")+'" data-pk="name" class="pp"></div><div class="fi"><label>Adress</label><div class="ac-wrap"><div class="flex gap4"><input value="'+(p.addr||"")+'" id="addrInput" data-pk="addr" style="flex:1" placeholder="Skriv adress..." autocomplete="off"><button class="btn btn-p btn-sm" id="searchData">🔍 Sök</button></div><div class="ac-list" id="acList"></div></div></div></div>'+
     (searchRes?'<div class="search-res '+(searchRes.ok?"search-ok":"search-warn")+'">'+searchRes.msg+'</div>':'')+
     '<div class="fg fg3 mt6"><div class="fi"><label>'+srcDot("auth")+' Kommun</label><input value="'+(dd.kommun||"")+'" data-dk="kommun" class="dd" readonly style="background:var(--bg2)"></div><div class="fi"><label>'+srcDot("auth")+' Område</label><input value="'+(dd.omrade||"")+'" data-dk="omrade" class="dd" readonly style="background:var(--bg2)"></div><div class="fi"><label>'+srcDot("auth")+' Postnr</label><input value="'+(dd.postnummer||"")+'" data-dk="postnummer" class="dd" readonly style="background:var(--bg2)"></div></div>'+
     (dd.hustyp?'<div class="flex gap6 mt6"><span class="kpi" style="font-size:10px">'+srcDot("auth")+' '+dd.hustyp+'</span>'+(dd.fastighetsbeteckning?'<span class="kpi" style="font-size:10px">'+srcDot("auth")+' '+dd.fastighetsbeteckning+'</span>':'')+(dd.narmaste_skola?'<span class="kpi" style="font-size:10px">🏫 '+dd.narmaste_skola+'</span>':'')+(dd.narmaste_hpl?'<span class="kpi" style="font-size:10px">🚌 '+dd.narmaste_hpl+'</span>':'')+'</div>':'')+
@@ -831,60 +836,93 @@ function bindAll(f,c){
       var q=e.target.value.trim();if(q.length<3){acList.classList.remove("show");return}
       acTimer=setTimeout(async function(){
         try{
-          // Photon search biased to Billdal/Hovås area
-          var resp=await fetch("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+"&limit=5&lat=57.58&lon=11.94&bbox=11.88,57.55,11.98,57.62");
+          var resp=await fetch("https://photon.komoot.io/api/?q="+encodeURIComponent(q.replace(/,/g," "))+"&limit=5&lat=57.58&lon=11.94");
           var data=await resp.json();
           if(data.features&&data.features.length){
             acList.innerHTML=data.features.map(function(f,i){
               var p=f.properties||{};
-              var name=[p.street,p.housenumber].filter(Boolean).join(" ");
-              var sub=[p.district||p.city,p.postcode].filter(Boolean).join(", ");
-              return '<div class="ac-item" data-aci="'+i+'"><b>'+name+'</b><small>'+sub+'</small></div>'
+              var street=[p.street,p.housenumber].filter(Boolean).join(" ");
+              var sub=[p.district,p.city,p.postcode].filter(Boolean).join(", ");
+              var type=p.osm_value==="detached"?"Villa":p.osm_value==="semidetached_house"?"Radhus":p.type==="house"?"Hus":"";
+              return '<div class="ac-item" data-aci="'+i+'"><b>'+(street||p.name||q)+'</b><small>'+sub+(type?' · '+type:'')+'</small></div>'
             }).join('');
             acList.classList.add("show");
-            // Store features for selection
             acList._features=data.features;
           }else{acList.classList.remove("show")}
         }catch(e){acList.classList.remove("show")}
-      },300);
+      },350);
     });
+    addrIn.addEventListener("keydown",function(e){if(e.key==="Escape")acList.classList.remove("show")});
     acList.addEventListener("click",function(e){
       var item=e.target.closest(".ac-item");if(!item)return;
       var idx=N(item.dataset.aci);
       var feat=acList._features&&acList._features[idx];
       if(feat){
-        var p=feat.properties||{};
-        var addr=[p.street,p.housenumber].filter(Boolean).join(" ");
-        var full=addr+(p.district?" "+p.district:"")+(p.city?" "+p.city:"");
-        addrIn.value=full;
+        var pr=feat.properties||{};
+        var street=[pr.street,pr.housenumber].filter(Boolean).join(" ");
+        var district=pr.district||pr.city||"";
+        var fullAddr=street+(district?" "+district:"");
+        addrIn.value=fullAddr;
         acList.classList.remove("show");
-        // Save to prospect
+        // Save address to prospect (without triggering full render yet)
         var ps=dc(S.prospects);
-        ps[S.viewIdx].addr=full;
-        if(!ps[S.viewIdx].name||ps[S.viewIdx].name.indexOf("Prospekt")===0)ps[S.viewIdx].name=addr;
-        ss({prospects:ps});
-        // Auto-trigger search
-        setTimeout(function(){var btn=document.getElementById("searchData");if(btn)btn.click()},100);
+        ps[S.viewIdx].addr=fullAddr;
+        if(!ps[S.viewIdx].name||ps[S.viewIdx].name.indexOf("Prospekt")===0)ps[S.viewIdx].name=street;
+        S.prospects=ps;
+        if(dbRef)dbRef.set({family:S.family,prospects:S.prospects});
+        // Auto-trigger search after short delay
+        toast("Adress vald: "+fullAddr+" — söker data...");
+        setTimeout(function(){var btn=document.getElementById("searchData");if(btn)btn.click()},300);
       }
     });
-    // Close on click outside
     document.addEventListener("click",function(e){if(!e.target.closest(".ac-wrap"))acList.classList.remove("show")});
+    // Save addr on blur (when user types manually without autocomplete)
+    addrIn.addEventListener("blur",function(){
+      setTimeout(function(){
+        var val=addrIn?addrIn.value:"";
+        if(val&&S.prospects[S.viewIdx]&&val!==S.prospects[S.viewIdx].addr){
+          var ps=dc(S.prospects);ps[S.viewIdx].addr=val;ss({prospects:ps})
+        }
+      },200);
+    });
   }
 }
 
 // === CHARTS ===
 function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e){}}S.charts={};
   var tc=S.dark?"#9C9588":"#6B6358",gc=S.dark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)",C={coral:"#C2532E",amber:"#D4890F",teal:"#1A8A65",purple:"#6B4DAA",blue:"#2E78B7"};
-  // Bostad summary chart
-  var bChart=document.getElementById("bostadChart");
-  if(bChart&&S.tab==="bostad"){var c=calcFamily(S.family);
-    S.charts.bost=new Chart(bChart,{type:"bar",data:{labels:["Månadsflöde"],datasets:[
-      {label:"Boende",data:[c.housing],backgroundColor:C.coral},
-      {label:"ICA",data:[c.icaTotal],backgroundColor:C.amber},
-      {label:"Hushåll",data:[c.hushallTotal],backgroundColor:C.purple},
-      {label:"Personligt",data:[c.pBuds.reduce(function(s,v){return s+v},0)],backgroundColor:C.blue},
-      {label:"Kvar",data:[Math.max(0,c.surplus)],backgroundColor:C.teal}
-    ]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},color:tc,callback:function(v){return Math.round(v/1000)+"k"}}},y:{stacked:true,display:false}}}})
+  // Hem & ekonomi charts
+  if(S.tab==="bostad"){
+    var c=calcFamily(S.family),f=S.family;var t=c.transfers;var pBudTotal=c.pBuds.reduce(function(s,v){return s+v},0);
+    // 1. Donut — månadsutgifter
+    var donutEl=document.getElementById("donutChart");
+    if(donutEl){S.charts.donut=new Chart(donutEl,{type:"doughnut",data:{
+      labels:["Boende","ICA/mat","Hushåll","Personligt","Kvar"],
+      datasets:[{data:[c.housing,c.icaTotal,c.hushallTotal,pBudTotal,Math.max(0,c.surplus)],
+        backgroundColor:[C.coral,C.amber,C.purple,C.blue,C.teal],borderWidth:2,borderColor:S.dark?"#1E1B17":"#fff"}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:"55%",plugins:{legend:{position:"right",labels:{font:{size:9},color:tc,padding:4,boxWidth:10}}}}})}
+    // 2. Per-person stapel
+    var persEl=document.getElementById("personChart");
+    if(persEl&&t.length>=2){S.charts.pers=new Chart(persEl,{type:"bar",data:{
+      labels:f.persons.map(function(p){return p.name}),
+      datasets:[
+        {label:"Inkomst",data:t.map(function(tr){return tr.income}),backgroundColor:C.teal},
+        {label:"Gemensamt",data:t.map(function(tr){return tr.totalTransfer}),backgroundColor:C.coral},
+        {label:"Egna",data:t.map(function(tr){return tr.pBud}),backgroundColor:C.blue},
+        {label:"Kvar",data:t.map(function(tr){return Math.max(0,tr.surplus)}),backgroundColor:C.amber}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc,boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:tc}},y:{grid:{color:gc},ticks:{font:{size:9},color:tc,callback:function(v){return Math.round(v/1000)+"k"}},border:{display:false}}}}})}
+    // 3. Flow bar (horisontell stacked — inkomst vs utgifter)
+    var flowEl=document.getElementById("flowChart");
+    if(flowEl){S.charts.flow=new Chart(flowEl,{type:"bar",data:{
+      labels:[""],
+      datasets:[
+        {label:"Boende "+fSEK(c.housing),data:[c.housing],backgroundColor:C.coral},
+        {label:"ICA "+fSEK(c.icaTotal),data:[c.icaTotal],backgroundColor:C.amber},
+        {label:"Hushåll "+fSEK(c.hushallTotal),data:[c.hushallTotal],backgroundColor:C.purple},
+        {label:"Personligt "+fSEK(pBudTotal),data:[pBudTotal],backgroundColor:C.blue},
+        {label:"Kvar "+fSEK(Math.max(0,c.surplus)),data:[Math.max(0,c.surplus)],backgroundColor:C.teal}
+      ]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:true}},scales:{x:{stacked:true,max:c.disp,grid:{display:false},ticks:{font:{size:9},color:tc,callback:function(v){return Math.round(v/1000)+"k"}}},y:{stacked:true,display:false}}}})
+    }
   }
   if(S.tab!=="dash"||!S.prospects.length)return;
   var f=S.family,c=calcFamily(f),rs=S.prospects.map(function(p){return calcP(f,p)}),currH=c.housing;

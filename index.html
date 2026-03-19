@@ -128,7 +128,27 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .login input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(194,83,46,.15)}
 /* Compare table highlights */
 .cmp-best{background:var(--tealL) !important}
-@media(max-width:640px){.hpills .pill:first-child{display:none}}
+/* Bottom nav on mobile, top tabs on desktop */
+@media(max-width:640px){
+  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:50;margin:0;border-radius:0;padding:4px 6px;background:var(--card);border-top:1px solid var(--border);box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+  .tab{flex-direction:column;gap:1px;padding:4px 0;font-size:9px;min-width:0}
+  .tab-icon{font-size:16px;line-height:1}
+  .tab-label{font-size:8px;line-height:1}
+  .app{padding-bottom:72px !important}
+  .hpills .pill:first-child{display:none}
+}
+@media(min-width:641px){.tab-icon{display:none}}
+/* FAB */
+.fab{position:fixed;bottom:80px;right:16px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--coral),#D4650F);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 12px rgba(194,83,46,.35);z-index:60;display:flex;align-items:center;justify-content:center;transition:transform .2s}.fab:hover{transform:scale(1.08)}.fab:active{transform:scale(0.95)}
+.fab-menu{position:fixed;bottom:136px;right:16px;z-index:60;display:none;flex-direction:column;gap:6px;align-items:flex-end}
+.fab-menu.show{display:flex}
+.fab-opt{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:var(--card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.1);cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;transition:transform .15s,opacity .15s;animation:fadeInUp .2s ease-out both}.fab-opt:hover{transform:translateY(-1px)}
+@media(min-width:641px){.fab{bottom:24px;right:24px}}
+/* Badge */
+.tab-badge{position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:7px;background:var(--rose);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.tab{position:relative}
+/* Activity feed */
+.activity{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;color:var(--fg2)}.activity .av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}.activity .at{font-size:9px;color:var(--fg3);margin-left:auto;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -616,22 +636,42 @@ var CHECK_SECTIONS=[
 // === STATE ===
 var S={screen:"login",dark:false,hid:"",family:dc(FDEF),prospects:[],tab:"dash",viewIdx:null,charts:{}};
 var dbRef=null,shopRef=null,skipSync=false;
-// Shopping state
-var SHOP={items:[],stores:[{name:"ICA Hovås",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},{name:"Systembolaget",cats:["Rött vin","Vitt vin","Öl","Sprit","Cider","Alkoholfritt","Övrigt"]}],activeStore:0,history:{},mode:"list",actualTotal:null};
-// Tasks
-var TASKS={items:[],categories:["Hem","Inköp","Husjakten","Barn","Övrigt"]};
-var TASK_TYPES={"shop":"🛒","systemet":"🍷","visning":"🏠","kalender":"📅","samtal":"📞","boka":"🎟️","task":"✅"};
-function tasksRef_(){return shopRef?shopRef.parent.child("tasks"):null}
-function taskSync(){var r=tasksRef_();if(r&&!skipSync)r.set(TASKS)}
-var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦"};
-// Guess category from item name
-function guessCat(name){var n=name.toLowerCase();
-  if(/mjölk|ost|smör|yoghurt|grädde|ägg|fil/.test(n))return"Mejeri";if(/bröd|knäcke|bulle/.test(n))return"Bröd";
-  if(/kött|fläsk|kyckling|lax|fisk|korv|bacon|färs/.test(n))return"Kött & fisk";if(/glass|pizza|frys/.test(n))return"Frys";
-  if(/äpple|banan|tomat|sallad|gurka|lök|potatis|morot|frukt|avokado|paprika|citron/.test(n))return"Frukt & grönt";
-  if(/pasta|ris|mjöl|socker|olja|konserv|kross|bön|linser|müsli|havre/.test(n))return"Torrvaror";
-  if(/vatten|juice|läsk|öl|vin|kaffe|te/.test(n))return"Dryck";if(/chips|godis|choklad|nöt/.test(n))return"Snacks";
-  if(/tvål|schampo|tandkräm|blöj|tork|disk|tvät/.test(n))return"Hygien";return"Övrigt"}
+// === UNIFIED LISTS ===
+var LISTS={
+  fixed:[{id:"ica",name:"ICA Hovås",icon:"🛒",type:"shop",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},{id:"sys",name:"Systembolaget",icon:"🍷",type:"shop",cats:["Rött vin","Vitt vin","Öl","Sprit","Cider","Alkoholfritt","Övrigt"]},{id:"hem",name:"Hemmet",icon:"🏠",type:"tasks"},{id:"bil",name:"Bilen",icon:"🚗",type:"tasks"},{id:"barn",name:"Barnen",icon:"👶",type:"tasks"}],
+  projects:[{id:"hus",name:"Husjakten",icon:"🔍",type:"project"}],
+  items:[],history:{},activeList:"alla"
+};
+var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦","Rött vin":"🍷","Vitt vin":"🥂","Öl":"🍺","Sprit":"🥃","Cider":"🍏","Alkoholfritt":"🚫"};
+function getAllLists(){return(LISTS.fixed||[]).concat(LISTS.projects||[])}
+function getList(id){return getAllLists().find(function(l){return l.id===id})}
+function guessListAndCat(text){
+  var t=text.toLowerCase();
+  if(/\böl\b|vin\b|sprit|whisky|vodka|cider|bubbel|champagne|prosecco|aperol/.test(t))return{list:"sys",cat:(/\böl\b/.test(t)?"Öl":/rött|röd/.test(t)?"Rött vin":/vitt|vit/.test(t)?"Vitt vin":/cider/.test(t)?"Cider":/sprit|whisky|vodka|gin\b|rom\b/.test(t)?"Sprit":"Övrigt")};
+  if(/mjölk|ost|smör|yoghurt|grädde|ägg|fil\b/.test(t))return{list:"ica",cat:"Mejeri"};
+  if(/bröd|knäcke|bulle/.test(t))return{list:"ica",cat:"Bröd"};
+  if(/kött|fläsk|kyckling|lax|fisk|korv|bacon|färs|räkor/.test(t))return{list:"ica",cat:"Kött & fisk"};
+  if(/glass|pizza|frys/.test(t))return{list:"ica",cat:"Frys"};
+  if(/äpple|banan|tomat|sallad|gurka|lök|potatis|morot|frukt|avokado|paprika|citron|lime/.test(t))return{list:"ica",cat:"Frukt & grönt"};
+  if(/pasta|ris|mjöl|socker|olja|konserv|kross|bön|linser|müsli|havre/.test(t))return{list:"ica",cat:"Torrvaror"};
+  if(/vatten|juice|läsk|kaffe|te\b/.test(t))return{list:"ica",cat:"Dryck"};
+  if(/chips|godis|choklad|nöt/.test(t))return{list:"ica",cat:"Snacks"};
+  if(/tvål|schampo|tandkräm|blöj|tork|disk|tvät/.test(t))return{list:"ica",cat:"Hygien"};
+  if(/städ|tvätt|fixa|laga|monter|byt |reparera|måla|dammsug/.test(t))return{list:"hem",cat:""};
+  if(/däck|service|besiktning|tvätta bil|tank/.test(t))return{list:"bil",cat:""};
+  if(/skola|förskola|aktivitet|simskola|fotboll|kalas/.test(t))return{list:"barn",cat:""};
+  if(/visning|mäklar|bud|prospekt/.test(t))return{list:"hus",cat:""};
+  if(LISTS.activeList!=="alla")return{list:LISTS.activeList,cat:""};
+  return{list:"hem",cat:""};
+}
+function listsSync(){var r=shopRef?shopRef.parent.child("lists"):null;if(r&&!skipSync)r.set(LISTS)}
+// Activity feed
+var ACTIVITY=[];
+function addActivity(who,action){ACTIVITY.unshift({who:who,action:action,time:Date.now()});if(ACTIVITY.length>20)ACTIVITY.length=20;
+  var r=shopRef?shopRef.parent.child("activity"):null;if(r)r.set(ACTIVITY)}
+function timeAgo(ts){var d=Math.round((Date.now()-ts)/1000);if(d<60)return "just nu";if(d<3600)return Math.round(d/60)+" min";if(d<86400)return Math.round(d/3600)+"h";return Math.round(d/86400)+"d"}
+// Person filter
+var PERSON_FILTER="alla";
 function shopSync(){if(shopRef&&!skipSync)shopRef.set(SHOP)}
 function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
 
@@ -639,9 +679,13 @@ function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!sk
 function connect(id){
   dbRef=db.ref("households/"+id);
   shopRef=db.ref("households/"+id+"/shop");
-  shopRef.on("value",function(snap){var d=snap.val();if(d){skipSync=true;SHOP=Object.assign(SHOP,d);if(S.tab==="todo"){var el=document.getElementById("shopContent");if(el)el.innerHTML=rShopContent()};skipSync=false}});
-  var tRef=shopRef.parent.child("tasks");
-  tRef.on("value",function(snap){var d=snap.val();if(d){skipSync=true;TASKS=Object.assign(TASKS,d);if(S.tab==="todo"||S.tab==="dash"){render()};skipSync=false}});
+  shopRef.on("value",function(snap){});// legacy — replaced by lists
+  var listsRef=shopRef.parent.child("lists");
+  var actRef=shopRef.parent.child("activity");
+  actRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){ACTIVITY=d}});
+  listsRef.on("value",function(snap){var d=snap.val();if(d){skipSync=true;
+    if(d.items)LISTS.items=d.items;if(d.history)LISTS.history=d.history;if(d.projects)LISTS.projects=d.projects;if(d.activeList)LISTS.activeList=d.activeList;
+    if(S.tab==="todo"||S.tab==="dash"){render()};skipSync=false}});
   dbRef.on("value",function(snap){var d=snap.val();if(!d)return;skipSync=true;
     if(d.family){var fam=dc(FDEF);for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]};if(d.family.persons)fam.persons=d.family.persons;if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
     if(d.family.budget&&!d.family.budget_shared){var items=[];for(var bk in d.family.budget)items.push({name:bk,amount:N(d.family.budget[bk])});fam.budget_shared=items}
@@ -660,10 +704,24 @@ function rApp(el){var f=S.family,c=calcFamily(f);
   var pillsHtml='';
   if(S.tab==="dash"||S.tab==="bostad"){pillsHtml='<span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span>'}
   else if(S.tab==="prospekt"){pillsHtml='<span class="pill">'+S.prospects.length+' prospekt</span>'}
-  else if(S.tab==="todo"){var pt=(TASKS.items||[]).filter(function(t){return!t.done}).length;var ps2=(SHOP.items||[]).filter(function(t){return!t.done}).length;pillsHtml='<span class="pill">'+(pt+ps2)+' kvar</span>'}
+  else if(S.tab==="todo"){var pt=(LISTS.items||[]).filter(function(t){return!t.done}).length;pillsHtml='<span class="pill">'+pt+' kvar</span>'}
   el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
-  '<div class="tabs"><button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash">📊 Översikt</button><button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad">🏠 Ekonomi</button><button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt">🔍 Husjakten</button><button class="tab '+(S.tab==="todo"?"a":"")+'" data-t="todo">📋 Att göra</button></div>'+
-  '<div id="tc">'+rTab(f,c)+'</div></div>';bindAll(f,c)}
+  var todoBadge=(LISTS.items||[]).filter(function(t){return!t.done}).length;
+  var prospBadge=S.prospects.length;
+  '<div class="tabs">'+
+  '<button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash"><span class="tab-icon">📊</span><span class="tab-label">Översikt</span></button>'+
+  '<button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad"><span class="tab-icon">🏠</span><span class="tab-label">Ekonomi</span></button>'+
+  '<button class="tab '+(S.tab==="prospekt"?"a":"")+'" data-t="prospekt"><span class="tab-icon">🔍</span><span class="tab-label">Husjakten</span>'+(prospBadge?'<span class="tab-badge">'+prospBadge+'</span>':'')+'</button>'+
+  '<button class="tab '+(S.tab==="todo"?"a":"")+'" data-t="todo"><span class="tab-icon">📋</span><span class="tab-label">Att göra</span>'+(todoBadge?'<span class="tab-badge">'+todoBadge+'</span>':'')+'</button>'+
+  '</div>'+
+  '<div id="tc">'+rTab(f,c)+'</div>'+
+  '<button class="fab" id="fabBtn">+</button>'+
+  '<div class="fab-menu" id="fabMenu">'+
+  '<div class="fab-opt" data-fab="item">🛒 Vara / uppgift</div>'+
+  '<div class="fab-opt" data-fab="prospect">🏠 Nytt prospekt</div>'+
+  '<div class="fab-opt" data-fab="project">📋 Nytt projekt</div>'+
+  '</div>'+
+  '</div>';bindAll(f,c)}
 
 function rTab(f,c){if(S.tab==="dash")return rDash(f,c);if(S.tab==="bostad")return rBostad(f,c);if(S.tab==="prospekt")return S.viewIdx!==null?rPD(f,c):rPL(f,c);if(S.tab==="todo")return rTodo();return rDash(f,c)}
 
@@ -682,21 +740,21 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   // Build todos from all prospects
   // Build action items from all sources
   var todos=[];
-  // From tasks
-  (TASKS.items||[]).filter(function(t){return!t.done}).forEach(function(t){
-    todos.push({text:(TASK_TYPES[t.type]||"✅")+" "+t.text,type:t.pri==="hög"?"r":"g",goto:t.type==="shop"?"shop":t.type==="systemet"?"shop":t.type==="visning"?"prospekt":"tasks"})
+  // From lists
+  (LISTS.items||[]).filter(function(t){return!t.done}).slice(0,6).forEach(function(t){
+    var lo=getList(t.list)||{};
+    todos.push({text:(lo.icon||"✅")+" "+t.text,type:t.pri==="hög"?"r":"g",goto:"todo"})
   });
-  // From shopping
-  var shopPending=(SHOP.items||[]).filter(function(it){return!it.done}).length;
-  if(shopPending)todos.push({text:"🛒 Handla — "+shopPending+" varor på listan",type:"a",goto:"shop"});
   // From prospects
   S.prospects.forEach(function(p,i){var r=ps[i];var dd=p.dd||{};
     if(!N(p.price)&&p.addr)todos.push({text:"🏠 Sätt huspris för "+(p.name||"prospekt"),type:"a",goto:"prospekt",pi:i});
     if(r.dataQuality<40&&p.addr)todos.push({text:"🔎 Fyll i data för "+(p.name||"prospekt")+" ("+r.dataQuality+"%)",type:"a",goto:"prospekt",pi:i});
   });
-  if(!S.prospects.length&&!(TASKS.items||[]).length)todos.push({text:"👋 Välkommen! Lägg till uppgifter eller prospekt för att komma igång",type:"g"});
+  if(!S.prospects.length&&!(LISTS.items||[]).length)todos.push({text:"👋 Välkommen! Lägg till uppgifter eller prospekt",type:"g"});
 
   return '<div class="anim-in"><div class="greeting">'+greet+', '+f.persons[0].name+' & '+f.persons[1].name+' 👋</div><div class="greeting-sub">'+dateStr+'</div></div>'+
+  // Person filter
+  '<div class="flex gap4 anim-in anim-d1" style="margin:8px 0"><button class="btn btn-sm '+(PERSON_FILTER==="alla"?"btn-p":"btn-s")+'" data-pf="alla">Alla</button>'+f.persons.map(function(p){return '<button class="btn btn-sm '+(PERSON_FILTER===p.name?"btn-p":"btn-s")+'" data-pf="'+p.name+'">'+p.name+'</button>'}).join('')+'</div>'+
 
   // KPI row
   '<div class="metrics anim-in anim-d1" style="margin-top:12px"><div class="met"><div class="met-l">Disponibelt</div><div class="met-v">'+fSEK(c.disp)+'</div><div class="met-s">netto + barnbidrag</div></div><div class="met"><div class="met-l">Utgifter</div><div class="met-v">'+fSEK(totalUt)+'</div><div class="met-s">boende + budget</div></div><div class="met"><div class="met-l">Överskott</div><div class="met-v '+(c.surplus>=0?"g":"r")+'">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</div><div class="met-s">/mån</div></div><div class="met"><div class="met-l">Netto sälj</div><div class="met-v '+(saleNet>=0?"g":"r")+'">'+fSEK(saleNet)+'</div><div class="met-s">'+(f.curr_addr||"")+'</div></div></div>'+
@@ -734,6 +792,11 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
 
   // Jämförelse (integrerad från gamla Jämför-fliken)
   (ps.length>0?sec("d-cmp","⚖️","Jämför prospekt",'<span class="kpi">'+ps.length+' st</span>',rCmpBody(f,c),false):'')+
+
+  // Senaste aktivitet
+  (ACTIVITY.length?'<div class="card anim-in anim-d5"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:6px">👥 Senaste aktivitet</div>'+
+  ACTIVITY.slice(0,5).map(function(a){var initial=(a.who||"?")[0];var col=a.who===f.persons[0].name?"var(--purple)":"var(--teal)";return '<div class="activity"><div class="av" style="background:'+col+';color:#fff">'+initial+'</div><span>'+a.action+'</span><span class="at">'+timeAgo(a.time)+'</span></div>'}).join('')+
+  '</div></div>':'')+
 
   // Att göra
   '<div class="card anim-in anim-d5"><div class="card-b"><div class="flex aic jcb"><span style="font-size:12px;font-weight:600">📋 Att göra</span><button class="btn btn-s btn-sm" style="font-size:9px" data-todogoto="todo">Visa alla →</button></div>'+
@@ -965,188 +1028,127 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     sec("p-notes","📝","Anteckningar & länkar",'<span class="kpi">'+ckDone+'/'+ckTotal+' klart</span>'+(p.urls&&p.urls.length?'<span class="kpi">'+p.urls.length+' länkar</span>':''),s7b,false)
 }
 
-// === TODO (tasks + shopping combined) ===
+// === ATT GÖRA (unified lists) ===
 function rTodo(){
-  var shopPending=(SHOP.items||[]).filter(function(it){return!it.done}).length;
-  var tasksPending=(TASKS.items||[]).filter(function(t){return!t.done}).length;
-  return '<div class="task-add"><input id="taskInput" placeholder="Lägg till uppgift..." autofocus><select id="taskType" style="width:50px;border-radius:8px;border:1px solid var(--border);font-size:14px;background:var(--card);text-align:center">'+Object.keys(TASK_TYPES).map(function(k){return '<option value="'+k+'">'+TASK_TYPES[k]+'</option>'}).join('')+'</select><button class="btn btn-p btn-sm" id="taskAdd">+</button></div>'+
-    sec("td-tasks","✅","Uppgifter"+(tasksPending?' ('+tasksPending+')':''),'<span class="kpi">'+tasksPending+' kvar</span>',rTasksContent(),true)+
-    sec("td-shop","🛒","Inköpslista"+(shopPending?' ('+shopPending+')':''),'<span class="kpi">'+shopPending+' varor</span>'+(SHOP.activeStore!==undefined?'<span class="kpi">'+(SHOP.stores[SHOP.activeStore]||{}).name+'</span>':''),'<div id="shopContent">'+rShopContent()+'</div>',false)
-}
-function rTasksContent(){
-  var items=TASKS.items||[];
-  var pending=items.filter(function(t){return!t.done});
-  var done=items.filter(function(t){return t.done});
-  var shopPending=(SHOP.items||[]).filter(function(it){return!it.done}).length;
-  var filter=S.taskFilter||"alla";
-  if(filter!=="alla")pending=pending.filter(function(t){return t.cat===filter});
+  var items=LISTS.items||[];
+  var al=LISTS.activeList||"alla";
+  var allLists=getAllLists();
+  var pending=items.filter(function(it){return!it.done&&(al==="alla"||it.list===al)});
+  var done=items.filter(function(it){return it.done&&(al==="alla"||it.list===al)});
+  var activeListObj=al!=="alla"?getList(al):null;
+  var isShopList=activeListObj&&activeListObj.type==="shop";
 
-  // Sort: priority high first, then by date added
-  var priOrd={hög:0,medel:1,låg:2};
-  pending.sort(function(a,b){return(priOrd[a.pri]||1)-(priOrd[b.pri]||1)||(a.added||0)-(b.added||0)});
-
-  return ''+
-
-    // Filter
-    '<div class="task-filter"><button class="'+(filter==="alla"?"a":"")+'" data-tf="alla">Alla ('+pending.length+')</button>'+
-    TASKS.categories.map(function(c){var cnt=items.filter(function(t){return!t.done&&t.cat===c}).length;return '<button class="'+(filter===c?"a":"")+'" data-tf="'+c+'">'+c+(cnt?' ('+cnt+')':'')+'</button>'}).join('')+'</div>'+
-
-    // Pending
-    pending.map(function(t){var idx=items.indexOf(t);
-      return '<div class="task-item'+(t.done?" done":"")+'" data-ti="'+idx+'">'+
-        '<div class="t-chk" data-tcheck="'+idx+'">'+(t.done?"✓":"")+'</div>'+
-        '<div class="t-body"><div class="t-name">'+(TASK_TYPES[t.type]||"✅")+' '+t.text+'</div>'+
-        '<div class="t-meta"><span>'+t.cat+'</span>'+(t.pri==="hög"?'<span style="color:var(--rose)">⬆ Hög</span>':t.pri==="låg"?'<span style="color:var(--fg3)">⬇ Låg</span>':'')+(t.date?'<span>📅 '+t.date+'</span>':'')+(t.assignee?'<span>👤 '+t.assignee+'</span>':'')+'</div></div>'+
-        '<div class="t-actions"><button class="ib" data-tpri="'+idx+'" title="Prioritet">⬆</button><button class="ib" data-tassign="'+idx+'" title="Tilldela">👤</button><button class="del-item" data-tdel="'+idx+'">×</button></div></div>'
-    }).join('')+
-
-    (pending.length===0?'<div class="empty" style="padding:20px"><div style="font-size:28px;margin-bottom:6px">'+(filter==="alla"?"🎉":"📋")+'</div><div style="font-size:13px;font-weight:600">'+(filter==="alla"?"Allt klart!":"Inga uppgifter i "+filter)+'</div></div>':'')+
-
-    // Done (collapsed)
-    (done.length?'<div style="margin-top:16px"><div class="flex aic jcb"><span style="font-size:10px;color:var(--fg2)">✓ Klara ('+done.length+')</span><button class="btn btn-s btn-sm" id="clearTasks">Rensa</button></div>'+
-    done.slice(0,5).map(function(t){var idx=items.indexOf(t);return '<div class="task-item done"><div class="t-chk" data-tcheck="'+idx+'">✓</div><div class="t-body"><div class="t-name">'+(TASK_TYPES[t.type]||"✅")+' '+t.text+'</div></div></div>'}).join('')+
-    (done.length>5?'<div style="font-size:10px;color:var(--fg3);padding:4px 0">+ '+(done.length-5)+' till...</div>':'')+'</div>':'')
-}
-
-function bindTasks(){
-  var inp=document.getElementById("taskInput");if(!inp)return;
-  var typesel=document.getElementById("taskType");
-  function addTask(text){
-    text=text.trim();if(!text)return;
-    var type=typesel?typesel.value:"task";
-    // Auto-detect type from text
-    if(/handla|köp|ica|mat/i.test(text))type="shop";
-    if(/system|vin|öl/i.test(text))type="systemet";
-    if(/visning|hus|mäklar/i.test(text))type="visning";
-    if(/boka|beställ/i.test(text))type="boka";
-    if(/ring|samtal/i.test(text))type="samtal";
-    // Auto-detect category
-    var cat="Övrigt";
-    if(/städ|tvätt|disk|fixa|laga|monter|byt/i.test(text))cat="Hem";
-    if(/handla|köp|ica|mat|system/i.test(text))cat="Inköp";
-    if(/visning|hus|mäklar|bud|prospekt/i.test(text))cat="Husjakten";
-    if(/barn|skola|förskola|aktivitet/i.test(text))cat="Barn";
-    TASKS.items.push({text:text,type:type,cat:cat,done:false,pri:"medel",added:Date.now(),assignee:"",date:""});
-    taskSync();render();
-    setTimeout(function(){var i=document.getElementById("taskInput");if(i){i.focus();i.value=""}},50);
+  // Sort: shop lists by category order, task lists by priority
+  if(isShopList){
+    var catOrder={};(activeListObj.cats||[]).forEach(function(c,i){catOrder[c]=i});
+    pending.sort(function(a,b){return(catOrder[a.cat]||99)-(catOrder[b.cat]||99)});
+  }else{
+    var priOrd={"hög":0,"medel":1,"låg":2};
+    pending.sort(function(a,b){return(priOrd[a.pri]||1)-(priOrd[b.pri]||1)||(a.added||0)-(b.added||0)});
   }
-  inp.addEventListener("keydown",function(e){if(e.key==="Enter"){addTask(inp.value);inp.value=""}});
-  var addBtn=document.getElementById("taskAdd");if(addBtn)addBtn.addEventListener("click",function(){addTask(inp.value);inp.value=""});
-  // Check/uncheck
-  document.querySelectorAll("[data-tcheck]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.tcheck);TASKS.items[idx].done=!TASKS.items[idx].done;taskSync();render()})});
-  // Delete
-  document.querySelectorAll("[data-tdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();TASKS.items.splice(N(el.dataset.tdel),1);taskSync();render()})});
-  // Priority cycle
-  document.querySelectorAll("[data-tpri]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tpri);var cycle=["medel","hög","låg"];var cur=TASKS.items[idx].pri||"medel";TASKS.items[idx].pri=cycle[(cycle.indexOf(cur)+1)%3];taskSync();render()})});
-  // Assign
-  document.querySelectorAll("[data-tassign]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tassign);var names=S.family.persons.map(function(p){return p.name});var cur=TASKS.items[idx].assignee||"";var next=names[(names.indexOf(cur)+1)%names.length]||names[0];TASKS.items[idx].assignee=(cur===next&&cur)?"":(next||"");taskSync();render()})});
-  // Filter
-  document.querySelectorAll("[data-tf]").forEach(function(el){el.addEventListener("click",function(){S.taskFilter=el.dataset.tf;render()})});
-  // Shortcuts
-  document.querySelectorAll("[data-goto]").forEach(function(el){el.addEventListener("click",function(){
-    var target=el.dataset.goto;
-    if(target==="shop"){S.tab="todo";SHOP.activeStore=0;EXP["td-shop"]=true;localStorage.setItem("exp",JSON.stringify(EXP));render()}
-    else if(target==="shop-sys"){S.tab="todo";SHOP.activeStore=N(el.dataset.store)||1;EXP["td-shop"]=true;localStorage.setItem("exp",JSON.stringify(EXP));shopSync();render()}
-    else if(target==="prospekt"){S.tab="prospekt";S.viewIdx=null;render()}
-    setTimeout(updateCharts,100)})});
-  // Clear done
-  var clr=document.getElementById("clearTasks");if(clr)clr.addEventListener("click",function(){TASKS.items=TASKS.items.filter(function(t){return!t.done});taskSync();render()});
-}
 
-// === SHOPPING ===
-function rShop(){
-  return '<div id="shopContent">'+rShopContent()+'</div>'
-}
-function rShopContent(){
-  var store=SHOP.stores[SHOP.activeStore]||SHOP.stores[0];
-  var items=SHOP.items||[];
-  var pending=items.filter(function(it){return!it.done});
-  var done=items.filter(function(it){return it.done});
-  // Sort pending by store category order
-  var catOrder={};(store.cats||[]).forEach(function(c,i){catOrder[c]=i});
-  pending.sort(function(a,b){return(catOrder[a.cat]||99)-(catOrder[b.cat]||99)});
-  // Frequent items from history
-  var freq=Object.keys(SHOP.history||{}).map(function(k){return{name:k,count:SHOP.history[k].count||0,cat:SHOP.history[k].cat,price:SHOP.history[k].price}}).filter(function(f){return f.count>=2}).sort(function(a,b){return b.count-a.count}).slice(0,15);
-  // Filter out items already in list
-  var inList={};items.forEach(function(it){inList[it.name.toLowerCase()]=true});
+  // Frequent items for shop lists
+  var freq=[];if(isShopList){
+    var hist=LISTS.history||{};
+    freq=Object.keys(hist).filter(function(k){return hist[k].list===al&&(hist[k].count||0)>=2}).map(function(k){return{name:k,count:hist[k].count,price:hist[k].price}}).sort(function(a,b){return b.count-a.count}).slice(0,15);
+  }
+  var inList={};pending.forEach(function(it){inList[it.text.toLowerCase()]=true});
   var suggestions=freq.filter(function(f){return!inList[f.name.toLowerCase()]});
-  // Estimated total
-  var estTotal=0;pending.forEach(function(it){estTotal+=N(it.price)||N((SHOP.history||{})[it.name]||{}).price||0});
 
-  return '<div class="shop-add"><input id="shopInput" placeholder="Lägg till vara..." autofocus><button class="btn btn-p btn-sm" id="shopAdd">+</button></div>'+
-    // Store selector
-    '<div class="flex aic jcb" style="margin-bottom:8px"><div class="flex aic gap4"><select id="storeSelect" style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg)">'+(SHOP.stores||[]).map(function(s,i){return '<option value="'+i+'"'+(i===SHOP.activeStore?' selected':'')+'>'+s.name+'</option>'}).join('')+'</select><button class="btn btn-s btn-sm" id="addStore" title="Ny butik">+</button></div>'+
-    '<span style="font-size:10px;color:var(--fg2)">'+pending.length+' varor</span></div>'+
-    // Estimated total
-    (estTotal>0?'<div class="shop-total"><span style="font-size:11px">Uppskattat</span><span style="font-size:14px;font-weight:600;font-family:var(--m)">~'+fSEK(estTotal)+'</span></div>':'')+
-    // Inventering / vanliga varor
-    (SHOP.mode==="inv"?
-      '<div class="card"><div class="card-b"><div class="flex aic jcb"><span style="font-size:12px;font-weight:600">📋 Inventering — behöver ni dessa?</span><button class="btn btn-s btn-sm" id="closeInv">✓ Klar</button></div>'+
-      '<div class="inv-grid mt6">'+freq.map(function(f){var inL=inList[f.name.toLowerCase()];return '<button class="inv-btn'+(inL?" sel":"")+'" data-inv="'+f.name+'">'+(inL?"✓ ":"")+f.name+(f.price?' <span style="font-size:9px;color:var(--fg3)">~'+f.price+'kr</span>':'')+'</button>'}).join('')+'</div></div></div>':
-      (suggestions.length?'<div class="flex aic jcb" style="margin:4px 0"><span style="font-size:10px;color:var(--fg2)">Vanliga varor:</span><button class="btn btn-s btn-sm" id="openInv">📋 Inventering</button></div><div class="inv-grid">'+suggestions.slice(0,8).map(function(f){return '<button class="inv-btn" data-inv="'+f.name+'">+ '+f.name+'</button>'}).join('')+'</div>':''))+
-    // Active items grouped by category
-    (function(){var byCat={};pending.forEach(function(it){var c=it.cat||"Övrigt";if(!byCat[c])byCat[c]=[];byCat[c].push(it)});
-      var cats=(store.cats||[]).filter(function(c){return byCat[c]});
-      return cats.map(function(cat){return '<div style="margin-top:8px"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:3px">'+(CAT_ICONS[cat]||"📦")+' '+cat+'</div>'+
-        byCat[cat].map(function(it){var idx=items.indexOf(it);return '<div class="shop-item" data-si="'+idx+'"><div class="chk" data-check="'+idx+'"></div><span class="name">'+it.name+'</span>'+(it.price?'<span class="price-tag">'+it.price+' kr</span>':'<span class="price-tag" style="cursor:pointer;color:var(--fg3)" data-setprice="'+idx+'">pris?</span>')+'<span class="cat-tag">'+cat+'</span><div class="actions"><button class="ib" data-miss="'+idx+'" title="Saknas">⏭</button><button class="del-item" data-sdel="'+idx+'" title="Ta bort">×</button></div></div>'}).join('')+'</div>'}).join('')+
-      (pending.length===0?'<div class="empty" style="padding:20px"><div style="font-size:32px;margin-bottom:8px">🛒</div><div style="font-size:13px;font-weight:600">Listan är tom!</div><div style="font-size:11px;color:var(--fg2)">Skriv en vara ovan eller kör inventering</div></div>':'')
+  // Estimated total for shop
+  var estTotal=0;if(isShopList){pending.forEach(function(it){var h=(LISTS.history||{})[it.text];estTotal+=N(it.price)||N(h&&h.price)||0})}
+
+  // Count per list
+  var counts={};allLists.forEach(function(l){counts[l.id]=items.filter(function(it){return!it.done&&it.list===l.id}).length});
+  var totalPending=items.filter(function(it){return!it.done}).length;
+
+  return '<div class="shop-add"><input id="todoInput" placeholder="'+(isShopList?"Lägg till vara...":"Lägg till uppgift...")+'" autofocus><button class="btn btn-p btn-sm" id="todoAdd">+</button></div>'+
+    // Filter tabs
+    '<div class="task-filter"><button class="'+(al==="alla"?"a":"")+'" data-fl="alla">Alla ('+totalPending+')</button>'+
+    allLists.map(function(l){var c=counts[l.id]||0;return '<button class="'+(al===l.id?"a":"")+'" data-fl="'+l.id+'">'+l.icon+(c?' '+c:'')+'</button>'}).join('')+
+    '<button data-fl="_add" style="color:var(--teal);border-style:dashed">+ Projekt</button></div>'+
+
+    // Shop: price estimate
+    (isShopList&&estTotal>0?'<div class="shop-total"><span style="font-size:11px">Uppskattat</span><span style="font-size:14px;font-weight:600;font-family:var(--m)">~'+Math.round(estTotal)+' kr</span></div>':'')+
+
+    // Shop: suggestions / inventory
+    (isShopList&&suggestions.length?'<div class="inv-grid" style="margin-bottom:8px">'+suggestions.slice(0,8).map(function(f){return '<button class="inv-btn" data-qadd="'+f.name+'">+ '+f.name+(f.price?' <span style="font-size:9px;color:var(--fg3)">~'+f.price+'kr</span>':'')+'</button>'}).join('')+'</div>':'')+
+
+    // Items grouped by category (shop) or flat (tasks)
+    (function(){
+      if(isShopList){
+        var byCat={};pending.forEach(function(it){var c=it.cat||"Övrigt";if(!byCat[c])byCat[c]=[];byCat[c].push(it)});
+        return(activeListObj.cats||[]).filter(function(c){return byCat[c]}).map(function(cat){
+          return '<div style="margin-top:6px"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:2px">'+(CAT_ICONS[cat]||"📦")+' '+cat+'</div>'+
+          byCat[cat].map(function(it){return renderItem(it,items.indexOf(it),true)}).join('')+'</div>'
+        }).join('');
+      }else{
+        return pending.map(function(it){return renderItem(it,items.indexOf(it),false)}).join('');
+      }
     })()+
-    // Done items
-    (done.length?'<div style="margin-top:12px"><div class="flex aic jcb"><span style="font-size:10px;color:var(--fg2)">✓ Avcheckade ('+done.length+')</span><button class="btn btn-s btn-sm" id="clearDone">Rensa</button></div>'+
-    done.map(function(it){var idx=items.indexOf(it);return '<div class="shop-item done" data-si="'+idx+'"><div class="chk" data-check="'+idx+'">✓</div><span class="name">'+it.name+'</span>'+(it.price?'<span class="price-tag">'+it.price+' kr</span>':'')+'</div>'}).join('')+'</div>':'')+
-    // Actual total input
-    (done.length>=pending.length&&items.length?'<div class="shop-total mt6"><span style="font-size:11px">Slutpris kassan</span><div class="flex aic gap4"><input type="number" id="actualTotal" value="'+(SHOP.actualTotal||"")+'" placeholder="kr" style="width:80px;text-align:right"><button class="btn btn-s btn-sm" id="saveTotal">Spara</button></div></div>':'')+
-    // Backlog
-    (function(){var bl=(SHOP.items||[]).filter(function(it){return it.backlog});
-      return bl.length?'<div style="margin-top:12px"><div style="font-size:10px;font-weight:500;color:var(--amber);margin-bottom:3px">⏭ Backlog (saknades förra gången)</div>'+
-      bl.map(function(it){var idx=items.indexOf(it);return '<div class="shop-item" data-si="'+idx+'"><div class="chk" data-check="'+idx+'"></div><span class="name">'+it.name+'</span><span class="cat-tag" style="background:var(--amberL);color:var(--amber)">backlog</span></div>'}).join('')+'</div>':''})()
+
+    (pending.length===0?'<div class="empty" style="padding:20px"><div style="font-size:28px;margin-bottom:6px">'+(al==="alla"?"🎉":"📋")+'</div><div style="font-size:13px;font-weight:600">'+(al==="alla"?"Allt klart!":"Tomt — lägg till något!")+'</div></div>':'')+
+
+    // Done
+    (done.length?'<div style="margin-top:12px"><div class="flex aic jcb"><span style="font-size:10px;color:var(--fg2)">✓ Klart ('+done.length+')</span><button class="btn btn-s btn-sm" id="clearDone">Rensa</button></div>'+
+    done.slice(0,5).map(function(it){return renderItem(it,items.indexOf(it),isShopList)}).join('')+
+    (done.length>5?'<div style="font-size:10px;color:var(--fg3);padding:4px">+ '+(done.length-5)+' till</div>':'')+'</div>':'')
 }
-function bindShop(){
-  var inp=document.getElementById("shopInput");
-  if(!inp)return;
-  // Quick add
-  function addItem(name){
-    name=name.trim();if(!name)return;
-    var cat=guessCat(name);
-    var hist=(SHOP.history||{})[name]||{};
-    SHOP.items.push({name:name,cat:hist.cat||cat,done:false,price:hist.price||0,backlog:false,added:Date.now()});
-    // Update history
-    if(!SHOP.history)SHOP.history={};if(!SHOP.history[name])SHOP.history[name]={count:0};
-    SHOP.history[name].count=(SHOP.history[name].count||0)+1;
-    SHOP.history[name].cat=hist.cat||cat;
-    shopSync();render();
-    setTimeout(function(){var i=document.getElementById("shopInput");if(i){i.focus();i.value=""}},50);
+
+function renderItem(it,idx,isShop){
+  var listObj=getList(it.list)||{};
+  return '<div class="shop-item'+(it.done?" done":"")+'"><div class="chk" data-chk="'+idx+'">'+(it.done?"✓":"")+'</div>'+
+    '<span class="name">'+it.text+'</span>'+
+    (isShop&&it.price?'<span class="price-tag">'+it.price+' kr</span>':'')+
+    (isShop&&!it.price?'<span class="price-tag" style="cursor:pointer;color:var(--fg3)" data-setprice="'+idx+'">pris?</span>':'')+
+    (!isShop&&it.pri==="hög"?'<span style="font-size:9px;color:var(--rose)">⬆</span>':'')+
+    (!isShop&&it.assignee?'<span style="font-size:9px;color:var(--fg3)">'+it.assignee+'</span>':'')+
+    (LISTS.activeList==="alla"?'<span class="cat-tag">'+(listObj.icon||"")+'</span>':'')+
+    (isShop&&it.cat?'<span class="cat-tag">'+it.cat+'</span>':'')+
+    '<div class="actions">'+
+    (!isShop?'<button class="ib" data-tpri="'+idx+'" title="Prioritet">⬆</button><button class="ib" data-tassign="'+idx+'" title="Tilldela">👤</button>':'')+
+    (isShop?'<button class="ib" data-miss="'+idx+'" title="Saknas">⏭</button>':'')+
+    '<button class="del-item" data-tdel="'+idx+'">×</button></div></div>'
+}
+
+function bindTodo(){
+  var inp=document.getElementById("todoInput");if(!inp)return;
+  function addItem(text){
+    text=text.trim();if(!text)return;
+    var guess=guessListAndCat(text);
+    var hist=(LISTS.history||{})[text]||{};
+    if(!LISTS.items)LISTS.items=[];
+    LISTS.items.push({text:text,list:hist.list||guess.list,cat:hist.cat||guess.cat,done:false,pri:"medel",assignee:"",price:hist.price||0,backlog:false,added:Date.now()});
+    addActivity(S.family.persons[0].name,"la till \""+text+"\"");
+    if(!LISTS.history)LISTS.history={};if(!LISTS.history[text])LISTS.history[text]={count:0};
+    LISTS.history[text].count=(LISTS.history[text].count||0)+1;
+    LISTS.history[text].list=hist.list||guess.list;
+    LISTS.history[text].cat=hist.cat||guess.cat;
+    listsSync();render();
+    setTimeout(function(){var i=document.getElementById("todoInput");if(i){i.focus();i.value=""}},50);
   }
   inp.addEventListener("keydown",function(e){if(e.key==="Enter"){addItem(inp.value);inp.value=""}});
-  var addBtn=document.getElementById("shopAdd");if(addBtn)addBtn.addEventListener("click",function(){addItem(inp.value);inp.value=""});
+  var addBtn=document.getElementById("todoAdd");if(addBtn)addBtn.addEventListener("click",function(){addItem(inp.value);inp.value=""});
+  // Quick-add suggestions
+  document.querySelectorAll("[data-qadd]").forEach(function(el){el.addEventListener("click",function(){addItem(el.dataset.qadd)})});
   // Check/uncheck
-  document.querySelectorAll("[data-check]").forEach(function(el){el.addEventListener("click",function(){
-    var idx=N(el.dataset.check);SHOP.items[idx].done=!SHOP.items[idx].done;
-    if(SHOP.items[idx].done)SHOP.items[idx].backlog=false;
-    shopSync();render()})});
+  document.querySelectorAll("[data-chk]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.chk);var it=LISTS.items[idx];it.done=!it.done;addActivity(S.family.persons[0].name,(it.done?"✓ ":"↩ ")+it.text);listsSync();render()})});
   // Delete
-  document.querySelectorAll("[data-sdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();SHOP.items.splice(N(el.dataset.sdel),1);shopSync();render()})});
-  // Missing → backlog
-  document.querySelectorAll("[data-miss]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();SHOP.items[N(el.dataset.miss)].backlog=true;SHOP.items[N(el.dataset.miss)].done=true;shopSync();render()})});
+  document.querySelectorAll("[data-tdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();LISTS.items.splice(N(el.dataset.tdel),1);listsSync();render()})});
+  // Priority
+  document.querySelectorAll("[data-tpri]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tpri);var cy=["medel","hög","låg"];var cur=LISTS.items[idx].pri||"medel";LISTS.items[idx].pri=cy[(cy.indexOf(cur)+1)%3];listsSync();render()})});
+  // Assign
+  document.querySelectorAll("[data-tassign]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tassign);var names=S.family.persons.map(function(p){return p.name});var cur=LISTS.items[idx].assignee||"";var ni=(names.indexOf(cur)+1)%names.length;LISTS.items[idx].assignee=cur===names[ni]?"":names[ni];listsSync();render()})});
   // Set price
-  document.querySelectorAll("[data-setprice]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var p=prompt("Pris (kr):");if(p!==null){var idx=N(el.dataset.setprice);SHOP.items[idx].price=N(p);if(!SHOP.history)SHOP.history={};if(SHOP.items[idx].name){if(!SHOP.history[SHOP.items[idx].name])SHOP.history[SHOP.items[idx].name]={};SHOP.history[SHOP.items[idx].name].price=N(p)}shopSync();render()}})});
-  // Inventory
-  var openInv=document.getElementById("openInv");if(openInv)openInv.addEventListener("click",function(){SHOP.mode="inv";render()});
-  var closeInv=document.getElementById("closeInv");if(closeInv)closeInv.addEventListener("click",function(){SHOP.mode="list";render()});
-  document.querySelectorAll("[data-inv]").forEach(function(el){el.addEventListener("click",function(){
-    var name=el.dataset.inv;var exists=SHOP.items.some(function(it){return it.name.toLowerCase()===name.toLowerCase()&&!it.done});
-    if(!exists)addItem(name);else{SHOP.items=SHOP.items.filter(function(it){return it.name.toLowerCase()!==name.toLowerCase()||it.done});shopSync();render()}})});
+  document.querySelectorAll("[data-setprice]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var p=prompt("Pris (kr):");if(p!==null){var idx=N(el.dataset.setprice);LISTS.items[idx].price=N(p);var name=LISTS.items[idx].text;if(!LISTS.history)LISTS.history={};if(!LISTS.history[name])LISTS.history[name]={};LISTS.history[name].price=N(p);listsSync();render()}})});
+  // Missing (backlog)
+  document.querySelectorAll("[data-miss]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.miss);LISTS.items[idx].backlog=true;LISTS.items[idx].done=true;listsSync();render()})});
+  // Filter
+  document.querySelectorAll("[data-fl]").forEach(function(el){el.addEventListener("click",function(){
+    if(el.dataset.fl==="_add"){var n=prompt("Projektnamn:");if(!n)return;var icon=prompt("Emoji-ikon (t.ex. 💒):")||"📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project"});LISTS.activeList=id;listsSync();render();return}
+    LISTS.activeList=el.dataset.fl;listsSync();render()})});
   // Clear done
-  var clr=document.getElementById("clearDone");if(clr)clr.addEventListener("click",function(){SHOP.items=SHOP.items.filter(function(it){return!it.done||it.backlog});shopSync();render()});
-  // Store select
-  var ss2=document.getElementById("storeSelect");if(ss2)ss2.addEventListener("change",function(e){SHOP.activeStore=N(e.target.value);shopSync();render()});
-  var addSt=document.getElementById("addStore");if(addSt)addSt.addEventListener("click",function(){var n=prompt("Butiksnamn:");if(!n)return;SHOP.stores.push({name:n,cats:SHOP.stores[0].cats.slice()});SHOP.activeStore=SHOP.stores.length-1;shopSync();render()});
-  // Save actual total
-  var saveTot=document.getElementById("saveTotal");if(saveTot)saveTot.addEventListener("click",function(){var v=N(document.getElementById("actualTotal").value);SHOP.actualTotal=v;
-    // Train price estimates from actual
-    if(v>0&&SHOP.items.length){var itemsWithPrice=SHOP.items.filter(function(it){return it.done&&it.price>0});var estSum=itemsWithPrice.reduce(function(s,it){return s+it.price},0);
-    if(estSum>0){var ratio=v/estSum;itemsWithPrice.forEach(function(it){if(SHOP.history[it.name])SHOP.history[it.name].price=Math.round(it.price*ratio)})}}
-    shopSync();toast("Slutpris sparat — priser uppdaterade")});
+  var clr=document.getElementById("clearDone");if(clr)clr.addEventListener("click",function(){var al=LISTS.activeList;LISTS.items=(LISTS.items||[]).filter(function(it){return!it.done||(al!=="alla"&&it.list!==al)});listsSync();render()});
 }
 
 function rCmp(f,c){if(!S.prospects.length)return '<div class="empty"><p>Lägg till prospekt</p></div>';var rs=S.prospects.map(function(p){return calcP(f,p)}),currH=c.housing;
@@ -1158,13 +1160,25 @@ function rCmp(f,c){if(!S.prospects.length)return '<div class="empty"><p>Lägg ti
 // === EVENTS ===
 function bindAll(f,c){
   document.getElementById("td").addEventListener("click",function(){S.dark=!S.dark;render()});
-  if(S.tab==="todo"){bindTasks();bindShop()}
+  // FAB
+  var fabBtn=document.getElementById("fabBtn"),fabMenu=document.getElementById("fabMenu");
+  if(fabBtn)fabBtn.addEventListener("click",function(e){e.stopPropagation();fabMenu.classList.toggle("show");fabBtn.textContent=fabMenu.classList.contains("show")?"×":"+"});
+  document.addEventListener("click",function(e){if(fabMenu&&!e.target.closest(".fab")&&!e.target.closest(".fab-menu")){fabMenu.classList.remove("show");if(fabBtn)fabBtn.textContent="+"}});
+  document.querySelectorAll("[data-fab]").forEach(function(el){el.addEventListener("click",function(){
+    var act=el.dataset.fab;fabMenu.classList.remove("show");fabBtn.textContent="+";
+    if(act==="item"){S.tab="todo";render();setTimeout(function(){var inp=document.getElementById("todoInput");if(inp)inp.focus()},100)}
+    else if(act==="prospect"){S.tab="prospekt";var ps=dc(S.prospects);ps.push({name:"Prospekt "+(ps.length+1),addr:"",price:0,reno:0,parent_loan:1200000,parent_repay:0,status:"intressant",drift:{},dd:{},urls:[],checklist:{},reno_plan:[],comparables:[]});ss({prospects:ps,viewIdx:ps.length-1})}
+    else if(act==="project"){var n=prompt("Projektnamn:");if(!n)return;var icon=prompt("Emoji-ikon:")||"📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project"});LISTS.activeList=id;S.tab="todo";listsSync();render()}
+  })});
+  // Person filter
+  document.querySelectorAll("[data-pf]").forEach(function(el){el.addEventListener("click",function(){PERSON_FILTER=el.dataset.pf;render()})});
+  if(S.tab==="todo")bindTodo();
   // Dashboard prospect cards — click to open
   document.querySelectorAll(".prospect-card[data-opi]").forEach(function(el){el.addEventListener("click",function(){S.tab="prospekt";S.viewIdx=N(el.dataset.opi);render();setTimeout(updateCharts,100)})});
   // Dashboard todo items — click to navigate
   document.querySelectorAll("[data-todogoto]").forEach(function(el){el.addEventListener("click",function(){
     var goto=el.dataset.todogoto;if(!goto)return;
-    if(goto==="shop"){S.tab="todo";EXP["td-shop"]=true;localStorage.setItem("exp",JSON.stringify(EXP))}else if(goto==="tasks"||goto==="todo"){S.tab="todo"}else if(goto==="prospekt"){S.tab="prospekt";if(el.dataset.todopi!==undefined)S.viewIdx=N(el.dataset.todopi)}
+    if(goto==="todo"||goto==="shop"||goto==="tasks"){S.tab="todo"}else if(goto==="prospekt"){S.tab="prospekt";if(el.dataset.todopi!==undefined)S.viewIdx=N(el.dataset.todopi)}
     render();setTimeout(updateCharts,100)})});
   // Expand/collapse
   document.querySelectorAll(".sec-h").forEach(function(el){el.addEventListener("click",function(){toggleSec(el.dataset.sec)})});

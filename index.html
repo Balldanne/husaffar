@@ -637,32 +637,63 @@ var CHECK_SECTIONS=[
 var S={screen:"login",dark:false,hid:"",family:dc(FDEF),prospects:[],tab:"dash",viewIdx:null,charts:{}};
 var dbRef=null,shopRef=null,skipSync=false;
 // === UNIFIED LISTS ===
-var LISTS={
-  fixed:[{id:"ica",name:"ICA Hovås",icon:"🛒",type:"shop",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},{id:"sys",name:"Systembolaget",icon:"🍷",type:"shop",cats:["Rött vin","Vitt vin","Öl","Sprit","Cider","Alkoholfritt","Övrigt"]},{id:"hem",name:"Hemmet",icon:"🏠",type:"tasks"},{id:"bil",name:"Bilen",icon:"🚗",type:"tasks"},{id:"barn",name:"Barnen",icon:"👶",type:"tasks"}],
-  projects:[{id:"hus",name:"Husjakten",icon:"🔍",type:"project"}],
-  items:[],history:{},activeList:"alla"
-};
-var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦","Rött vin":"🍷","Vitt vin":"🥂","Öl":"🍺","Sprit":"🥃","Cider":"🍏","Alkoholfritt":"🚫"};
-function getAllLists(){return(LISTS.fixed||[]).concat(LISTS.projects||[])}
-function getList(id){return getAllLists().find(function(l){return l.id===id})}
-function guessListAndCat(text){
+var AREAS=[
+  {id:"mat",name:"Mat",icon:"🍎",type:"shop",defaultStore:"ica-hovas",
+    stores:[{id:"ica-hovas",name:"ICA Hovås",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"hemkop-billdal",name:"Hemköp Billdal",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"hemkop-kullavik",name:"Hemköp Kullavik",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"maxi-hogsbo",name:"ICA Maxi Högsbo",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"maxi-molndal",name:"ICA Maxi Mölndal",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"ica-fokus",name:"ICA Fokus",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"willys-falkenberg",name:"Willys Falkenberg",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"coop-falkenberg",name:"Coop Falkenberg",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]},
+      {id:"ica-hammenhog",name:"ICA Hammenhög",cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"]}]},
+  {id:"dryck",name:"Dryck",icon:"🍷",type:"shop",defaultStore:"systembolaget",
+    stores:[{id:"systembolaget",name:"Systembolaget",cats:["Rött vin","Vitt vin","Rosévin","Öl","Sprit","Cider","Alkoholfritt","Övrigt"]}]},
+  {id:"hem",name:"Hem",icon:"🏠",type:"tasks",
+    stores:[{id:"hemma",name:"Hemma"},{id:"ikea",name:"IKEA"},{id:"bauhaus",name:"Bauhaus"},{id:"annan",name:"Annan butik"}]},
+  {id:"bil",name:"Bil",icon:"🚗",type:"tasks",stores:[]},
+  {id:"barn",name:"Barn",icon:"👶",type:"tasks",stores:[]}
+];
+var LISTS={items:[],history:{},activeArea:"mat",activeStores:{},projects:[]};
+var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦","Rött vin":"🍷","Vitt vin":"🥂","Rosévin":"🌸","Öl":"🍺","Sprit":"🥃","Cider":"🍏","Alkoholfritt":"🚫"};
+function getArea(id){return AREAS.find(function(a){return a.id===id})||LISTS.projects.find(function(p){return p.id===id})}
+function getActiveStore(areaId){var area=getArea(areaId);if(!area||!area.stores||!area.stores.length)return null;var sid=LISTS.activeStores[areaId]||area.defaultStore||area.stores[0].id;return area.stores.find(function(s){return s.id===sid})||area.stores[0]}
+
+function guessArea(text){
   var t=text.toLowerCase();
-  if(/\böl\b|vin\b|sprit|whisky|vodka|cider|bubbel|champagne|prosecco|aperol/.test(t))return{list:"sys",cat:(/\böl\b/.test(t)?"Öl":/rött|röd/.test(t)?"Rött vin":/vitt|vit/.test(t)?"Vitt vin":/cider/.test(t)?"Cider":/sprit|whisky|vodka|gin\b|rom\b/.test(t)?"Sprit":"Övrigt")};
-  if(/mjölk|ost|smör|yoghurt|grädde|ägg|fil\b/.test(t))return{list:"ica",cat:"Mejeri"};
-  if(/bröd|knäcke|bulle/.test(t))return{list:"ica",cat:"Bröd"};
-  if(/kött|fläsk|kyckling|lax|fisk|korv|bacon|färs|räkor/.test(t))return{list:"ica",cat:"Kött & fisk"};
-  if(/glass|pizza|frys/.test(t))return{list:"ica",cat:"Frys"};
-  if(/äpple|banan|tomat|sallad|gurka|lök|potatis|morot|frukt|avokado|paprika|citron|lime/.test(t))return{list:"ica",cat:"Frukt & grönt"};
-  if(/pasta|ris|mjöl|socker|olja|konserv|kross|bön|linser|müsli|havre/.test(t))return{list:"ica",cat:"Torrvaror"};
-  if(/vatten|juice|läsk|kaffe|te\b/.test(t))return{list:"ica",cat:"Dryck"};
-  if(/chips|godis|choklad|nöt/.test(t))return{list:"ica",cat:"Snacks"};
-  if(/tvål|schampo|tandkräm|blöj|tork|disk|tvät/.test(t))return{list:"ica",cat:"Hygien"};
-  if(/städ|tvätt|fixa|laga|monter|byt |reparera|måla|dammsug/.test(t))return{list:"hem",cat:""};
-  if(/däck|service|besiktning|tvätta bil|tank/.test(t))return{list:"bil",cat:""};
-  if(/skola|förskola|aktivitet|simskola|fotboll|kalas/.test(t))return{list:"barn",cat:""};
-  if(/visning|mäklar|bud|prospekt/.test(t))return{list:"hus",cat:""};
-  if(LISTS.activeList!=="alla")return{list:LISTS.activeList,cat:""};
-  return{list:"hem",cat:""};
+  // Dryck/Systembolaget — alkohol
+  if(/\böl\b|\bipa\b|\bale\b|\blager\b|\bstout\b|\bporter\b|vin\b|vino|chardonnay|merlot|cabernet|pinot|riesling|shiraz|tempranillo|rosé|champagne|prosecco|cava|bubbel|sprit|whisky|whiskey|vodka|gin\b|rom\b|cognac|aperol|campari|vermouth|sake|grappa|amaretto|baileys|likör|glögg|cider\b|beer|seltzer/.test(t)){
+    var cat="Övrigt";
+    if(/\böl\b|\bipa\b|\bale\b|\blager\b|\bstout\b|\bporter\b|beer/.test(t))cat="Öl";
+    else if(/rött|röd|merlot|cabernet|shiraz|tempranillo|pinot noir|rioja/.test(t))cat="Rött vin";
+    else if(/vitt|vit\b|chardonnay|riesling|pinot grigio|sauvignon/.test(t))cat="Vitt vin";
+    else if(/rosé/.test(t))cat="Rosévin";
+    else if(/sprit|whisky|whiskey|vodka|gin\b|rom\b|cognac|tequila/.test(t))cat="Sprit";
+    else if(/cider/.test(t))cat="Cider";
+    else if(/alkoholfri|lättöl|folköl/.test(t))cat="Alkoholfritt";
+    else cat="Övrigt";
+    return{area:"dryck",cat:cat}}
+  // Mat
+  if(/mjölk|ost|smör|yoghurt|grädde|ägg|fil\b/.test(t))return{area:"mat",cat:"Mejeri"};
+  if(/bröd|knäcke|bulle|croissant/.test(t))return{area:"mat",cat:"Bröd"};
+  if(/kött|fläsk|kyckling|lax|fisk|korv|bacon|färs|räkor|torsk|sej/.test(t))return{area:"mat",cat:"Kött & fisk"};
+  if(/glass|pizza|frys|paj/.test(t))return{area:"mat",cat:"Frys"};
+  if(/äpple|banan|tomat|sallad|gurka|lök|potatis|morot|frukt|avokado|paprika|citron|lime|mango|apelsin|päron|vindruv|svamp|zucchini|broccoli|spenat|ruccola/.test(t))return{area:"mat",cat:"Frukt & grönt"};
+  if(/pasta|ris|mjöl|socker|olja|konserv|kross|bön|linser|müsli|havre|quinoa|couscous|soja/.test(t))return{area:"mat",cat:"Torrvaror"};
+  if(/vatten|juice|läsk|kaffe|te\b|saft/.test(t))return{area:"mat",cat:"Dryck"};
+  if(/chips|godis|choklad|nöt|popcorn|kex/.test(t))return{area:"mat",cat:"Snacks"};
+  if(/tvål|schampo|tandkräm|blöj|tork|disk|tvät|deodorant|papper/.test(t))return{area:"mat",cat:"Hygien"};
+  // Hem
+  if(/städ|tvätt|fixa|laga|monter|byt |reparera|måla|dammsug|ikea|bauhaus|lampa|hylla|skruv|färg/.test(t))return{area:"hem",cat:""};
+  // Bil
+  if(/däck|service|besiktning|tvätta bil|tank|parkering|olja|vindrutetork/.test(t))return{area:"bil",cat:""};
+  // Barn
+  if(/skola|förskola|aktivitet|simskola|fotboll|kalas|leksak/.test(t))return{area:"barn",cat:""};
+  // Check projects
+  for(var i=0;i<(LISTS.projects||[]).length;i++){if(LISTS.activeArea===LISTS.projects[i].id)return{area:LISTS.projects[i].id,cat:""}}
+  // Default to active area
+  return{area:LISTS.activeArea||"mat",cat:""};
 }
 function listsSync(){var r=shopRef?shopRef.parent.child("lists"):null;if(r&&!skipSync)r.set(LISTS)}
 // Activity feed
@@ -705,9 +736,9 @@ function rApp(el){var f=S.family,c=calcFamily(f);
   if(S.tab==="dash"||S.tab==="bostad"){pillsHtml='<span class="pill">Disp <b>'+fSEK(c.disp)+'</b></span><span class="pill '+(c.surplus>=0?"g":"r")+'">Översk <b>'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</b></span>'}
   else if(S.tab==="prospekt"){pillsHtml='<span class="pill">'+S.prospects.length+' prospekt</span>'}
   else if(S.tab==="todo"){var pt=(LISTS.items||[]).filter(function(t){return!t.done}).length;pillsHtml='<span class="pill">'+pt+' kvar</span>'}
-  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
   var todoBadge=(LISTS.items||[]).filter(function(t){return!t.done}).length;
   var prospBadge=S.prospects.length;
+  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
   '<div class="tabs">'+
   '<button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash"><span class="tab-icon">📊</span><span class="tab-label">Översikt</span></button>'+
   '<button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad"><span class="tab-icon">🏠</span><span class="tab-label">Ekonomi</span></button>'+
@@ -742,8 +773,8 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   var todos=[];
   // From lists
   (LISTS.items||[]).filter(function(t){return!t.done}).slice(0,6).forEach(function(t){
-    var lo=getList(t.list)||{};
-    todos.push({text:(lo.icon||"✅")+" "+t.text,type:t.pri==="hög"?"r":"g",goto:"todo"})
+    var ar=getArea(t.area)||{};
+    todos.push({text:(ar.icon||"✅")+" "+t.text,type:t.pri==="hög"?"r":"g",goto:"todo"})
   });
   // From prospects
   S.prospects.forEach(function(p,i){var r=ps[i];var dd=p.dd||{};
@@ -1028,86 +1059,72 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     sec("p-notes","📝","Anteckningar & länkar",'<span class="kpi">'+ckDone+'/'+ckTotal+' klart</span>'+(p.urls&&p.urls.length?'<span class="kpi">'+p.urls.length+' länkar</span>':''),s7b,false)
 }
 
-// === ATT GÖRA (unified lists) ===
+// === ATT GÖRA ===
 function rTodo(){
   var items=LISTS.items||[];
-  var al=LISTS.activeList||"alla";
-  var allLists=getAllLists();
-  var pending=items.filter(function(it){return!it.done&&(al==="alla"||it.list===al)});
-  var done=items.filter(function(it){return it.done&&(al==="alla"||it.list===al)});
-  var activeListObj=al!=="alla"?getList(al):null;
-  var isShopList=activeListObj&&activeListObj.type==="shop";
+  var al=LISTS.activeArea||"mat";
+  var area=getArea(al);
+  var store=getActiveStore(al);
+  var isShop=area&&area.type==="shop";
+  var pending=items.filter(function(it){return!it.done&&it.area===al});
+  var done=items.filter(function(it){return it.done&&it.area===al});
 
-  // Sort: shop lists by category order, task lists by priority
-  if(isShopList){
-    var catOrder={};(activeListObj.cats||[]).forEach(function(c,i){catOrder[c]=i});
-    pending.sort(function(a,b){return(catOrder[a.cat]||99)-(catOrder[b.cat]||99)});
+  // Sort by store category order for shop, priority for tasks
+  if(isShop&&store&&store.cats){
+    var co={};store.cats.forEach(function(c,i){co[c]=i});
+    pending.sort(function(a,b){return(co[a.cat]||99)-(co[b.cat]||99)});
   }else{
-    var priOrd={"hög":0,"medel":1,"låg":2};
-    pending.sort(function(a,b){return(priOrd[a.pri]||1)-(priOrd[b.pri]||1)||(a.added||0)-(b.added||0)});
+    var po={"hög":0,"medel":1,"låg":2};
+    pending.sort(function(a,b){return(po[a.pri]||1)-(po[b.pri]||1)});
   }
 
-  // Frequent items for shop lists
-  var freq=[];if(isShopList){
-    var hist=LISTS.history||{};
-    freq=Object.keys(hist).filter(function(k){return hist[k].list===al&&(hist[k].count||0)>=2}).map(function(k){return{name:k,count:hist[k].count,price:hist[k].price}}).sort(function(a,b){return b.count-a.count}).slice(0,15);
-  }
-  var inList={};pending.forEach(function(it){inList[it.text.toLowerCase()]=true});
-  var suggestions=freq.filter(function(f){return!inList[f.name.toLowerCase()]});
+  // Suggestions for shop
+  var suggestions=[];
+  if(isShop){var hist=LISTS.history||{};var inList={};pending.forEach(function(it){inList[it.text.toLowerCase()]=true});
+    suggestions=Object.keys(hist).filter(function(k){return hist[k].area===al&&(hist[k].count||0)>=2&&!inList[k.toLowerCase()]}).map(function(k){return{name:k,price:hist[k].price}}).slice(0,10)}
 
-  // Estimated total for shop
-  var estTotal=0;if(isShopList){pending.forEach(function(it){var h=(LISTS.history||{})[it.text];estTotal+=N(it.price)||N(h&&h.price)||0})}
+  // Estimated total
+  var estTotal=0;if(isShop)pending.forEach(function(it){var h=(LISTS.history||{})[it.text];estTotal+=N(it.price)||N(h&&h.price)||0});
 
-  // Count per list
-  var counts={};allLists.forEach(function(l){counts[l.id]=items.filter(function(it){return!it.done&&it.list===l.id}).length});
-  var totalPending=items.filter(function(it){return!it.done}).length;
+  // Counts per area
+  var allAreas=AREAS.concat(LISTS.projects||[]);
+  var counts={};allAreas.forEach(function(a){counts[a.id]=(items||[]).filter(function(it){return!it.done&&it.area===a.id}).length});
 
-  return '<div class="shop-add"><input id="todoInput" placeholder="'+(isShopList?"Lägg till vara...":"Lägg till uppgift...")+'" autofocus><button class="btn btn-p btn-sm" id="todoAdd">+</button></div>'+
-    // Filter tabs
-    '<div class="task-filter"><button class="'+(al==="alla"?"a":"")+'" data-fl="alla">Alla ('+totalPending+')</button>'+
-    allLists.map(function(l){var c=counts[l.id]||0;return '<button class="'+(al===l.id?"a":"")+'" data-fl="'+l.id+'">'+l.icon+(c?' '+c:'')+'</button>'}).join('')+
-    '<button data-fl="_add" style="color:var(--teal);border-style:dashed">+ Projekt</button></div>'+
-
-    // Shop: price estimate
-    (isShopList&&estTotal>0?'<div class="shop-total"><span style="font-size:11px">Uppskattat</span><span style="font-size:14px;font-weight:600;font-family:var(--m)">~'+Math.round(estTotal)+' kr</span></div>':'')+
-
-    // Shop: suggestions / inventory
-    (isShopList&&suggestions.length?'<div class="inv-grid" style="margin-bottom:8px">'+suggestions.slice(0,8).map(function(f){return '<button class="inv-btn" data-qadd="'+f.name+'">+ '+f.name+(f.price?' <span style="font-size:9px;color:var(--fg3)">~'+f.price+'kr</span>':'')+'</button>'}).join('')+'</div>':'')+
-
-    // Items grouped by category (shop) or flat (tasks)
+  return '<div class="shop-add"><input id="todoInput" placeholder="'+(isShop?"Lägg till vara...":"Lägg till uppgift...")+'" autofocus><button class="btn btn-p btn-sm" id="todoAdd">+</button></div>'+
+    // Area tabs
+    '<div class="task-filter" style="margin-bottom:6px">'+allAreas.map(function(a){var c=counts[a.id]||0;return '<button class="'+(al===a.id?"a":"")+'" data-area="'+a.id+'">'+a.icon+' '+a.name+(c?' <b>'+c+'</b>':'')+'</button>'}).join('')+
+    '<button data-area="_add" style="color:var(--teal);border-style:dashed">+</button></div>'+
+    // Store selector (for shop areas)
+    (isShop&&area.stores&&area.stores.length>1?'<div class="flex aic gap4" style="margin-bottom:8px"><select id="storeSelect" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);flex:1">'+area.stores.map(function(s){return '<option value="'+s.id+'"'+(store&&store.id===s.id?" selected":"")+'>'+s.name+'</option>'}).join('')+'</select></div>':
+    (store?'<div style="font-size:10px;color:var(--fg2);margin-bottom:6px">'+store.name+'</div>':''))+
+    // Price estimate
+    (isShop&&estTotal>0?'<div class="shop-total"><span style="font-size:11px">Uppskattat</span><span style="font-size:14px;font-weight:600;font-family:var(--m)">~'+Math.round(estTotal)+' kr</span></div>':'')+
+    // Quick-add suggestions
+    (suggestions.length?'<div class="inv-grid" style="margin-bottom:6px">'+suggestions.slice(0,8).map(function(f){return '<button class="inv-btn" data-qadd="'+f.name+'">+ '+f.name+'</button>'}).join('')+'</div>':'')+
+    // Items
     (function(){
-      if(isShopList){
+      if(isShop&&store&&store.cats){
         var byCat={};pending.forEach(function(it){var c=it.cat||"Övrigt";if(!byCat[c])byCat[c]=[];byCat[c].push(it)});
-        return(activeListObj.cats||[]).filter(function(c){return byCat[c]}).map(function(cat){
-          return '<div style="margin-top:6px"><div style="font-size:10px;font-weight:500;color:var(--fg2);margin-bottom:2px">'+(CAT_ICONS[cat]||"📦")+' '+cat+'</div>'+
-          byCat[cat].map(function(it){return renderItem(it,items.indexOf(it),true)}).join('')+'</div>'
+        return store.cats.filter(function(c){return byCat[c]}).map(function(cat){
+          return '<div style="margin-top:4px"><div style="font-size:10px;font-weight:500;color:var(--fg2)">'+(CAT_ICONS[cat]||"📦")+' '+cat+'</div>'+
+          byCat[cat].map(function(it){return rItem(it,items.indexOf(it),true)}).join('')+'</div>'
         }).join('');
-      }else{
-        return pending.map(function(it){return renderItem(it,items.indexOf(it),false)}).join('');
       }
+      return pending.map(function(it){return rItem(it,items.indexOf(it),false)}).join('');
     })()+
-
-    (pending.length===0?'<div class="empty" style="padding:20px"><div style="font-size:28px;margin-bottom:6px">'+(al==="alla"?"🎉":"📋")+'</div><div style="font-size:13px;font-weight:600">'+(al==="alla"?"Allt klart!":"Tomt — lägg till något!")+'</div></div>':'')+
-
+    (pending.length===0?'<div class="empty" style="padding:16px"><div style="font-size:24px;margin-bottom:4px">'+(isShop?"🛒":"✨")+'</div><div style="font-size:12px;font-weight:600">'+(isShop?"Listan är tom":"Inget att göra!")+'</div></div>':'')+
     // Done
-    (done.length?'<div style="margin-top:12px"><div class="flex aic jcb"><span style="font-size:10px;color:var(--fg2)">✓ Klart ('+done.length+')</span><button class="btn btn-s btn-sm" id="clearDone">Rensa</button></div>'+
-    done.slice(0,5).map(function(it){return renderItem(it,items.indexOf(it),isShopList)}).join('')+
-    (done.length>5?'<div style="font-size:10px;color:var(--fg3);padding:4px">+ '+(done.length-5)+' till</div>':'')+'</div>':'')
+    (done.length?'<div style="margin-top:10px"><div class="flex aic jcb"><span style="font-size:10px;color:var(--fg2)">✓ Klart ('+done.length+')</span><button class="btn btn-s btn-sm" id="clearDone">Rensa</button></div>'+
+    done.slice(0,5).map(function(it){return rItem(it,items.indexOf(it),isShop)}).join('')+'</div>':'')
 }
 
-function renderItem(it,idx,isShop){
-  var listObj=getList(it.list)||{};
+function rItem(it,idx,isShop){
   return '<div class="shop-item'+(it.done?" done":"")+'"><div class="chk" data-chk="'+idx+'">'+(it.done?"✓":"")+'</div>'+
     '<span class="name">'+it.text+'</span>'+
-    (isShop&&it.price?'<span class="price-tag">'+it.price+' kr</span>':'')+
-    (isShop&&!it.price?'<span class="price-tag" style="cursor:pointer;color:var(--fg3)" data-setprice="'+idx+'">pris?</span>':'')+
-    (!isShop&&it.pri==="hög"?'<span style="font-size:9px;color:var(--rose)">⬆</span>':'')+
-    (!isShop&&it.assignee?'<span style="font-size:9px;color:var(--fg3)">'+it.assignee+'</span>':'')+
-    (LISTS.activeList==="alla"?'<span class="cat-tag">'+(listObj.icon||"")+'</span>':'')+
-    (isShop&&it.cat?'<span class="cat-tag">'+it.cat+'</span>':'')+
-    '<div class="actions">'+
-    (!isShop?'<button class="ib" data-tpri="'+idx+'" title="Prioritet">⬆</button><button class="ib" data-tassign="'+idx+'" title="Tilldela">👤</button>':'')+
-    (isShop?'<button class="ib" data-miss="'+idx+'" title="Saknas">⏭</button>':'')+
+    (isShop&&it.price?'<span class="price-tag">'+it.price+'kr</span>':'')+(isShop&&!it.price?'<span class="price-tag" style="cursor:pointer;color:var(--fg3)" data-setprice="'+idx+'">pris?</span>':'')+
+    (!isShop&&it.pri==="hög"?'<span style="font-size:9px;color:var(--rose)">⬆ hög</span>':'')+
+    (!isShop&&it.assignee?'<span style="font-size:9px;color:var(--purple)">'+it.assignee+'</span>':'')+
+    '<div class="actions">'+(!isShop?'<button class="ib" data-tpri="'+idx+'">⬆</button><button class="ib" data-tassign="'+idx+'">👤</button>':'')+
     '<button class="del-item" data-tdel="'+idx+'">×</button></div></div>'
 }
 
@@ -1115,40 +1132,43 @@ function bindTodo(){
   var inp=document.getElementById("todoInput");if(!inp)return;
   function addItem(text){
     text=text.trim();if(!text)return;
-    var guess=guessListAndCat(text);
+    var guess=guessArea(text);
+    // If user is on a specific area tab, use that area (unless auto-detect strongly disagrees)
+    var targetArea=LISTS.activeArea||"mat";
+    if(guess.area==="dryck"&&targetArea==="mat")targetArea="dryck";// alkohol always goes to dryck
+    else if(targetArea!=="mat"&&targetArea!=="dryck")targetArea=LISTS.activeArea;// keep task-areas
+    else targetArea=guess.area;
     var hist=(LISTS.history||{})[text]||{};
     if(!LISTS.items)LISTS.items=[];
-    LISTS.items.push({text:text,list:hist.list||guess.list,cat:hist.cat||guess.cat,done:false,pri:"medel",assignee:"",price:hist.price||0,backlog:false,added:Date.now()});
-    addActivity(S.family.persons[0].name,"la till \""+text+"\"");
+    LISTS.items.push({text:text,area:hist.area||targetArea,cat:hist.cat||guess.cat,done:false,pri:"medel",assignee:"",price:hist.price||0,added:Date.now()});
     if(!LISTS.history)LISTS.history={};if(!LISTS.history[text])LISTS.history[text]={count:0};
     LISTS.history[text].count=(LISTS.history[text].count||0)+1;
-    LISTS.history[text].list=hist.list||guess.list;
-    LISTS.history[text].cat=hist.cat||guess.cat;
+    LISTS.history[text].area=hist.area||targetArea;LISTS.history[text].cat=hist.cat||guess.cat;
+    addActivity(S.family.persons[0].name,"la till \""+text+"\"");
     listsSync();render();
     setTimeout(function(){var i=document.getElementById("todoInput");if(i){i.focus();i.value=""}},50);
   }
   inp.addEventListener("keydown",function(e){if(e.key==="Enter"){addItem(inp.value);inp.value=""}});
   var addBtn=document.getElementById("todoAdd");if(addBtn)addBtn.addEventListener("click",function(){addItem(inp.value);inp.value=""});
-  // Quick-add suggestions
   document.querySelectorAll("[data-qadd]").forEach(function(el){el.addEventListener("click",function(){addItem(el.dataset.qadd)})});
   // Check/uncheck
   document.querySelectorAll("[data-chk]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.chk);var it=LISTS.items[idx];it.done=!it.done;addActivity(S.family.persons[0].name,(it.done?"✓ ":"↩ ")+it.text);listsSync();render()})});
   // Delete
   document.querySelectorAll("[data-tdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();LISTS.items.splice(N(el.dataset.tdel),1);listsSync();render()})});
   // Priority
-  document.querySelectorAll("[data-tpri]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tpri);var cy=["medel","hög","låg"];var cur=LISTS.items[idx].pri||"medel";LISTS.items[idx].pri=cy[(cy.indexOf(cur)+1)%3];listsSync();render()})});
+  document.querySelectorAll("[data-tpri]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tpri);var cy=["medel","hög","låg"];LISTS.items[idx].pri=cy[(cy.indexOf(LISTS.items[idx].pri||"medel")+1)%3];listsSync();render()})});
   // Assign
-  document.querySelectorAll("[data-tassign]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tassign);var names=S.family.persons.map(function(p){return p.name});var cur=LISTS.items[idx].assignee||"";var ni=(names.indexOf(cur)+1)%names.length;LISTS.items[idx].assignee=cur===names[ni]?"":names[ni];listsSync();render()})});
+  document.querySelectorAll("[data-tassign]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tassign);var names=S.family.persons.map(function(p){return p.name});var cur=LISTS.items[idx].assignee||"";LISTS.items[idx].assignee=cur?"":(names[0]||"");listsSync();render()})});
   // Set price
-  document.querySelectorAll("[data-setprice]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var p=prompt("Pris (kr):");if(p!==null){var idx=N(el.dataset.setprice);LISTS.items[idx].price=N(p);var name=LISTS.items[idx].text;if(!LISTS.history)LISTS.history={};if(!LISTS.history[name])LISTS.history[name]={};LISTS.history[name].price=N(p);listsSync();render()}})});
-  // Missing (backlog)
-  document.querySelectorAll("[data-miss]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.miss);LISTS.items[idx].backlog=true;LISTS.items[idx].done=true;listsSync();render()})});
-  // Filter
-  document.querySelectorAll("[data-fl]").forEach(function(el){el.addEventListener("click",function(){
-    if(el.dataset.fl==="_add"){var n=prompt("Projektnamn:");if(!n)return;var icon=prompt("Emoji-ikon (t.ex. 💒):")||"📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project"});LISTS.activeList=id;listsSync();render();return}
-    LISTS.activeList=el.dataset.fl;listsSync();render()})});
+  document.querySelectorAll("[data-setprice]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var p=prompt("Pris (kr):");if(p!==null){var idx=N(el.dataset.setprice);LISTS.items[idx].price=N(p);var nm=LISTS.items[idx].text;if(!LISTS.history)LISTS.history={};if(!LISTS.history[nm])LISTS.history[nm]={};LISTS.history[nm].price=N(p);listsSync();render()}})});
+  // Area filter
+  document.querySelectorAll("[data-area]").forEach(function(el){el.addEventListener("click",function(){
+    if(el.dataset.area==="_add"){var n=prompt("Projektnamn (t.ex. Bröllop):");if(!n)return;var icon=prompt("Emoji:")||"📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project",stores:[]});LISTS.activeArea=id;listsSync();render();return}
+    LISTS.activeArea=el.dataset.area;listsSync();render()})});
+  // Store select
+  var ss2=document.getElementById("storeSelect");if(ss2)ss2.addEventListener("change",function(e){if(!LISTS.activeStores)LISTS.activeStores={};LISTS.activeStores[LISTS.activeArea]=e.target.value;listsSync();render()});
   // Clear done
-  var clr=document.getElementById("clearDone");if(clr)clr.addEventListener("click",function(){var al=LISTS.activeList;LISTS.items=(LISTS.items||[]).filter(function(it){return!it.done||(al!=="alla"&&it.list!==al)});listsSync();render()});
+  var clr=document.getElementById("clearDone");if(clr)clr.addEventListener("click",function(){var al=LISTS.activeArea;LISTS.items=(LISTS.items||[]).filter(function(it){return!it.done||it.area!==al});listsSync();render()});
 }
 
 function rCmp(f,c){if(!S.prospects.length)return '<div class="empty"><p>Lägg till prospekt</p></div>';var rs=S.prospects.map(function(p){return calcP(f,p)}),currH=c.housing;

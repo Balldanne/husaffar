@@ -168,10 +168,11 @@ function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.c
 // Expand/collapse state
 var EXP=JSON.parse(localStorage.getItem("exp")||"{}");
 function isOpen(id,def){return EXP[id]!==undefined?EXP[id]:def}
-function toggleSec(id){EXP[id]=!isOpen(id,false);localStorage.setItem("exp",JSON.stringify(EXP));
-  // Toggle inline without full re-render
+var _toggling=false;
+function toggleSec(id){if(_toggling)return;_toggling=true;EXP[id]=!isOpen(id,false);localStorage.setItem("exp",JSON.stringify(EXP));
   var secEl=document.querySelector('.sec-h[data-sec="'+id+'"]');
   if(secEl){secEl.classList.toggle("open");var body=secEl.nextElementSibling;if(body)body.classList.toggle("open")}
+  setTimeout(function(){_toggling=false},200);
 }
 function sec(id,icon,title,summaryHtml,bodyHtml,defaultOpen){
   var open=isOpen(id,defaultOpen!==false);
@@ -705,6 +706,7 @@ function addActivity(who,action){ACTIVITY.unshift({who:who,action:action,time:Da
 function timeAgo(ts){var d=Math.round((Date.now()-ts)/1000);if(d<60)return "just nu";if(d<3600)return Math.round(d/60)+" min";if(d<86400)return Math.round(d/3600)+"h";return Math.round(d/86400)+"d"}
 // Person filter
 var PERSON_FILTER="alla";
+var ME=localStorage.getItem("fc_me")||""; // Vem använder denna enhet
 // shopSync removed — replaced by listsSync
 function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
 
@@ -742,7 +744,8 @@ function rApp(el){var f=S.family,c=calcFamily(f);
   else if(S.tab==="todo"){var pt=(LISTS.items||[]).filter(function(t){return!t.done}).length;pillsHtml='<span class="pill">'+pt+' kvar</span>'}
   var todoBadge=(LISTS.items||[]).filter(function(t){return!t.done}).length;
   var prospBadge=S.prospects.length;
-  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
+  var meInitial=ME?ME[0]:"?";var meCol=ME===f.persons[0].name?"var(--purple)":"var(--teal)";
+  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="meBtn" title="Byt person" style="background:'+meCol+';color:#fff;font-size:11px;font-weight:700;border-radius:50%;width:26px;height:26px">'+meInitial+'</button><button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
   '<div class="tabs">'+
   '<button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash"><span class="tab-icon">📊</span><span class="tab-label">Översikt</span></button>'+
   '<button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad"><span class="tab-icon">🏠</span><span class="tab-label">Ekonomi</span></button>'+
@@ -787,7 +790,7 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   var recipes=LISTS.recipes||[];
   var weekMeals=LISTS.weekMeals||[];
 
-  return '<div class="anim-in"><div class="greeting">'+greet+', '+f.persons[0].name+' & '+f.persons[1].name+' 👋</div><div class="greeting-sub">'+dateStr+'</div></div>'+
+  return '<div class="anim-in"><div class="greeting">'+greet+(ME?', '+ME:'')+ ' 👋</div><div class="greeting-sub">'+dateStr+'</div></div>'+
 
   // Compact KPIs
   '<div class="flex gap4 anim-in anim-d1" style="margin:10px 0;flex-wrap:wrap">'+
@@ -1143,7 +1146,7 @@ function bindTodo(){
     if(!LISTS.history)LISTS.history={};if(!LISTS.history[text])LISTS.history[text]={count:0};
     LISTS.history[text].count=(LISTS.history[text].count||0)+1;
     LISTS.history[text].area=hist.area||targetArea;LISTS.history[text].cat=hist.cat||guess.cat;
-    addActivity(S.family.persons[0].name,"la till \""+text+"\"");
+    addActivity(ME||"Okänd","la till \""+text+"\"");
     listsSync();render();
     setTimeout(function(){var i=document.getElementById("todoInput");if(i){i.focus();i.value=""}},50);
   }
@@ -1151,7 +1154,7 @@ function bindTodo(){
   var addBtn=document.getElementById("todoAdd");if(addBtn)addBtn.addEventListener("click",function(){addItem(inp.value);inp.value=""});
   document.querySelectorAll("[data-qadd]").forEach(function(el){el.addEventListener("click",function(){addItem(el.dataset.qadd)})});
   // Check/uncheck
-  document.querySelectorAll("[data-chk]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.chk);var it=LISTS.items[idx];it.done=!it.done;addActivity(S.family.persons[0].name,(it.done?"✓ ":"↩ ")+it.text);listsSync();render()})});
+  document.querySelectorAll("[data-chk]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.chk);var it=LISTS.items[idx];it.done=!it.done;addActivity(ME||"Okänd",(it.done?"✓ ":"↩ ")+it.text);listsSync();render()})});
   // Delete
   document.querySelectorAll("[data-tdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();LISTS.items.splice(N(el.dataset.tdel),1);listsSync();render()})});
   // Priority
@@ -1169,7 +1172,7 @@ function bindTodo(){
   // Move to different area
   document.querySelectorAll("[data-tmove]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tmove);var allA=AREAS.concat(LISTS.projects||[]);var opts=allA.map(function(a){return a.icon+" "+a.name}).join("\n");var choice=prompt("Flytta till:\n"+allA.map(function(a,i){return(i+1)+". "+a.icon+" "+a.name}).join("\n")+"\n\nAnge nummer:");if(!choice)return;var ci=N(choice)-1;if(ci>=0&&ci<allA.length){var oldArea=LISTS.items[idx].area;LISTS.items[idx].area=allA[ci].id;LISTS.items[idx].cat="";// Re-learn
     var nm=LISTS.items[idx].text;if(LISTS.history[nm])LISTS.history[nm].area=allA[ci].id;
-    addActivity(S.family.persons[0].name,"flyttade \""+nm+"\" till "+allA[ci].icon);listsSync();render()}})});
+    addActivity(ME||"Okänd","flyttade \""+nm+"\" till "+allA[ci].icon);listsSync();render()}})});
   // Deadline
   document.querySelectorAll("[data-tdate]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tdate);
     var di=document.createElement("input");di.type="date";di.value=LISTS.items[idx].deadline||"";di.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;font-size:16px;padding:12px;border-radius:10px;border:2px solid var(--coral)";
@@ -1185,6 +1188,11 @@ function bindTodo(){
 // === EVENTS ===
 function bindAll(f,c){
   document.getElementById("td").addEventListener("click",function(){S.dark=!S.dark;render()});
+  // Person picker
+  var meBtn=document.getElementById("meBtn");if(meBtn)meBtn.addEventListener("click",function(){var names=S.family.persons.map(function(p){return p.name});var cur=ME||"";var next=names[(names.indexOf(cur)+1)%names.length];ME=next;localStorage.setItem("fc_me",ME);toast("Du är nu "+ME);render()});
+  // Ask who you are on first use
+  if(!ME&&S.family.persons.length>=2){var names=S.family.persons.map(function(p){return p.name});
+    setTimeout(function(){var who=prompt("Vem är du?\n"+names.map(function(n,i){return(i+1)+". "+n}).join("\n")+"\n\nAnge nummer:");if(who){var idx=N(who)-1;if(idx>=0&&idx<names.length){ME=names[idx];localStorage.setItem("fc_me",ME);toast("Hej "+ME+"!");render()}}},500)}
   // FAB
   var fabBtn=document.getElementById("fabBtn"),fabMenu=document.getElementById("fabMenu");
   if(fabBtn)fabBtn.addEventListener("click",function(e){e.stopPropagation();fabMenu.classList.toggle("show");fabBtn.textContent=fabMenu.classList.contains("show")?"×":"+"});
@@ -1206,7 +1214,7 @@ function bindAll(f,c){
     var items=prompt("Ingredienser (kommaseparerade):\nt.ex. tortillas, färs, paprika, lök, gräddfil, salsa");if(!items)return;
     if(!LISTS.recipes)LISTS.recipes=[];
     LISTS.recipes.push({name:name,items:items.split(",").map(function(s){return s.trim()}).filter(Boolean)});
-    addActivity(S.family.persons[0].name,"skapade rätt: "+name);listsSync();render()});
+    addActivity(ME||"Okänd","skapade rätt: "+name);listsSync();render()});
   // Toggle meal selection
   document.querySelectorAll("[data-meal]").forEach(function(el){el.addEventListener("click",function(){
     if(!LISTS.weekMeals)LISTS.weekMeals=[];var name=el.dataset.meal;var idx=LISTS.weekMeals.indexOf(name);
@@ -1216,7 +1224,7 @@ function bindAll(f,c){
     var added=0;(LISTS.weekMeals||[]).forEach(function(mn){var rec=(LISTS.recipes||[]).find(function(r){return r.name===mn});if(rec)(rec.items||[]).forEach(function(ing){
       var exists=(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
       if(!exists){var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++}})});
-    if(added)addActivity(S.family.persons[0].name,"la till "+added+" ingredienser");listsSync();toast(added+" ingredienser tillagda");render()});
+    if(added)addActivity(ME||"Okänd","la till "+added+" ingredienser");listsSync();toast(added+" ingredienser tillagda");render()});
   // Dashboard todo items — click to navigate
   document.querySelectorAll("[data-todogoto]").forEach(function(el){el.addEventListener("click",function(){
     var goto=el.dataset.todogoto;if(!goto)return;
@@ -1301,7 +1309,11 @@ function bindAll(f,c){
   // Search data from worker
   var searchBtn=document.getElementById("searchData");
   if(searchBtn)searchBtn.addEventListener("click",async function(){
-    var ps=dc(S.prospects),p=ps[S.viewIdx];if(!p||!p.addr){toast("Fyll i adress först");return}
+    var addrVal=document.getElementById("addrInput");
+    var ps=dc(S.prospects),p=ps[S.viewIdx];if(!p){toast("Inget prospekt valt");return}
+    // Sync address from input field before search
+    if(addrVal&&addrVal.value)p.addr=addrVal.value;
+    if(!p.addr){toast("Fyll i adress först");return}
     searchBtn.textContent="⏳ Söker...";searchBtn.disabled=true;
     try{
       var result=await fetchPropertyData(p.addr,p.urls);

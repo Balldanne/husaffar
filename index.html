@@ -438,7 +438,8 @@ function calcMaintenance(p){
   var dd=p.dd||{},yr=new Date().getFullYear(),byggar=N(dd.byggar);
   if(!byggar)return [];
   var husAge=yr-byggar,items=[];
-  // Moderna material håller längre
+  var notes=((dd.visning_notes||"")+" "+(dd.maklare_fragor||"")).toLowerCase();
+  var hasBerg=notes.indexOf("berg")>=0;
   var fasadLife=byggar>=2000?35:25,takLife=byggar>=2000?40:35,fonLife=byggar>=2000?35:30;
   // Tak
   var takSenast=N(dd.tak_ar)||byggar;var takAge=yr-takSenast;
@@ -450,10 +451,12 @@ function calcMaintenance(p){
   if(N(dd.vp_ar)){var vpAge=yr-N(dd.vp_ar);items.push({name:"Värmepump",age:vpAge,life:18,cost:"80–150 tkr",priority:vpAge>15?"high":vpAge>10?"med":"low",year:N(dd.vp_ar)+18})}
   // Badrum
   if(N(dd.badrum_ar)){var badAge=yr-N(dd.badrum_ar);items.push({name:"Badrum",age:badAge,life:25,cost:"150–350 tkr",priority:badAge>20?"high":badAge>12?"med":"low",year:N(dd.badrum_ar)+25})}
-  // Fönster — bara om äldre
-  if(husAge>25){var fonSenast=byggar;items.push({name:"Fönster",age:yr-fonSenast,life:fonLife,cost:"100–250 tkr",priority:(yr-fonSenast)>fonLife?"high":"med",year:fonSenast+fonLife})}
-  // Dränering — bara om äldre
-  if(husAge>30)items.push({name:"Dränering",age:husAge,life:40,cost:"150–300 tkr",priority:husAge>40?"high":"med",year:byggar+40});
+  // Fönster — kolla om bytta i renoveringshistorik
+  var fonBytt=notes.indexOf("fönster")>=0&&notes.indexOf("ny")>=0;
+  if(husAge>25&&!fonBytt){items.push({name:"Fönster",age:husAge,life:fonLife,cost:"100–250 tkr",priority:husAge>fonLife?"high":"med",year:byggar+fonLife})}
+  else if(husAge>25&&fonBytt){items.push({name:"Fönster (delvis bytta)",age:Math.min(husAge,15),life:fonLife,cost:"50–150 tkr",priority:"low",year:yr+20})}
+  // Dränering — skip om berg
+  if(husAge>30&&!hasBerg)items.push({name:"Dränering",age:husAge,life:40,cost:"150–300 tkr",priority:husAge>40?"high":"med",year:byggar+40});
   items.sort(function(a,b){return a.year-b.year});
   return items;
 }
@@ -463,26 +466,37 @@ function calcBuildRisk(p){
   var dd=p.dd||{},yr=new Date().getFullYear(),byggar=N(dd.byggar);
   if(!byggar)return[];
   var age=yr-byggar,risks=[];
-  // Fukt
-  if(byggar>=1950&&byggar<=1975)risks.push({t:"Platta på mark utan isolering",d:"Hög risk för fukt underifrån. Kontrollera med fuktmätning.",l:"h",cost:"50–150 tkr åtgärd"});
-  if(byggar>=1960&&byggar<=1985)risks.push({t:"Krypgrund-era",d:"Vanligt med dålig ventilation i krypgrund. Fukt och mögel.",l:"m",cost:"30–100 tkr"});
-  if(byggar>=1968&&byggar<=1978)risks.push({t:"\"Sjuka hus\"-eran",d:"Cellplast mot betong, dåliga tätskikt, platta badrum.",l:"h",cost:"100–400 tkr"});
-  // Asbest
-  if(byggar>=1930&&byggar<=1986)risks.push({t:"Eternit (asbest) möjlig",d:"Kan finnas i tak, fasad, ventilation. Inte farligt om intakt.",l:"m",cost:"Sanering 100–300 tkr vid reno"});
+  var notes=((dd.visning_notes||"")+" "+(dd.maklare_fragor||"")).toLowerCase();
+  var elAr=N(dd.el_ar),takAr=N(dd.tak_ar),fasadAr=N(dd.fasad_ar),vpAr=N(dd.vp_ar),badrumAr=N(dd.badrum_ar);
+  var hasRapon=(dd.radon||"").length>0||notes.indexOf("radon")>=0&&(notes.indexOf("godkänt")>=0||notes.indexOf("ok")>=0);
+  var hasBesiktning=notes.indexOf("besiktning")>=0&&(notes.indexOf("godkänt")>=0||notes.indexOf("ok")>=0);
+  var hasBerg=notes.indexOf("berg")>=0||notes.indexOf("berggrund")>=0;
+  var hasDranering=(dd.dranering||"").length>0;
+  // Fukt — skip om besiktning godkänd eller hus på berg
+  if(byggar>=1950&&byggar<=1975&&!hasBesiktning&&!hasBerg)risks.push({t:"Platta på mark utan isolering",d:"Hög risk för fukt underifrån. Kontrollera med fuktmätning.",l:"h",cost:"50–150 tkr"});
+  if(byggar>=1960&&byggar<=1985&&!hasBesiktning&&!hasBerg)risks.push({t:"Krypgrund-era",d:"Vanligt med dålig ventilation. Fukt och mögel.",l:"m",cost:"30–100 tkr"});
+  if(byggar>=1968&&byggar<=1978)risks.push({t:"\"Sjuka hus\"-eran",d:"Cellplast mot betong, dåliga tätskikt.",l:"h",cost:"100–400 tkr"});
+  // Asbest — skip tak/fasad-risk om de är bytta
+  if(byggar>=1930&&byggar<=1986){var aRisk=takAr>=2000||fasadAr>=2000?"l":"m";risks.push({t:"Eternit (asbest) möjlig",d:"Kan finnas i "+(takAr>=2000?"":"tak, ")+(fasadAr>=2000?"":"fasad, ")+"ventilation."+(takAr>=2000&&fasadAr>=2000?" Tak+fasad bytta.":""),l:aRisk,cost:aRisk==="l"?"Låg risk":"Sanering 100–300 tkr"})}
   if(byggar>=1950&&byggar<=1980)risks.push({t:"Asbest i golvplattor/rör",d:"Vanligt i denna period. Undersök före renovering.",l:"m",cost:"Ingår i renokostnad"});
-  // Radon
-  if(byggar>=1929&&byggar<=1975)risks.push({t:"Blåbetong möjlig (radon)",d:"Användes 1929–1975. Kräver radonmätning.",l:"m",cost:"Radonåtgärd 30–80 tkr"});
-  // El
-  if(byggar<1970)risks.push({t:"Tvåledarsystem (el utan jord)",d:"Brandrisk, kräver omdragning vid renovering.",l:"h",cost:"Omdragning 100–300 tkr"});
-  if(byggar>=1960&&byggar<=1975)risks.push({t:"Aluminiumkablage möjligt",d:"Ökad brandrisk. Kontrollera elcentral.",l:"m",cost:"Byte 80–200 tkr"});
-  // Isolering
-  if(byggar<1973)risks.push({t:"Dålig isolering (pre-energikris)",d:"Byggt före krav. Höga uppvärmningskostnader.",l:"m",cost:"Tilläggsisolering 50–150 tkr"});
-  // Dränering
-  if(age>30)risks.push({t:"Dränering troligen uttjänt",d:"Livslängd 30–40 år. Risk för fukt i grund.",l:age>40?"h":"m",cost:"150–400 tkr"});
+  // Radon — skip om mätt och godkänt
+  if(byggar>=1929&&byggar<=1975&&!hasRapon)risks.push({t:"Blåbetong möjlig (radon)",d:"Användes 1929–1975. Kräver radonmätning.",l:"m",cost:"Radonåtgärd 30–80 tkr"});
+  else if(byggar>=1929&&byggar<=1975&&hasRapon)risks.push({t:"Radon — mätt ✓",d:"Radonmätning utförd och godkänd.",l:"l",cost:"Ingen åtgärd"});
+  // El — skip om elcentral bytt
+  if(byggar<1970&&!elAr)risks.push({t:"Tvåledarsystem (el utan jord)",d:"Brandrisk, kräver omdragning.",l:"h",cost:"Omdragning 100–300 tkr"});
+  else if(byggar<1970&&elAr)risks.push({t:"El uppgraderad "+elAr+" ✓",d:"Elcentral och stammar bytta.",l:"l",cost:"Ingen åtgärd"});
+  if(byggar>=1960&&byggar<=1975&&!elAr)risks.push({t:"Aluminiumkablage möjligt",d:"Ökad brandrisk. Kontrollera elcentral.",l:"m",cost:"Byte 80–200 tkr"});
+  // Isolering — lägre risk om bergvärme (kompenserar)
+  var hasVP=(dd.uppvarmning||"").toLowerCase().indexOf("pump")>=0||(dd.uppvarmning||"").toLowerCase().indexOf("berg")>=0;
+  if(byggar<1973&&!hasVP)risks.push({t:"Dålig isolering (pre-energikris)",d:"Byggt före krav. Höga uppvärmningskostnader.",l:"m",cost:"Tilläggsisolering 50–150 tkr"});
+  else if(byggar<1973&&hasVP)risks.push({t:"Äldre isolering — kompenseras av VP ✓",d:"Bergvärme/VP minskar uppvärmningskostnaden.",l:"l",cost:"Ingen akut åtgärd"});
+  // Dränering — skip om hus på berg eller besiktning ok
+  if(age>30&&!hasBerg&&!hasBesiktning&&!hasDranering)risks.push({t:"Dränering troligen uttjänt",d:"Livslängd 30–40 år. Risk för fukt.",l:age>40?"h":"m",cost:"150–400 tkr"});
+  else if(age>30&&(hasBerg||hasBesiktning))risks.push({t:"Dränering — "+(hasBerg?"på berg":"besiktad")+" ✓",d:hasBerg?"Hus på berggrund, dränering mindre kritiskt.":"Besiktning utförd.",l:"l",cost:"Ingen akut åtgärd"});
   // Rör
-  if(byggar>=1960&&byggar<=1985)risks.push({t:"Kopparrör nära slutet",d:"Livslängd 40–60 år. Risk för vattenskador.",l:age>50?"h":"m",cost:"Stambyte 100–250 tkr"});
-  // Kustnära (generell flagga)
-  risks.push({t:"Kustnära läge (Billdal/Göteborg)",d:"Saltluft kan skada fasad snabbare. Kontrollera rostskador.",l:"l",cost:"Underhåll +20%"});
+  if(byggar>=1960&&byggar<=1985&&age>50)risks.push({t:"Kopparrör nära slutet",d:"Livslängd 40–60 år. Risk för vattenskador.",l:"m",cost:"Stambyte 100–250 tkr"});
+  // Kustnära
+  risks.push({t:"Kustnära läge (Billdal/Göteborg)",d:"Saltluft kan skada fasad snabbare."+(fasadAr>=2020?" Fasad nymålad "+fasadAr+".":""),l:fasadAr>=2020?"l":"m",cost:fasadAr>=2020?"OK":"Underhåll +20%"});
   return risks;
 }
 
@@ -810,16 +824,9 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   '<div style="text-align:center;padding:16px"><div style="font-size:24px;margin-bottom:4px">✨</div><div style="font-size:12px;font-weight:600">Allt klart!</div><div style="font-size:10px;color:var(--fg2)">Lägg till uppgifter i "Att göra"</div></div>')+
   '</div></div>'+
 
-  // === VECKANS MAT ===
-  '<div class="card anim-in anim-d3"><div class="card-b"><div class="flex aic jcb"><span style="font-size:12px;font-weight:600">🍽️ Veckans mat</span><button class="btn btn-s btn-sm" id="addRecipe">+ Ny rätt</button></div>'+
-  (recipes.length?
-    '<div class="inv-grid mt6">'+recipes.map(function(r){var sel=weekMeals.indexOf(r.name)>=0;return '<button class="inv-btn'+(sel?" sel":"")+'" data-meal="'+r.name+'">'+r.name+(sel?" ✓":"")+'</button>'}).join('')+'</div>'+
-    (weekMeals.length?'<div style="font-size:10px;color:var(--fg2);margin-top:6px">'+(function(){
-      var needed=0,have=0;weekMeals.forEach(function(mn){var rec=recipes.find(function(r){return r.name===mn});if(rec)(rec.items||[]).forEach(function(it){needed++;var inList=(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===it.toLowerCase()&&!li.done});if(inList)have++})});
-      return needed+" ingredienser · "+have+" på listan · <button class='btn btn-s btn-sm' id='addMealItems'>Lägg till resten →</button>"
-    })()+'</div>':''):
-    '<div style="font-size:10px;color:var(--fg3);margin-top:6px">Skapa maträtter med ingredienser. Välj veckans rätter → ingredienser läggs till automatiskt.</div>')+
-  '</div></div>'+
+  // === VECKANS MAT (compact summary) ===
+  (recipes.length&&weekMeals.length?'<div class="card anim-in anim-d3"><div class="card-b"><div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🍽️ Veckans mat</span><span style="font-size:10px;color:var(--fg2)">'+weekMeals.length+' rätter</span></div>'+
+  '<div style="font-size:10px;margin-top:4px;color:var(--fg2)">'+weekMeals.map(function(mn){var rec=recipes.find(function(r){return r.name===mn});return rec?(rec.emoji||"🍽️")+" "+rec.name:mn}).join(" · ")+'</div></div></div>':'')+
 
   // === HUSJAKTEN (compact) ===
   (ps.length?sec("d-hus","🔍","Husjakten ("+ps.length+")",'',
@@ -974,6 +981,7 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     '<div class="fg fg4 mt6"><div class="met"><div class="met-l">Bolån</div><div class="met-v" style="font-size:13px">'+fSEK(r.mortgage)+'</div><div class="met-s">LTV '+fP(r.ltv)+'</div></div><div class="met"><div class="met-l">Ränta</div><div class="met-v" style="font-size:13px">'+fSEK(r.intMonth)+'</div><div class="met-s">/mån ('+fP(r.rate)+')</div></div><div class="met"><div class="met-l">Amort.</div><div class="met-v" style="font-size:13px">'+fSEK(r.amortMonth)+'</div><div class="met-s">/mån ('+fP(r.amortRate)+')</div></div><div class="met"><div class="met-l">Drift</div><div class="met-v" style="font-size:13px">'+fSEK(r.drift)+'</div><div class="met-s">/mån</div></div></div>'+
     '<div style="font-size:10px;font-weight:500;margin:8px 0 4px">Driftkostnader</div>'+
     '<div class="fg fg4"><button class="btn btn-s btn-sm" id="autoschab" style="grid-column:span 4;justify-self:end;margin-bottom:4px">⚡ Schabloner</button>'+Object.keys(DRIFT_L).map(function(k){return '<div class="fi"><label>'+srcDot((p.drift||{})["_src_"+k]||"user")+' '+DRIFT_L[k]+'</label><input type="number" value="'+N((p.drift||{})[k])+'" data-drk="'+k+'" class="dri"></div>'}).join('')+'</div>'+
+    '<div class="flex aic gap6 mt6" style="font-size:10px"><span style="color:var(--fg2)">🔌 Elbil inkl. i el:</span><select id="evToggle" style="font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg)"><option value="0"'+(N(p.ev_cars)===0?" selected":"")+'>Nej</option><option value="1"'+(N(p.ev_cars)===1?" selected":"")+'>1 bil (−500 kr)</option><option value="2"'+(N(p.ev_cars)===2?" selected":"")+'>2 bilar (−1000 kr)</option></select>'+(N(p.ev_cars)>0?'<span style="color:var(--teal)">Drift exkl. elbil: '+fSEK(r.drift-N(p.ev_cars)*500)+'/mån</span>':'')+'</div>'+
     (yi?'<div class="pr mt6"><span>Ränteavdrag</span><b style="color:var(--teal)">−'+fSEK(rd.monthlySaving)+'/mån (effektiv '+fP(r.rate*rd.effectiveRate)+')</b></div>':'')+
     '<div class="pr"><span>Skuldkvot</span><b>'+r.dti+'x</b></div>'+
     '<div class="pr"><span>Stresstest 5% / 7%</span><b>'+(r.s5>=0?"+":"")+fSEK(r.s5)+' / '+(r.s7>=0?"+":"")+fSEK(r.s7)+'</b></div>'+
@@ -1028,6 +1036,7 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
   // ===== 7a. FASTIGHETSDATA (nyckeldata — högt upp) =====
   var s7a='<div class="fg fg4"><div class="fi"><label>'+srcDot(dd._src_byggar||"user")+' Byggår</label><input type="number" value="'+(dd.byggar||"")+'" data-dk="byggar" class="dd"></div><div class="fi"><label>'+srcDot(dd._src_boarea||"user")+' Boarea m²</label><input type="number" value="'+(dd.boarea||"")+'" data-dk="boarea" class="dd"></div><div class="fi"><label>Tomtarea m²</label><input type="number" value="'+(dd.tomtarea||"")+'" data-dk="tomtarea" class="dd"></div><div class="fi"><label>Rum</label><input type="number" value="'+(dd.rum||"")+'" data-dk="rum" class="dd"></div></div>'+
     '<div class="fg fg3 mt6"><div class="fi"><label>Energiklass</label><input value="'+(dd.energiklass||"")+'" data-dk="energiklass" class="dd"></div><div class="fi"><label>Uppvärmning</label><input value="'+(dd.uppvarmning||"")+'" data-dk="uppvarmning" class="dd"></div><div class="fi"><label>Taxeringsv.</label><input type="number" value="'+(dd.taxvarde||"")+'" data-dk="taxvarde" class="dd"></div></div>'+
+    '<div class="fg fg3 mt6"><div class="fi"><label>Befintliga pantbrev (kr)</label><input type="number" value="'+N(p.pantbrev)+'" id="pantbrevInput" placeholder="t.ex. 7200000"></div><div class="fi"><label>Fastighetsbeteckning</label><input value="'+(dd.fastighetsbeteckning||"")+'" data-dk="fastighetsbeteckning" class="dd"></div><div class="fi"></div></div>'+
     '<div style="font-size:10px;font-weight:500;color:var(--amber);margin:6px 0">Underhåll senast (årtal)</div>'+
     '<div class="fg fg4"><div class="fi"><label>Tak</label><input type="number" value="'+(dd.tak_ar||"")+'" data-dk="tak_ar" class="dd"></div><div class="fi"><label>Fasad</label><input type="number" value="'+(dd.fasad_ar||"")+'" data-dk="fasad_ar" class="dd"></div><div class="fi"><label>VP</label><input type="number" value="'+(dd.vp_ar||"")+'" data-dk="vp_ar" class="dd"></div><div class="fi"><label>Badrum</label><input type="number" value="'+(dd.badrum_ar||"")+'" data-dk="badrum_ar" class="dd"></div></div>'+
     (r.missing.length?'<div style="background:var(--amberL);border-radius:6px;padding:6px;margin-top:6px;font-size:10px;color:var(--amber)">📋 Saknar: '+r.missing.join(", ")+'</div>':'')+
@@ -1059,6 +1068,10 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
 }
 
 // === ATT GÖRA ===
+// Emoji for meals
+var MEAL_EMOJI={"tacos":"🌮","taco":"🌮","pasta":"🍝","lax":"🐟","fisk":"🐟","pizza":"🍕","soppa":"🍲","sallad":"🥗","köttfärssås":"🍝","bolognese":"🍝","lasagne":"🧀","wok":"🥘","curry":"🍛","steak":"🥩","gryta":"🥘","hamburgare":"🍔","burger":"🍔","sushi":"🍣","pannkakor":"🥞","omelett":"🍳","kyckling":"🍗","korv":"🌭","poke":"🥗","risotto":"🍚","gratäng":"🧀","falafel":"🧆","toast":"🍞","biff":"🥩","pulled":"🥩","bbq":"🔥","chili":"🌶️","pad thai":"🍜","ramen":"🍜","nudlar":"🍜","ugnsbakad":"🔥","oxfile":"🥩","lammfärsbiffar":"🥩","paj":"🥧","quiche":"🥧","wrap":"🌯","burrito":"🌯","nachos":"🧀","enchilada":"🌮","guacamole":"🥑","hummus":"🥙","plättar":"🥞","poke bowl":"🥗","lövbiff":"🥩","schnitzel":"🥩","poké":"🥗","carbonara":"🍝"};
+function mealEmoji(name){var n=name.toLowerCase();for(var k in MEAL_EMOJI){if(n.indexOf(k)>=0)return MEAL_EMOJI[k]}return"🍽️"}
+
 function rTodo(){
   var items=LISTS.items||[];
   var al=LISTS.activeArea||"mat";
@@ -1096,6 +1109,19 @@ function rTodo(){
     // Store selector (for shop areas)
     (isShop&&area.stores&&area.stores.length>1?'<div class="flex aic gap4" style="margin-bottom:8px"><select id="storeSelect" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);flex:1">'+area.stores.map(function(s){return '<option value="'+s.id+'"'+(store&&store.id===s.id?" selected":"")+'>'+s.name+'</option>'}).join('')+'</select></div>':
     (store?'<div style="font-size:10px;color:var(--fg2);margin-bottom:6px">'+store.name+'</div>':''))+
+    // Meals section (only for mat area)
+    (al==="mat"?(function(){
+      var recipes=LISTS.recipes||[];var wm=LISTS.weekMeals||[];
+      return '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
+        '<div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🍽️ Maträtter</span><button class="btn btn-s btn-sm" id="addMeal">+ Ny rätt</button></div>'+
+        (recipes.length?'<div class="inv-grid mt6">'+recipes.map(function(r,i){
+          var sel=wm.indexOf(r.name)>=0;var emoji=r.emoji||mealEmoji(r.name);
+          return '<div style="display:inline-flex;align-items:center;gap:2px"><button class="inv-btn'+(sel?" sel":"")+'" data-meal="'+i+'" title="Klicka för att välja">'+emoji+' '+r.name+'</button><button class="ib" data-editmeal="'+i+'" style="width:18px;height:18px;font-size:9px" title="Redigera">✏️</button></div>'
+        }).join('')+'</div>'+
+        (wm.length?'<div class="flex aic jcb mt6"><span style="font-size:10px;color:var(--fg2)">'+wm.length+' rätter valda</span><button class="btn btn-p btn-sm" id="addMealItems">Lägg till ingredienser →</button></div>':''):
+        '<div style="font-size:10px;color:var(--fg3);margin-top:4px">Skapa maträtter → välj för veckan → ingredienser läggs till automatiskt</div>')+
+      '</div>'
+    })():'')+
     // Price estimate
     (isShop&&estTotal>0?'<div class="shop-total"><span style="font-size:11px">Uppskattat</span><span style="font-size:14px;font-weight:600;font-family:var(--m)">~'+Math.round(estTotal)+' kr</span></div>':'')+
     // Quick-add suggestions
@@ -1179,6 +1205,43 @@ function bindTodo(){
     document.body.appendChild(di);di.focus();di.showPicker&&di.showPicker();
     di.addEventListener("change",function(){LISTS.items[idx].deadline=di.value;listsSync();render();di.remove()});
     di.addEventListener("blur",function(){setTimeout(function(){di.remove()},200)})})});
+  // === MEALS ===
+  var addMealBtn=document.getElementById("addMeal");if(addMealBtn)addMealBtn.addEventListener("click",function(){
+    var name=prompt("Maträtt (t.ex. Tacos, Laxpasta, Köttfärssås):");if(!name)return;
+    var emoji=mealEmoji(name);
+    var customEmoji=prompt("Emoji (förslag: "+emoji+"):",emoji);if(customEmoji)emoji=customEmoji;
+    var ingStr=prompt("Ingredienser (kommaseparerade):\nt.ex. tortillas, färs, paprika, lök, gräddfil");if(!ingStr)return;
+    var items=ingStr.split(",").map(function(s){return s.trim()}).filter(Boolean);
+    if(!LISTS.recipes)LISTS.recipes=[];
+    LISTS.recipes.push({name:name,emoji:emoji,items:items});
+    addActivity(ME||"Okänd","skapade "+emoji+" "+name);listsSync();render()});
+  // Edit meal
+  document.querySelectorAll("[data-editmeal]").forEach(function(el){el.addEventListener("click",function(e){
+    e.stopPropagation();var idx=N(el.dataset.editmeal);var rec=(LISTS.recipes||[])[idx];if(!rec)return;
+    var action=prompt(rec.emoji+" "+rec.name+"\n\nIngredienser: "+rec.items.join(", ")+"\n\n1. Ändra namn\n2. Ändra ingredienser\n3. Ändra emoji\n4. Ta bort\n\nAnge nummer:");
+    if(!action)return;
+    if(action==="1"){var nn=prompt("Nytt namn:",rec.name);if(nn)rec.name=nn}
+    else if(action==="2"){var ni=prompt("Ingredienser (kommaseparerade):",rec.items.join(", "));if(ni)rec.items=ni.split(",").map(function(s){return s.trim()}).filter(Boolean)}
+    else if(action==="3"){var ne=prompt("Ny emoji:",rec.emoji);if(ne)rec.emoji=ne}
+    else if(action==="4"){if(confirm("Ta bort "+rec.name+"?")){LISTS.recipes.splice(idx,1);var wmi=(LISTS.weekMeals||[]).indexOf(rec.name);if(wmi>=0)LISTS.weekMeals.splice(wmi,1)}}
+    listsSync();render()})});
+  // Toggle meal selection
+  document.querySelectorAll("[data-meal]").forEach(function(el){el.addEventListener("click",function(){
+    if(!LISTS.weekMeals)LISTS.weekMeals=[];var idx=N(el.dataset.meal);var rec=(LISTS.recipes||[])[idx];if(!rec)return;
+    var wmi=LISTS.weekMeals.indexOf(rec.name);
+    if(wmi>=0)LISTS.weekMeals.splice(wmi,1);else LISTS.weekMeals.push(rec.name);
+    listsSync();render()})});
+  // Add meal ingredients to shopping list
+  var addMI=document.getElementById("addMealItems");if(addMI)addMI.addEventListener("click",function(){
+    var added=0,skipped=0,askDupes=[];
+    (LISTS.weekMeals||[]).forEach(function(mn){var rec=(LISTS.recipes||[]).find(function(r){return r.name===mn});if(rec)(rec.items||[]).forEach(function(ing){
+      var exists=(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
+      if(exists){skipped++;askDupes.push(ing)}
+      else{var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++}
+    })});
+    if(askDupes.length){var addDupes=confirm(askDupes.length+" varor finns redan på listan:\n"+askDupes.join(", ")+"\n\nVill du lägga till dem ändå (du kanske behöver dubbelt)?");
+      if(addDupes){askDupes.forEach(function(ing){var guess=guessArea(ing);LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++})}}
+    if(added)addActivity(ME||"Okänd","la till "+added+" ingredienser");listsSync();toast(added+" tillagda"+(skipped&&!askDupes.length?", "+skipped+" fanns redan":""));render()});
   // Clear done
   var clr=document.getElementById("clearDone");if(clr)clr.addEventListener("click",function(){var al=LISTS.activeArea;LISTS.items=(LISTS.items||[]).filter(function(it){return!it.done||it.area!==al});listsSync();render()});
 }
@@ -1208,23 +1271,6 @@ function bindAll(f,c){
   if(S.tab==="todo")bindTodo();
   // Dashboard prospect cards — click to open
   document.querySelectorAll(".prospect-card[data-opi]").forEach(function(el){el.addEventListener("click",function(){S.tab="prospekt";S.viewIdx=N(el.dataset.opi);render();setTimeout(updateCharts,100)})});
-  // Recipes
-  var addRec=document.getElementById("addRecipe");if(addRec)addRec.addEventListener("click",function(){
-    var name=prompt("Namn på maträtt (t.ex. Tacos):");if(!name)return;
-    var items=prompt("Ingredienser (kommaseparerade):\nt.ex. tortillas, färs, paprika, lök, gräddfil, salsa");if(!items)return;
-    if(!LISTS.recipes)LISTS.recipes=[];
-    LISTS.recipes.push({name:name,items:items.split(",").map(function(s){return s.trim()}).filter(Boolean)});
-    addActivity(ME||"Okänd","skapade rätt: "+name);listsSync();render()});
-  // Toggle meal selection
-  document.querySelectorAll("[data-meal]").forEach(function(el){el.addEventListener("click",function(){
-    if(!LISTS.weekMeals)LISTS.weekMeals=[];var name=el.dataset.meal;var idx=LISTS.weekMeals.indexOf(name);
-    if(idx>=0)LISTS.weekMeals.splice(idx,1);else LISTS.weekMeals.push(name);listsSync();render()})});
-  // Add meal items to shopping
-  var addMI=document.getElementById("addMealItems");if(addMI)addMI.addEventListener("click",function(){
-    var added=0;(LISTS.weekMeals||[]).forEach(function(mn){var rec=(LISTS.recipes||[]).find(function(r){return r.name===mn});if(rec)(rec.items||[]).forEach(function(ing){
-      var exists=(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
-      if(!exists){var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++}})});
-    if(added)addActivity(ME||"Okänd","la till "+added+" ingredienser");listsSync();toast(added+" ingredienser tillagda");render()});
   // Dashboard todo items — click to navigate
   document.querySelectorAll("[data-todogoto]").forEach(function(el){el.addEventListener("click",function(){
     var goto=el.dataset.todogoto;if(!goto)return;
@@ -1297,6 +1343,9 @@ function bindAll(f,c){
     ss({prospects:ps});
     toast(count+" driftposter beräknade från "+boa+"m² "+(upv||"okänd uppvärmning"));
   });
+  // EV toggle
+  var evT=document.getElementById("evToggle");if(evT)evT.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].ev_cars=N(e.target.value);ss({prospects:ps})});
+  var pbI=document.getElementById("pantbrevInput");if(pbI)pbI.addEventListener("change",function(e){var ps=dc(S.prospects);ps[S.viewIdx].pantbrev=N(e.target.value);ss({prospects:ps})});
   // Reno plan
   var addReno=document.getElementById("add-reno");if(addReno)addReno.addEventListener("click",function(){var ps=dc(S.prospects);if(!ps[S.viewIdx].reno_plan)ps[S.viewIdx].reno_plan=[];ps[S.viewIdx].reno_plan.push({desc:"",year:new Date().getFullYear()});ss({prospects:ps})});
   // Comparables

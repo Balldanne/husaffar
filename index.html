@@ -128,17 +128,18 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .cmp-best{background:var(--tealL) !important}
 /* Bottom nav on mobile, top tabs on desktop */
 @media(max-width:640px){
-  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:50;margin:0;border-radius:0;padding:4px 6px;background:var(--card);border-top:1px solid var(--border);box-shadow:0 -2px 8px rgba(0,0,0,.06)}
-  .tab{flex-direction:column;gap:1px;padding:4px 0;font-size:9px;min-width:0}
-  .tab-icon{font-size:16px;line-height:1}
-  .tab-label{font-size:8px;line-height:1}
-  .app{padding-bottom:72px !important}.toast{bottom:80px !important}.fg2{grid-template-columns:1fr}.fg3,.fg4{grid-template-columns:1fr 1fr}.macro{grid-template-columns:1fr 1fr}
+  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:50;margin:0;border-radius:0;padding:6px 8px 8px;background:var(--card);border-top:1px solid var(--border);box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+  .tab{flex-direction:column;gap:2px;padding:6px 0;font-size:9px;min-width:0;min-height:48px}
+  .tab-icon{font-size:20px;line-height:1}
+  .tab-label{font-size:9px;line-height:1;font-weight:500}
+  .tab-badge{top:-4px;right:-4px;min-width:16px;height:16px;font-size:9px}
+  .app{padding-bottom:80px !important}.toast{bottom:88px !important}.fg2{grid-template-columns:1fr}.fg3,.fg4{grid-template-columns:1fr 1fr}.macro{grid-template-columns:1fr 1fr}
   .hpills .pill:first-child{display:none}
 }
 @media(min-width:641px){.tab-icon{display:none}}
 /* FAB */
-.fab{position:fixed;bottom:80px;right:16px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--coral),#D4650F);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 12px rgba(194,83,46,.35);z-index:60;display:flex;align-items:center;justify-content:center;transition:transform .2s}.fab:hover{transform:scale(1.08)}.fab:active{transform:scale(0.95)}
-.fab-menu{position:fixed;bottom:136px;right:16px;z-index:60;display:none;flex-direction:column;gap:6px;align-items:flex-end}
+.fab{position:fixed;bottom:88px;right:16px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--coral),#D4650F);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 12px rgba(194,83,46,.35);z-index:60;display:flex;align-items:center;justify-content:center;transition:transform .2s}.fab:hover{transform:scale(1.08)}.fab:active{transform:scale(0.95)}
+.fab-menu{position:fixed;bottom:144px;right:16px;z-index:60;display:none;flex-direction:column;gap:6px;align-items:flex-end}
 .fab-menu.show{display:flex}
 .fab-opt{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:var(--card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.1);cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;transition:transform .15s,opacity .15s;animation:fadeInUp .2s ease-out both}.fab-opt:hover{transform:translateY(-1px)}
 @media(min-width:641px){.fab{bottom:24px;right:24px}}
@@ -720,7 +721,80 @@ function addActivity(who,action){ACTIVITY.unshift({who:who,action:action,time:Da
 function timeAgo(ts){var d=Math.round((Date.now()-ts)/1000);if(d<60)return "just nu";if(d<3600)return Math.round(d/60)+" min";if(d<86400)return Math.round(d/3600)+"h";return Math.round(d/86400)+"d"}
 // Person filter
 var PERSON_FILTER="alla";
-var ME=localStorage.getItem("fc_me")||""; // Vem använder denna enhet
+var ME=localStorage.getItem("fc_me")||"";
+// === WEATHER ===
+var WEATHER=null;var WEATHER_TS=0;
+async function fetchWeather(){
+  if(WEATHER&&Date.now()-WEATHER_TS<1800000)return WEATHER;// cache 30min
+  try{
+    var r=await fetch("https://api.open-meteo.com/v1/forecast?latitude=57.625&longitude=11.935&hourly=temperature_2m,precipitation,weathercode,windspeed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset&timezone=Europe/Stockholm&forecast_days=2");
+    var d=await r.json();WEATHER=d;WEATHER_TS=Date.now();
+    if(S.tab==="dash"){var wel=document.getElementById("weatherPanel");if(wel)wel.innerHTML=renderWeather()}
+    return d;
+  }catch(e){console.error("Weather:",e);return null}
+}
+function renderWeather(){
+  if(!WEATHER||!WEATHER.hourly)return '';
+  var h=WEATHER.hourly,daily=WEATHER.daily;
+  var now=new Date(),hr=now.getHours();
+  // Find current hour index
+  var hi=-1;h.time.forEach(function(t,i){if(new Date(t).getHours()===hr&&new Date(t).getDate()===now.getDate())hi=i});
+  if(hi<0)hi=0;
+  var tempNow=Math.round(h.temperature_2m[hi]);
+  var wcNow=h.weathercode[hi];var windNow=Math.round(h.windspeed_10m[hi]);
+  // Scan rest of day for rain, max temp, weather changes
+  var rainTotal=0,maxTemp=-99,minTemp=99,rainHours=[],sunHours=[];
+  for(var i=hi;i<hi+18&&i<h.time.length;i++){
+    var ht=new Date(h.time[i]);if(ht.getDate()!==now.getDate()&&ht.getHours()>6)break;
+    var t=h.temperature_2m[i],p=h.precipitation[i],wc=h.weathercode[i];
+    if(t>maxTemp)maxTemp=Math.round(t);if(t<minTemp)minTemp=Math.round(t);
+    if(p>0)rainHours.push({hr:ht.getHours(),mm:p,wc:wc});
+    rainTotal+=p;
+    if(wc<=2)sunHours.push(ht.getHours());
+  }
+  // Tomorrow
+  var tmrwMax=daily.temperature_2m_max[1]?Math.round(daily.temperature_2m_max[1]):"?";
+  var tmrwWc=daily.weathercode[1]||0;
+  // Weather icon
+  function wIcon(wc){if(wc<=1)return"☀️";if(wc<=3)return"⛅";if(wc>=51&&wc<=67)return"🌧️";if(wc>=71&&wc<=77)return"🌨️";if(wc>=80&&wc<=82)return"🌦️";if(wc>=95)return"⛈️";return"☁️"}
+  function wText(wc){if(wc<=1)return"Klart";if(wc<=3)return"Delvis molnigt";if(wc>=51&&wc<=55)return"Duggregn";if(wc>=56&&wc<=67)return"Regn";if(wc>=71&&wc<=77)return"Snö";if(wc>=80&&wc<=82)return"Skurar";if(wc>=95)return"Åska";return"Molnigt"}
+  // Build narrative
+  var icon=wIcon(wcNow),desc=wText(wcNow);
+  var narrative="";
+  if(rainHours.length&&sunHours.length){
+    var firstRain=rainHours[0].hr,lastRain=rainHours[rainHours.length-1].hr;
+    var firstSun=sunHours[0];
+    if(firstRain<=12&&firstSun>12)narrative="Lite regnigt före lunch men spricker upp på eftermiddagen";
+    else if(firstRain>12)narrative="Fint på förmiddagen, regn väntas på eftermiddagen";
+    else narrative="Omväxlande med både regn och sol idag";
+  }else if(rainHours.length){
+    if(rainTotal>5)narrative="Regnig dag — räkna med blöta kläder";
+    else narrative="Lite skurar under dagen";
+  }else if(maxTemp>=20){
+    narrative="Soligt och varmt — njut av dagen!";
+  }else if(maxTemp>=14){
+    narrative="Fin dag med behaglig temperatur";
+  }else{
+    narrative=desc+", "+tempNow+"°";
+  }
+  // Kids clothing advice
+  var clothes=[];
+  if(minTemp<5)clothes.push("vinterjacka","mössa");
+  else if(minTemp<10)clothes.push("jacka","mössa vid blåst");
+  else if(minTemp<15)clothes.push("tunn jacka");
+  if(rainHours.length)clothes.push("regnkläder"+(rainTotal<2?" (lätta)":""));
+  if(maxTemp>=18&&sunHours.length>=3)clothes.push("keps","solkräm");
+  if(windNow>10)clothes.push("vindtätt");
+  if(!clothes.length)clothes.push("lätt tröja");
+  return '<div style="display:flex;align-items:flex-start;gap:10px">'+
+    '<div style="font-size:28px;line-height:1">'+icon+'</div>'+
+    '<div style="flex:1;min-width:0">'+
+    '<div style="font-size:13px;font-weight:600">'+tempNow+'° '+desc+(maxTemp!==tempNow?' → '+maxTemp+'°':'')+'</div>'+
+    '<div style="font-size:11px;color:var(--fg2);margin:2px 0">'+narrative+'</div>'+
+    '<div style="font-size:10px;margin-top:3px">👧 '+clothes.join(" · ")+'</div>'+
+    '<div style="font-size:9px;color:var(--fg3);margin-top:2px">Imorgon: '+wIcon(tmrwWc)+' '+tmrwMax+'°'+(windNow>8?' · 💨 '+windNow+' km/h':'')+'</div>'+
+    '</div></div>'
+} // Vem använder denna enhet
 // shopSync removed — replaced by listsSync
 function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
 
@@ -805,6 +879,9 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   var weekMeals=LISTS.weekMeals||[];
 
   return '<div class="anim-in"><div class="greeting">'+greet+(ME?', '+ME:'')+ ' 👋</div><div class="greeting-sub">'+dateStr+'</div></div>'+
+
+  // Weather
+  '<div class="card anim-in anim-d1" style="margin:8px 0"><div class="card-b" id="weatherPanel" style="padding:10px 12px">'+(WEATHER?renderWeather():'<div style="font-size:10px;color:var(--fg3)">Hämtar väder...</div>')+'</div></div>'+
 
   // Compact KPIs
   '<div class="flex gap4 anim-in anim-d1" style="margin:10px 0;flex-wrap:wrap">'+
@@ -1146,6 +1223,8 @@ function rTodo(){
 function rItem(it,idx,isShop){
   return '<div class="shop-item'+(it.done?" done":"")+'"><div class="chk" data-chk="'+idx+'">'+(it.done?"✓":"")+'</div>'+
     '<span class="name">'+it.text+'</span>'+
+    (isShop&&it.cat?'<span class="cat-tag" style="cursor:pointer" data-setcat="'+idx+'" title="Byt kategori">'+(CAT_ICONS[it.cat]||"")+'</span>':'')+
+    (isShop&&!it.cat?'<span class="cat-tag" style="cursor:pointer;color:var(--fg3)" data-setcat="'+idx+'">kategori?</span>':'')+
     (isShop&&it.price?'<span class="price-tag">'+it.price+'kr</span>':'')+(isShop&&!it.price?'<span class="price-tag" style="cursor:pointer;color:var(--fg3)" data-setprice="'+idx+'">pris?</span>':'')+
     (!isShop&&it.pri==="hög"?'<span style="font-size:9px;color:var(--rose)">⬆</span>':'')+
     (!isShop&&it.assignee?'<span style="font-size:9px;color:var(--purple)">'+it.assignee+'</span>':'')+
@@ -1195,6 +1274,18 @@ function bindTodo(){
     LISTS.activeArea=el.dataset.area;listsSync();render()})});
   // Store select
   var ss2=document.getElementById("storeSelect");if(ss2)ss2.addEventListener("change",function(e){if(!LISTS.activeStores)LISTS.activeStores={};LISTS.activeStores[LISTS.activeArea]=e.target.value;listsSync();render()});
+  // Set category (click cat tag → cycle/pick → learn)
+  document.querySelectorAll("[data-setcat]").forEach(function(el){el.addEventListener("click",function(e){
+    e.stopPropagation();var idx=N(el.dataset.setcat);var it=LISTS.items[idx];
+    var area=getArea(it.area);var store=getActiveStore(it.area);
+    var cats=(store&&store.cats)?store.cats:["Frukt & grönt","Bröd","Mejeri","Kött & fisk","Frys","Torrvaror","Dryck","Snacks","Hygien","Övrigt"];
+    var cur=it.cat||"Övrigt";var ci=cats.indexOf(cur);
+    var next=cats[(ci+1)%cats.length];
+    it.cat=next;
+    // Learn: save to history so next time this item gets correct cat
+    var nm=it.text;if(!LISTS.history)LISTS.history={};if(!LISTS.history[nm])LISTS.history[nm]={};
+    LISTS.history[nm].cat=next;LISTS.history[nm].area=it.area;
+    listsSync();render()})});
   // Move to different area
   document.querySelectorAll("[data-tmove]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var idx=N(el.dataset.tmove);var allA=AREAS.concat(LISTS.projects||[]);var opts=allA.map(function(a){return a.icon+" "+a.name}).join("\n");var choice=prompt("Flytta till:\n"+allA.map(function(a,i){return(i+1)+". "+a.icon+" "+a.name}).join("\n")+"\n\nAnge nummer:");if(!choice)return;var ci=N(choice)-1;if(ci>=0&&ci<allA.length){var oldArea=LISTS.items[idx].area;LISTS.items[idx].area=allA[ci].id;LISTS.items[idx].cat="";// Re-learn
     var nm=LISTS.items[idx].text;if(LISTS.history[nm])LISTS.history[nm].area=allA[ci].id;
@@ -1526,6 +1617,7 @@ function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e
 }
 
 var saved=localStorage.getItem("hid");if(saved){S.hid=saved;connect(saved)}else render();
+fetchWeather();
 </script>
 </body>
 </html>

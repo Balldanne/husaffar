@@ -108,7 +108,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .shop-item .name{flex:1;font-size:13px;font-weight:500}.shop-item .cat-tag{font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg2);color:var(--fg2);white-space:nowrap}
 .shop-item .price-tag{font-size:10px;font-family:var(--m);color:var(--fg2);min-width:40px;text-align:right}
 .shop-item .actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s}.shop-item:hover .actions{opacity:1}
-.inv-grid{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.inv-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-size:11px;cursor:pointer;transition:all 0.15s}.inv-btn:hover{background:var(--bg2)}.inv-btn.sel{background:var(--tealL);border-color:var(--teal);color:var(--teal)}
+.inv-grid{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.inv-btn{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12px;cursor:pointer;transition:all 0.15s;min-height:38px}.inv-btn:hover{background:var(--bg2)}.inv-btn:active{transform:scale(.96)}.inv-btn.sel{background:var(--tealL);border-color:var(--teal);color:var(--teal)}
 .shop-total{background:var(--bg2);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;margin:8px 0}
 /* Tasks */
 .task-add{display:flex;gap:6px;margin-bottom:10px}.task-add input{flex:1;font-size:14px;padding:10px 12px}
@@ -148,6 +148,25 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .tab{position:relative}
 /* Activity feed */
 .activity{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;color:var(--fg2)}.activity .av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}.activity .at{font-size:9px;color:var(--fg3);margin-left:auto;white-space:nowrap}
+/* Bottom sheet */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+.sheet{background:var(--card);width:100%;max-width:560px;max-height:82vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;animation:slideUp .28s cubic-bezier(.2,.8,.2,1);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:8px auto 4px}
+.sheet-head{padding:6px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sheet-title{font-size:15px;font-weight:700}
+.sheet-sub{font-size:11px;color:var(--fg2)}
+.sheet-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg2);font-size:16px;cursor:pointer;color:var(--fg2)}
+.sheet-body{overflow-y:auto;padding:10px 12px 20px;-webkit-overflow-scrolling:touch}
+.sheet-card{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 12px;margin-bottom:7px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:transform .1s,background .15s;min-height:54px}
+.sheet-card:active{transform:scale(.98);background:var(--card)}
+.sheet-card .emoji{font-size:24px;flex-shrink:0;width:30px;text-align:center}
+.sheet-card .info{flex:1;min-width:0}
+.sheet-card .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-card .meta{font-size:10px;color:var(--fg2);margin-top:2px}
+.sheet-card .scorepill{flex-shrink:0;font-family:var(--m);font-size:12px;font-weight:700;padding:3px 8px;border-radius:10px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media (min-width:560px){.sheet-overlay{align-items:center}.sheet{border-radius:18px;max-height:75vh}}
 </style>
 </head>
 <body>
@@ -166,6 +185,59 @@ function fSEK0(v){v=N(v);if(v===0)return "—";return fSEK(v)}
 function fN(v){return Math.round(N(v)).toLocaleString("sv-SE")}
 function fP(v,d){return(N(v)*100).toFixed(d||1)+"%"}
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2500)}
+// === BOTTOM SHEET (mobilvänlig väljare) ===
+function closeSheet(){var o=document.getElementById("sheetOverlay");if(o)o.remove()}
+// cards: [{emoji,name,meta,score,scoreColor,value,cat}], onPick(value), cats optional [{key,label}]
+function openSheet(title,sub,cards,onPick,cats){
+  closeSheet();
+  var activeCat="alla";
+  var ov=document.createElement("div");ov.className="sheet-overlay";ov.id="sheetOverlay";
+  var sheet=document.createElement("div");sheet.className="sheet";
+  var chipBar=cats&&cats.length?'<div id="sheetChips" style="display:flex;gap:6px;overflow-x:auto;padding:8px 12px 4px;-webkit-overflow-scrolling:touch"></div>':'';
+  sheet.innerHTML='<div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><div><div class="sheet-title">'+title+'</div>'+(sub?'<div class="sheet-sub">'+sub+'</div>':'')+'</div><button class="sheet-close" id="sheetClose">✕</button></div>'+
+    chipBar+
+    '<div class="sheet-body" id="sheetBody"></div>';
+  ov.appendChild(sheet);document.body.appendChild(ov);
+  var body=sheet.querySelector("#sheetBody");
+  function renderCards(){
+    body.innerHTML="";
+    var shown=cards.filter(function(c){return activeCat==="alla"||c.cat===activeCat});
+    if(!shown.length){body.innerHTML='<div style="text-align:center;color:var(--fg3);font-size:12px;padding:20px">Inga rätter i den kategorin</div>';return}
+    shown.forEach(function(c){
+      var btn=document.createElement("button");btn.className="sheet-card";
+      btn.innerHTML='<span class="emoji">'+(c.emoji||"🍽️")+'</span><span class="info"><span class="nm">'+c.name+'</span>'+(c.meta?'<span class="meta">'+c.meta+'</span>':'')+'</span>'+(c.score!=null?'<span class="scorepill" style="background:'+(c.scoreBg||"var(--bg2)")+';color:'+(c.scoreColor||"var(--fg)")+'">'+c.score+'</span>':'');
+      btn.addEventListener("click",function(){closeSheet();onPick(c.value)});
+      body.appendChild(btn);
+    });
+  }
+  if(cats&&cats.length){
+    var cb=sheet.querySelector("#sheetChips");
+    var allCats=[{key:"alla",label:"Alla"}].concat(cats);
+    allCats.forEach(function(ct){
+      var chip=document.createElement("button");
+      chip.textContent=ct.label;chip.dataset.cat=ct.key;
+      chip.style.cssText="flex-shrink:0;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:"+(ct.key==="alla"?"var(--teal)":"var(--bg2)")+";color:"+(ct.key==="alla"?"#fff":"var(--fg2)")+";font-size:11px;cursor:pointer;white-space:nowrap";
+      chip.addEventListener("click",function(){activeCat=ct.key;
+        cb.querySelectorAll("button").forEach(function(b){var on=b.dataset.cat===activeCat;b.style.background=on?"var(--teal)":"var(--bg2)";b.style.color=on?"#fff":"var(--fg2)"});
+        renderCards();});
+      cb.appendChild(chip);
+    });
+  }
+  renderCards();
+  ov.addEventListener("click",function(e){if(e.target===ov)closeSheet()});
+  sheet.querySelector("#sheetClose").addEventListener("click",closeSheet);
+}
+// Enkel info-sheet (recept-detalj)
+function openInfoSheet(title,sub,htmlBody){
+  closeSheet();
+  var ov=document.createElement("div");ov.className="sheet-overlay";ov.id="sheetOverlay";
+  var sheet=document.createElement("div");sheet.className="sheet";
+  sheet.innerHTML='<div class="sheet-handle"></div><div class="sheet-head"><div><div class="sheet-title">'+title+'</div>'+(sub?'<div class="sheet-sub">'+sub+'</div>':'')+'</div><button class="sheet-close" id="sheetClose">✕</button></div><div class="sheet-body">'+htmlBody+'</div>';
+  ov.appendChild(sheet);document.body.appendChild(ov);
+  ov.addEventListener("click",function(e){if(e.target===ov)closeSheet()});
+  sheet.querySelector("#sheetClose").addEventListener("click",closeSheet);
+}
 // Expand/collapse state
 var EXP=JSON.parse(localStorage.getItem("exp")||"{}");
 function isOpen(id,def){return EXP[id]!==undefined?EXP[id]:def}
@@ -675,24 +747,240 @@ var AREAS=[
   {id:"bil",name:"Bil",icon:"🚗",type:"tasks",stores:[]},
   {id:"barn",name:"Barn",icon:"👶",type:"tasks",stores:[]}
 ];
-var LISTS={items:null,history:null,activeArea:"mat",activeStores:{},projects:null,recipes:null,weekMeals:null};
+var LISTS={items:null,history:null,activeArea:"mat",activeStores:{},projects:null,recipes:null,weekMeals:null,weekPlan:null,staples:null};
 var LISTS_LOADED=false;
+var STAPLE_THRESHOLD=3;// köpt så här många ggr → basvara
+// Sanera data — förhindrar buggar med trasiga items/rätter
+function validateLists(){
+  // Items: säkerställ fält
+  if(!Array.isArray(LISTS.items))LISTS.items=[];
+  LISTS.items=LISTS.items.filter(function(it){return it&&typeof it.text==="string"&&it.text.trim()}).map(function(it){
+    return{text:String(it.text).trim(),area:it.area||"mat",cat:it.cat||"",done:!!it.done,pri:it.pri||"medel",assignee:it.assignee||"",price:N(it.price)||0,added:it.added||Date.now()};
+  });
+  // Recipes: säkerställ items-array
+  if(!Array.isArray(LISTS.recipes))LISTS.recipes=[];
+  LISTS.recipes=LISTS.recipes.filter(function(r){return r&&typeof r.name==="string"&&r.name.trim()}).map(function(r){
+    r.items=Array.isArray(r.items)?r.items.filter(function(x){return typeof x==="string"&&x.trim()}):[];
+    return r;
+  });
+  // History: objekt
+  if(!LISTS.history||typeof LISTS.history!=="object")LISTS.history={};
+  // Staples: objekt
+  if(!LISTS.staples||typeof LISTS.staples!=="object")LISTS.staples={};
+  // WeekPlan: rensa referenser till borttagna rätter
+  if(LISTS.weekPlan&&typeof LISTS.weekPlan==="object"){
+    var names={};LISTS.recipes.forEach(function(r){names[r.name]=true});
+    Object.keys(LISTS.weekPlan).forEach(function(k){
+      var v=LISTS.weekPlan[k];
+      if(typeof v==="string"){if(!names[v])delete LISTS.weekPlan[k]}
+      else if(v&&typeof v==="object"){["b","l","d"].forEach(function(s){if(v[s]&&!names[v[s]])delete v[s]});if(!Object.keys(v).length)delete LISTS.weekPlan[k]}
+    });
+  }else LISTS.weekPlan={};
+}
+// Registrera köp för frekvens → basvara
+function trackPurchase(it){
+  if(!it||!it.text)return;var key=it.text.toLowerCase();
+  if(!LISTS.history)LISTS.history={};
+  if(!LISTS.history[key])LISTS.history[key]={count:0};
+  LISTS.history[key].count=(LISTS.history[key].count||0)+1;
+  LISTS.history[key].area=it.area;LISTS.history[key].cat=it.cat;LISTS.history[key].last=Date.now();
+  // Bli basvara vid tröskel
+  if(LISTS.history[key].count>=STAPLE_THRESHOLD){
+    if(!LISTS.staples)LISTS.staples={};
+    if(!LISTS.staples[key])LISTS.staples[key]={text:it.text,area:it.area,cat:it.cat,auto:true};
+  }
+}
+// Hämta basvaror som inte redan ligger på listan (för nudge)
+function getStapleSuggestions(area){
+  if(!LISTS.staples)return [];
+  var onList={};(LISTS.items||[]).forEach(function(it){if(!it.done)onList[it.text.toLowerCase()]=true});
+  return Object.keys(LISTS.staples).map(function(k){return LISTS.staples[k]})
+    .filter(function(s){return !onList[s.text.toLowerCase()]&&(!area||s.area===area)});
+}
 var DEFAULT_RECIPES=[
-  {name:"Tacos",emoji:"🌮",items:["tortillas","nötfärs","paprika","lök","tomat","gräddfil","salsa","riven ost","avokado","lime","koriander"]},
-  {name:"Köttfärssås",emoji:"🍝",items:["pasta","nötfärs","krossade tomater","lök","vitlök","morot","salt","peppar","oregano","parmesan"]},
-  {name:"Laxpasta",emoji:"🐟",items:["pasta","laxfilé","grädde","citron","dill","salt","peppar","vitlök"]},
-  {name:"Kycklingwok",emoji:"🥘",items:["kycklingfilé","ris","broccoli","paprika","morot","sojasås","sesamolja","vitlök","ingefära"]},
-  {name:"Pannkakor",emoji:"🥞",items:["mjöl","mjölk","ägg","smör","salt","sylt","grädde"]},
-  {name:"Fiskgratäng",emoji:"🧀",items:["torskfilé","grädde","ost","potatis","lök","dill","salt","peppar","ströbröd"]},
-  {name:"Hamburgare",emoji:"🍔",items:["nötfärs","hamburgerbröd","sallad","tomat","lök","ost","ketchup","senap","saltgurka"]},
-  {name:"Tomatsoppa",emoji:"🍲",items:["krossade tomater","lök","vitlök","grädde","basilika","salt","peppar","bröd"]},
-  {name:"Caesarsallad",emoji:"🥗",items:["romansallad","kyckling","parmesan","krutonger","caesardressing","citron"]},
-  {name:"Carbonara",emoji:"🍝",items:["spaghetti","pancetta","ägg","parmesan","svartpeppar","vitlök"]},
-  {name:"Chili con carne",emoji:"🌶️",items:["nötfärs","kidneybönor","krossade tomater","lök","vitlök","chili","spiskummin","paprikapulver","ris","gräddfil"]},
-  {name:"Lövbiff med potatis",emoji:"🥩",items:["lövbiff","potatis","smör","gräddsås","sallad","salt","peppar"]},
-  {name:"Falafel",emoji:"🧆",items:["kikärtor","lök","vitlök","persilja","koriander","spiskummin","pitabröd","hummus","sallad","tomat"]},
-  {name:"Laxsallad",emoji:"🐟",items:["lax","sallad","avokado","tomat","gurka","citron","olivolja","salt"]},
-  {name:"Pizza",emoji:"🍕",items:["pizzadeg","passata","mozzarella","skinka","champinjoner","oregano","olivolja"]}
+  // === FRUKOST (juice som fräsch bas, varieras) ===
+  {name:"Grön frukostsmoothie",emoji:"🥤",focus:"smak",meal:"frukost",howto:"Mixa allt slätt. Toppa med chiafrön. Drick direkt.",items:["ananasjuice","spenat","banan","avokado","ingefära","grönt te"]},
+  {name:"Ananas-frukostbowl",emoji:"🍍",focus:"smak",meal:"frukost",howto:"Häll ren ananasjuice över yoghurt i skål. Toppa med blåbär, granola, chiafrön och en skvätt honung.",items:["ananasjuice","grekisk yoghurt","blåbär","granola","chiafrön","honung"]},
+  {name:"Overnight oats",emoji:"🥣",focus:"bas",meal:"frukost",howto:"Blanda havregryn, yoghurt och en skvätt juice i burk kvällen innan. Toppa med blåbär, chiafrön och honung.",items:["havregryn","grekisk yoghurt","blåbär","chiafrön","honung","ananasjuice"]},
+  {name:"Proteinägg med avokado",emoji:"🍳",focus:"driv",meal:"frukost",howto:"Stek eller koka ägg. Servera med skivad avokado, spenat och tomat. Ett glas juice vid sidan.",items:["ägg","avokado","spenat","tomat","ananasjuice"]},
+  {name:"Frukostbowl & ingefärajuice",emoji:"🫚",focus:"driv",meal:"frukost",howto:"Servera yoghurt med bär, mandel och chiafrön. Ett glas Brämhults ingefära/ananas/gurkmeja vid sidan — fräsch start.",items:["ingefärajuice","grekisk yoghurt","blåbär","mandel","chiafrön","honung"]},
+  {name:"Rödbetsboost & yoghurt",emoji:"🥤",focus:"kansla",meal:"frukost",howto:"Yoghurt med havregryn, bär och frön. Ett glas rödbets-spenatjuice (Brämhults) vid sidan — laddar Balans.",items:["rödbetsjuice","grekisk yoghurt","havregryn","blåbär","chiafrön","mandel"]},
+  // === GODA MIDDAGSRÄTTER (varma, riktig mat) ===
+  {name:"Räkcurry med kokos",emoji:"🍛",focus:"driv",howto:"Fräs ingefära och chili. Häll i kokosmjölk, koka upp. Lägg i räkor och paprika, sjud 3-4 min. Toppa med koriander och lime. Servera med ris.",items:["räkor","kokosmjölk","ingefära","chili","koriander","lime","ris","paprika"]},
+  {name:"Asiatisk laxbowl",emoji:"🍱",focus:"driv",howto:"Koka ris. Stek laxbitar hastigt. Lägg ris i botten, toppa med lax, edamame, avokado, riven morot. Ringla över lime och strö sesamfrön.",items:["lax","edamame","avokado","ingefära","sesamfrön","lime","morot","ris"]},
+  {name:"Linsdal med sötpotatis",emoji:"🍛",focus:"bas",howto:"Fräs ingefära och gurkmeja. Tillsätt tärnad sötpotatis, linser och kokosmjölk. Sjud tills mjukt (~20 min). Rör i spenat på slutet. Servera med ris.",items:["linser","sötpotatis","gurkmeja","ingefära","kokosmjölk","spenat","ris"]},
+  {name:"Laxtacos med mango",emoji:"🌮",focus:"smak",howto:"Stek laxbitar. Gör salsa av tärnad mango, chili, lime och koriander. Fyll tortillas med lax, salsa och avokado.",items:["lax","mango","avokado","lime","koriander","chili","tortillas"]},
+  {name:"Tonfisktataki med edamame",emoji:"🐟",focus:"kansla",howto:"Bryn tonfisken hastigt runtom (rå i mitten). Skiva. Servera med ris, edamame, avokado, lime och sesamfrön.",items:["tonfisk","edamame","sesamfrön","ingefära","lime","avokado","ris"]},
+  {name:"Halloumibowl med granatäpple",emoji:"🥗",focus:"kansla",howto:"Koka quinoa. Stek halloumiskivor gyllene. Lägg quinoa i botten, toppa med spenat, halloumi, granatäppelkärnor och avokado. Ringla citron.",items:["halloumi","quinoa","granatäpple","spenat","avokado","citron"]},
+  {name:"Saffranslax med sparris",emoji:"🐟",focus:"kansla",howto:"Koka quinoa med en nypa saffran. Ugnsbaka eller stek lax och sparris med olivolja och citron, ca 12 min i 200°.",items:["lax","saffran","sparris","citron","olivolja","quinoa"]},
+  {name:"Kycklingspett med mango",emoji:"🍗",focus:"smak",howto:"Trä kyckling och paprika på spett. Grilla/stek. Gör mangosalsa med lime, chili och koriander. Servera med ris.",items:["kyckling","mango","paprika","lime","koriander","chili","ris"]},
+  {name:"Scampi-pasta med chili",emoji:"🍝",focus:"driv",howto:"Koka pasta. Fräs chili i olivolja, tillsätt räkor och tomat. Vänd ner pastan, toppa med basilika och citron.",items:["räkor","chili","tomat","basilika","olivolja","citron","pasta"]},
+  {name:"Fänkålsbakad torsk",emoji:"🐟",focus:"bas",howto:"Skiva fänkål och tomat, lägg i ugnsform med olivolja. Lägg torsk ovanpå, krydda. Baka 200° ca 18 min. Servera med kokt potatis.",items:["torsk","fänkål","citron","olivolja","tomat","basilika","potatis"]},
+  // === LÄTTARE RÄTTER / LUNCH ===
+  {name:"Laxbowl med rödbetor",emoji:"🥗",focus:"kansla",howto:"Koka/riv rödbetor. Lägg spenat i botten, toppa med laxbitar, rödbetor, avokado, kiwi. Strö pumpafrön och pressa citron.",items:["lax","rödbetor","spenat","avokado","kiwi","pumpafrön","citron"]},
+  {name:"Tropisk fruktbowl",emoji:"🍍",focus:"smak",howto:"Tärna ananas, vattenmelon, kiwi och jordgubbar. Lägg i skål med grekisk yoghurt. Strö chiafrön och riv mynta. Pressa lime.",items:["ananas","vattenmelon","kiwi","jordgubbar","grekisk yoghurt","chiafrön","mynta"]},
+  {name:"Rödbetssallad med valnötter",emoji:"🥗",focus:"driv",howto:"Riv eller tärna kokta rödbetor. Blanda med ruccola, valnötter och en klick yoghurt. Ringla honung och citron.",items:["rödbetor","ruccola","valnötter","grekisk yoghurt","honung","citron"]},
+  // === VARDAGSRÄTTER (familjefavoriter) ===
+  {name:"Tacos",emoji:"🌮",howto:"Stek färsen med riven morot och finhackad selleri (smälter in i färsen). Tona ner lök. Fyll tortillas med färs, paprika, tomat, avokado, koriander och lime. Toppa med spenat istället för sallad.",items:["tortillas","nötfärs","morot","selleri","paprika","tomat","avokado","spenat","lime","koriander"]},
+  {name:"Köttfärssås (boostad)",emoji:"🍝",howto:"Riv rikligt med selleri och morot, fräs mjukt. Bryn färsen, tillsätt krossade tomater och en riven rödbeta (ger sötma + djup). Bara lite vitlök. Sjud 20 min. Servera med pasta och spenat i.",items:["pasta","nötfärs","selleri","morot","rödbetor","krossade tomater","oregano","spenat","parmesan"]},
+  {name:"Kycklingwok",emoji:"🥘",howto:"Koka ris. Stek kyckling, tillsätt rikligt med broccoli, paprika, morot, selleri och färsk ingefära. Woka hastigt med soja och sesam. Toppa med pumpafrön.",items:["kycklingfilé","ris","broccoli","paprika","morot","selleri","ingefära","sesamfrön","pumpafrön"]},
+  {name:"Pannkakor",emoji:"🥞",howto:"Vispa mjöl, mjölk och ägg slätt. Stek tunna i smör. Servera med sylt och grädde.",items:["mjöl","mjölk","ägg","smör","salt","sylt","grädde"]},
+  {name:"Hamburgare (boostad)",emoji:"🍔",howto:"Blanda riven rödbeta och morot i färsen (saftigare + nyttigare). Stek. Bygg i bröd med rikligt spenat, avokado, tomat. Hoppa över lök, lätt på såserna.",items:["nötfärs","rödbetor","morot","hamburgerbröd","spenat","avokado","tomat"]},
+  {name:"Pizza",emoji:"🍕",howto:"Bred passata på degen. Toppa generöst med spenat, paprika, ruccola och tomat (grönsakerna gör den fräschare). Mozzarella sparsamt. Grädda 250° ca 10 min. Lägg på ruccola efter gräddning.",items:["pizzadeg","passata","mozzarella","spenat","paprika","ruccola","tomat","oregano"]},
+  // === FLER GODA RÄTTER ===
+  {name:"Mangosallad med räkor",emoji:"🦐",focus:"kansla",howto:"Blanda ruccola, tärnad mango, avokado och räkor. Ringla lime och olivolja. Toppa med koriander och lite chili.",items:["räkor","mango","avokado","ruccola","lime","koriander","chili"]},
+  {name:"Räkpoké",emoji:"🍤",focus:"driv",howto:"Lägg ris i botten. Toppa med räkor, edamame, avokado, mango. Strö sesamfrön och pressa lime.",items:["räkor","ris","edamame","avokado","mango","lime","sesamfrön"]},
+  {name:"Quinoabowl med granatäpple",emoji:"🥗",focus:"smak",howto:"Koka quinoa. Lägg spenat i botten, toppa med quinoa, granatäpple, avokado och feta. Strö pumpafrön, pressa citron.",items:["quinoa","granatäpple","spenat","avokado","feta","citron","pumpafrön"]},
+  {name:"Halstrad lax med quinoasallad",emoji:"🐟",focus:"driv",howto:"Halstra laxen hastigt i het panna. Blanda quinoa med spenat, granatäpple och citron. Servera laxen ovanpå, strö pumpafrön.",items:["lax","quinoa","spenat","granatäpple","citron","pumpafrön"]},
+  {name:"Kikärtscurry",emoji:"🍛",focus:"bas",howto:"Fräs ingefära och gurkmeja. Häll i kokosmjölk, tomat och kikärtor. Sjud 15 min, rör i spenat. Servera med ris.",items:["kikärtor","kokosmjölk","gurkmeja","ingefära","spenat","tomat","ris"]},
+  {name:"Linssoppa med ingefära",emoji:"🍲",focus:"bas",howto:"Fräs morot, selleri, ingefära och gurkmeja. Tillsätt linser och kokosmjölk, sjud tills mjukt. Toppa med koriander.",items:["linser","morot","selleri","ingefära","gurkmeja","kokosmjölk","koriander"]},
+  {name:"Tofuwok med broccoli",emoji:"🥦",focus:"driv",howto:"Stek tofu gyllene. Tillsätt broccoli, paprika, ingefära och chili. Woka hastigt, strö sesamfrön. Servera med ris.",items:["tofu","broccoli","paprika","ingefära","sesamfrön","ris","chili"]},
+  {name:"Tonfisksallad niçoise",emoji:"🥗",focus:"kansla",howto:"Koka ägg och sparris. Lägg ruccola i botten, toppa med tonfisk, ägg, sparris och tomat. Ringla citron och olivolja.",items:["tonfisk","ägg","sparris","tomat","citron","ruccola","olivolja"]},
+  {name:"Kycklinggryta med rotfrukter",emoji:"🍲",focus:"driv",howto:"Bryn kyckling. Tillsätt tärnad morot, sötpotatis, selleri och ingefära. Sjud tills mört. Toppa med persilja.",items:["kyckling","morot","sötpotatis","selleri","persilja","ingefära"]},
+  {name:"Kyckling- och mangospett",emoji:"🍗",focus:"smak",howto:"Trä kyckling, mango och paprika på spett. Grilla/stek. Toppa med lime, chili och koriander.",items:["kyckling","mango","paprika","lime","chili","koriander"]},
+  {name:"Ugnsbakad torsk med fänkål",emoji:"🐟",focus:"bas",howto:"Skiva fänkål och tomat i form. Lägg torsk ovanpå, ringla olivolja och citron. Baka 200° ca 18 min. Servera med potatis.",items:["torsk","fänkål","tomat","citron","olivolja","persilja","potatis"]},
+  {name:"Rödbetscarpaccio",emoji:"🥗",focus:"kansla",howto:"Skiva kokta rödbetor tunt. Lägg på fat med ruccola, valnötter och feta. Ringla citron och olivolja.",items:["rödbetor","ruccola","valnötter","feta","citron","olivolja"]},
+  {name:"Vattenmelon-fetasallad",emoji:"🍉",focus:"smak",howto:"Tärna vattenmelon och feta. Blanda med ruccola och mynta. Ringla lime och olivolja. Servera kall.",items:["vattenmelon","feta","mynta","ruccola","lime","olivolja"]},
+  {name:"Grönkålssallad med äpple",emoji:"🥬",focus:"bas",howto:"Massera grönkål med citron. Tillsätt skivat äpple, valnötter och en klick yoghurt. Ringla honung.",items:["grönkål","äpple","valnötter","grekisk yoghurt","citron","honung"]},
+  {name:"Lax- och avokadotoast",emoji:"🥑",focus:"kansla",meal:"frukost",howto:"Rosta bröd. Mosa avokado ovanpå, lägg på lax och ägg. Toppa med ruccola och citron.",items:["lax","avokado","ägg","citron","ruccola","bröd"]},
+  {name:"Bärsmoothie med havre",emoji:"🫐",focus:"bas",meal:"frukost",howto:"Mixa bär, banan, havregryn och yoghurt slätt. Toppa med chiafrön.",items:["blåbär","hallon","banan","havregryn","grekisk yoghurt","chiafrön"]},
+  {name:"Cottage-bowl med bär",emoji:"🥣",focus:"driv",meal:"frukost",howto:"Lägg cottage cheese i skål. Toppa med bär, mandel och chiafrön. Ringla honung.",items:["cottage cheese","blåbär","jordgubbar","mandel","chiafrön","honung"]},
+  // === SMAK-HJÄLTAR (nya evidensbaserade råvaror) ===
+  {name:"Papaya-melonbowl",emoji:"🍈",focus:"smak",cat:"bowl",howto:"Tärna papaya och honungsmelon. Lägg i skål med kefir. Toppa med mynta och pepparmynta.",items:["papaya","honungsmelon","kefir","mynta","pepparmynta"]},
+  {name:"Tropisk papayasallad",emoji:"🥗",focus:"smak",cat:"sallad",howto:"Blanda papaya, mango och vattenmelon med ruccola. Pressa lime, strö pepparmynta.",items:["papaya","mango","vattenmelon","ruccola","lime","pepparmynta"]},
+  {name:"Kefir-smoothie med tranbär",emoji:"🥤",focus:"smak",cat:"frukost",meal:"frukost",howto:"Mixa kefir, tranbär, banan och honung slätt. Fräsch probiotisk start.",items:["kefir","tranbär","banan","honung"]},
+  {name:"Melon-fetasallad med kardemumma",emoji:"🍈",focus:"smak",cat:"sallad",howto:"Tärna honungsmelon och feta. Blanda med ruccola, en nypa kardemumma och lime.",items:["honungsmelon","feta","ruccola","kardemumma","lime"]},
+  {name:"Ostron med citron",emoji:"🦪",focus:"driv",cat:"sallad",howto:"Servera färska ostron med citron och en skvätt vinägrett. Klassisk libido-boost.",items:["ostron","citron","ruccola"]},
+  {name:"Saffransräkor med granatäpple",emoji:"🦐",focus:"driv",cat:"bowl",howto:"Stek räkor med saffran. Servera på quinoa med granatäpple och avokado. Pressa citron.",items:["räkor","saffran","granatäpple","quinoa","avokado","citron"]},
+  {name:"Vetegräs-grön start",emoji:"🌱",focus:"smak",cat:"frukost",meal:"frukost",howto:"Mixa spenat, vetegräs, ananasjuice och ingefära. En grön klorofyll-boost.",items:["vetegräs","spenat","ananasjuice","ingefära","lime"]},
+  {name:"Pistage-granatäppelbowl",emoji:"🥣",focus:"driv",cat:"bowl",howto:"Quinoa toppad med granatäpple, pistage, spenat och feta. Ringla citron och olivolja.",items:["pistage","granatäpple","quinoa","spenat","feta","citron"]},
+  // === POWER FOODS (rödbetor, selleri, ingefära m.fl.) ===
+  {name:"Rödbets- och sellerisoppa",emoji:"🍲",focus:"kansla",power:true,howto:"Fräs selleri, morot och ingefära. Tillsätt tärnade rödbetor och kokosmjölk. Sjud tills mjukt, mixa slätt. Toppa med persilja.",items:["rödbetor","selleri","morot","ingefära","persilja","kokosmjölk"]},
+  {name:"Grön kraftsallad",emoji:"🥬",focus:"kansla",power:true,howto:"Massera grönkål och spenat med citron. Tillsätt riven rödbeta, avokado och pumpafrön. Ringla olivolja.",items:["grönkål","spenat","avokado","rödbetor","pumpafrön","citron","olivolja"]},
+  {name:"Ingefära-morotssoppa",emoji:"🥕",focus:"bas",power:true,howto:"Fräs morot, selleri, ingefära och gurkmeja. Häll i kokosmjölk, sjud och mixa slätt.",items:["morot","ingefära","gurkmeja","kokosmjölk","selleri"]},
+  {name:"Rödbetsbiff med quinoa",emoji:"🥗",focus:"driv",power:true,howto:"Riv rödbetor, blanda med kokt quinoa, ägg och feta. Forma biffar, stek gyllene. Servera med spenat.",items:["rödbetor","quinoa","ägg","spenat","feta"]},
+  {name:"Selleri-äppelsallad",emoji:"🥗",focus:"bas",power:true,howto:"Skiva selleri och äpple tunt. Blanda med valnötter och en klick yoghurt. Pressa citron.",items:["selleri","äpple","valnötter","grekisk yoghurt","citron"]},
+  {name:"Power-shot",emoji:"🫚",focus:"driv",power:true,meal:"frukost",howto:"Pressa/mixa rödbeta, ingefära, äpple och citron. Drick som boost på morgonen.",items:["rödbetor","ingefära","citron","äpple"]},
+  // === TREATS (strategiska fusk — lägg tidigt i veckan) ===
+  {name:"Vitlöksbiff med klyftpotatis",emoji:"🥩",treat:true,howto:"Stek biff med vitlökssmör. Ugnsrosta klyftpotatis. Servera med sallad.",items:["nötkött","vitlök","potatis","smör","sallad"]},
+  {name:"Carbonara",emoji:"🍝",treat:true,howto:"Koka pasta. Stek bacon. Vispa ägg med parmesan. Blanda allt med en skvätt pastavatten.",items:["pasta","bacon","ägg","grädde","vitlök","parmesan"]},
+  {name:"Lasagne",emoji:"🧀",treat:true,howto:"Gör köttfärssås med tomat och vitlök. Varva med lasagneplattor och ostsås. Gratinera 200° ca 30 min.",items:["pasta","nötkött","vitlök","ost","grädde","tomat"]},
+  {name:"Cheeseburgare med pommes",emoji:"🍔",treat:true,howto:"Forma och stek burgare. Smält ost över. Servera i bröd med pommes och tillbehör.",items:["nötkött","ost","pommes","lök","hamburgerbröd"]},
+  // === GRILL (sommar/helg) ===
+  {name:"Grillad lax med mangosalsa",emoji:"🔥",focus:"smak",season:"grill",howto:"Grilla laxen ca 3-4 min/sida. Gör salsa av mango, avokado, lime, koriander och chili. Servera laxen toppad med salsan.",items:["lax","mango","avokado","lime","koriander","chili"]},
+  {name:"Grillad halloumi & grönsaker",emoji:"🔥",focus:"kansla",season:"grill",howto:"Grilla halloumi, paprika, zucchini och sötpotatisskivor. Servera på ruccola, ringla citron och olivolja.",items:["halloumi","paprika","zucchini","sötpotatis","ruccola","citron","olivolja"]},
+  {name:"Grillad lax med citrus",emoji:"🔥",focus:"driv",season:"grill",howto:"Grilla lax och sparris. Pressa citron, ringla olivolja. Servera på ruccola.",items:["lax","sparris","citron","olivolja","ruccola"]},
+  {name:"Grillspett kyckling & grönt",emoji:"🔥",focus:"driv",season:"grill",howto:"Trä kyckling, paprika, zucchini och majs på spett. Marinera i lime och ingefära. Grilla tills genomstekt.",items:["kyckling","paprika","zucchini","majs","ingefära","lime"]},
+  {name:"Grillade grönsaksspett",emoji:"🔥",focus:"kansla",season:"grill",howto:"Trä paprika, zucchini, fänkål och sötpotatis på spett. Pensla olivolja. Grilla mjuka. Strö pumpafrön.",items:["paprika","zucchini","fänkål","sötpotatis","olivolja","pumpafrön"]},
+  {name:"Lax & rödbetor sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["lax", "rödbetor", "spenat", "avokado", "citron", "pumpafrön"]},
+  {name:"Lax & rödbetor bowl",emoji:"🐟",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["lax", "rödbetor", "spenat", "avokado", "citron", "pumpafrön", "quinoa"]},
+  {name:"Lax & rödbetor pasta",emoji:"🐟",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["lax", "rödbetor", "spenat", "avokado", "citron", "pumpafrön", "pasta"]},
+  {name:"Lax & rödbetor wok",emoji:"🐟",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["lax", "rödbetor", "spenat", "avokado", "citron", "pumpafrön", "ris", "sojasås"]},
+  {name:"Lax & rödbetor gryta",emoji:"🐟",focus:"driv",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["lax", "rödbetor", "spenat", "avokado", "citron", "pumpafrön", "kokosmjölk"]},
+  {name:"Lax & rödbetor grill",emoji:"🐟",focus:"driv",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["lax", "rödbetor", "spenat", "avokado", "citron", "pumpafrön"]},
+  {name:"Räkor & mango sallad",emoji:"🥗",focus:"kansla",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["räkor", "mango", "avokado", "lime", "koriander", "chili"]},
+  {name:"Räkor & mango bowl",emoji:"🦐",focus:"kansla",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["räkor", "mango", "avokado", "lime", "koriander", "chili", "quinoa"]},
+  {name:"Räkor & mango pasta",emoji:"🦐",focus:"kansla",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["räkor", "mango", "avokado", "lime", "koriander", "chili", "pasta"]},
+  {name:"Räkor & mango wok",emoji:"🦐",focus:"kansla",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["räkor", "mango", "avokado", "lime", "koriander", "chili", "ris", "sojasås"]},
+  {name:"Kyckling & ingefära sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["kyckling", "ingefära", "broccoli", "morot", "paprika"]},
+  {name:"Kyckling & ingefära bowl",emoji:"🍗",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["kyckling", "ingefära", "broccoli", "morot", "paprika", "quinoa"]},
+  {name:"Kyckling & ingefära pasta",emoji:"🍗",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["kyckling", "ingefära", "broccoli", "morot", "paprika", "pasta"]},
+  {name:"Kyckling & ingefära wok",emoji:"🍗",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["kyckling", "ingefära", "broccoli", "morot", "paprika", "ris", "sojasås"]},
+  {name:"Kyckling & ingefära gryta",emoji:"🍗",focus:"driv",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["kyckling", "ingefära", "broccoli", "morot", "paprika", "kokosmjölk"]},
+  {name:"Kyckling & ingefära grill",emoji:"🍗",focus:"driv",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["kyckling", "ingefära", "broccoli", "morot", "paprika"]},
+  {name:"Halloumi & granatäpple sallad",emoji:"🥗",focus:"kansla",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["halloumi", "granatäpple", "spenat", "avokado", "citron"]},
+  {name:"Halloumi & granatäpple bowl",emoji:"🧀",focus:"kansla",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["halloumi", "granatäpple", "spenat", "avokado", "citron", "quinoa"]},
+  {name:"Halloumi & granatäpple pasta",emoji:"🧀",focus:"kansla",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["halloumi", "granatäpple", "spenat", "avokado", "citron", "pasta"]},
+  {name:"Halloumi & granatäpple grill",emoji:"🧀",focus:"kansla",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["halloumi", "granatäpple", "spenat", "avokado", "citron"]},
+  {name:"Tonfisk & edamame sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["tonfisk", "edamame", "avokado", "sesamfrön", "lime"]},
+  {name:"Tonfisk & edamame bowl",emoji:"🐟",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["tonfisk", "edamame", "avokado", "sesamfrön", "lime", "quinoa"]},
+  {name:"Tonfisk & edamame pasta",emoji:"🐟",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["tonfisk", "edamame", "avokado", "sesamfrön", "lime", "pasta"]},
+  {name:"Tonfisk & edamame wok",emoji:"🐟",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["tonfisk", "edamame", "avokado", "sesamfrön", "lime", "ris", "sojasås"]},
+  {name:"Tonfisk & edamame grill",emoji:"🐟",focus:"driv",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["tonfisk", "edamame", "avokado", "sesamfrön", "lime"]},
+  {name:"Kikärtor & gurkmeja sallad",emoji:"🥗",focus:"bas",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["kikärtor", "gurkmeja", "ingefära", "spenat", "kokosmjölk"]},
+  {name:"Kikärtor & gurkmeja bowl",emoji:"🧆",focus:"bas",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["kikärtor", "gurkmeja", "ingefära", "spenat", "kokosmjölk", "quinoa"]},
+  {name:"Kikärtor & gurkmeja pasta",emoji:"🧆",focus:"bas",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["kikärtor", "gurkmeja", "ingefära", "spenat", "kokosmjölk", "pasta"]},
+  {name:"Kikärtor & gurkmeja gryta",emoji:"🧆",focus:"bas",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["kikärtor", "gurkmeja", "ingefära", "spenat", "kokosmjölk"]},
+  {name:"Linser & sötpotatis sallad",emoji:"🥗",focus:"bas",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["linser", "sötpotatis", "gurkmeja", "kokosmjölk", "spenat"]},
+  {name:"Linser & sötpotatis bowl",emoji:"🍛",focus:"bas",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["linser", "sötpotatis", "gurkmeja", "kokosmjölk", "spenat", "quinoa"]},
+  {name:"Linser & sötpotatis pasta",emoji:"🍛",focus:"bas",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["linser", "sötpotatis", "gurkmeja", "kokosmjölk", "spenat", "pasta"]},
+  {name:"Linser & sötpotatis gryta",emoji:"🍛",focus:"bas",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["linser", "sötpotatis", "gurkmeja", "kokosmjölk", "spenat"]},
+  {name:"Rödbetor & valnötter sallad",emoji:"🥗",focus:"kansla",cat:"sallad",power:true,howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["rödbetor", "ruccola", "valnötter", "feta", "citron"]},
+  {name:"Rödbetor & valnötter bowl",emoji:"🥗",focus:"kansla",cat:"bowl",power:true,howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["rödbetor", "ruccola", "valnötter", "feta", "citron", "quinoa"]},
+  {name:"Rödbetor & valnötter pasta",emoji:"🥗",focus:"kansla",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["rödbetor", "ruccola", "valnötter", "feta", "citron", "pasta"]},
+  {name:"Rödbetor & valnötter gryta",emoji:"🥗",focus:"kansla",cat:"gryta",power:true,howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["rödbetor", "ruccola", "valnötter", "feta", "citron", "kokosmjölk"]},
+  {name:"Lax & sparris sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["lax", "sparris", "citron", "pumpafrön"]},
+  {name:"Lax & sparris bowl",emoji:"🐟",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["lax", "sparris", "citron", "pumpafrön", "quinoa"]},
+  {name:"Lax & sparris pasta",emoji:"🐟",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["lax", "sparris", "citron", "pumpafrön", "pasta"]},
+  {name:"Lax & sparris wok",emoji:"🐟",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["lax", "sparris", "citron", "pumpafrön", "ris", "sojasås"]},
+  {name:"Lax & sparris gryta",emoji:"🐟",focus:"driv",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["lax", "sparris", "citron", "pumpafrön", "kokosmjölk"]},
+  {name:"Lax & sparris grill",emoji:"🐟",focus:"driv",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["lax", "sparris", "citron", "pumpafrön"]},
+  {name:"Tofu & broccoli sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["tofu", "broccoli", "paprika", "ingefära", "sesamfrön"]},
+  {name:"Tofu & broccoli bowl",emoji:"🌱",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["tofu", "broccoli", "paprika", "ingefära", "sesamfrön", "quinoa"]},
+  {name:"Tofu & broccoli pasta",emoji:"🌱",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["tofu", "broccoli", "paprika", "ingefära", "sesamfrön", "pasta"]},
+  {name:"Tofu & broccoli wok",emoji:"🌱",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["tofu", "broccoli", "paprika", "ingefära", "sesamfrön", "ris", "sojasås"]},
+  {name:"Avokado & spenat sallad",emoji:"🥗",focus:"kansla",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["avokado", "spenat", "ruccola", "tomat", "pumpafrön"]},
+  {name:"Avokado & spenat bowl",emoji:"🥑",focus:"kansla",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["avokado", "spenat", "ruccola", "tomat", "pumpafrön", "quinoa"]},
+  {name:"Avokado & spenat pasta",emoji:"🥑",focus:"kansla",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["avokado", "spenat", "ruccola", "tomat", "pumpafrön", "pasta"]},
+  {name:"Torsk & fänkål sallad",emoji:"🥗",focus:"bas",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["torsk", "fänkål", "tomat", "citron"]},
+  {name:"Torsk & fänkål bowl",emoji:"🐟",focus:"bas",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["torsk", "fänkål", "tomat", "citron", "quinoa"]},
+  {name:"Torsk & fänkål pasta",emoji:"🐟",focus:"bas",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["torsk", "fänkål", "tomat", "citron", "pasta"]},
+  {name:"Torsk & fänkål gryta",emoji:"🐟",focus:"bas",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["torsk", "fänkål", "tomat", "citron", "kokosmjölk"]},
+  {name:"Torsk & fänkål grill",emoji:"🐟",focus:"bas",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["torsk", "fänkål", "tomat", "citron"]},
+  {name:"Mango & kyckling sallad",emoji:"🥗",focus:"smak",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["kyckling", "mango", "paprika", "lime", "chili"]},
+  {name:"Mango & kyckling bowl",emoji:"🥭",focus:"smak",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["kyckling", "mango", "paprika", "lime", "chili", "quinoa"]},
+  {name:"Mango & kyckling pasta",emoji:"🥭",focus:"smak",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["kyckling", "mango", "paprika", "lime", "chili", "pasta"]},
+  {name:"Mango & kyckling wok",emoji:"🥭",focus:"smak",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["kyckling", "mango", "paprika", "lime", "chili", "ris", "sojasås"]},
+  {name:"Mango & kyckling gryta",emoji:"🥭",focus:"smak",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["kyckling", "mango", "paprika", "lime", "chili", "kokosmjölk"]},
+  {name:"Mango & kyckling grill",emoji:"🥭",focus:"smak",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["kyckling", "mango", "paprika", "lime", "chili"]},
+  {name:"Grönkål & äpple sallad",emoji:"🥗",focus:"bas",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["grönkål", "äpple", "valnötter", "grekisk yoghurt"]},
+  {name:"Grönkål & äpple bowl",emoji:"🥬",focus:"bas",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["grönkål", "äpple", "valnötter", "grekisk yoghurt", "quinoa"]},
+  {name:"Ingefära & morot sallad",emoji:"🥗",focus:"bas",cat:"sallad",power:true,howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["morot", "ingefära", "gurkmeja", "kokosmjölk", "selleri"]},
+  {name:"Ingefära & morot bowl",emoji:"🫚",focus:"bas",cat:"bowl",power:true,howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["morot", "ingefära", "gurkmeja", "kokosmjölk", "selleri", "quinoa"]},
+  {name:"Ingefära & morot pasta",emoji:"🫚",focus:"bas",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["morot", "ingefära", "gurkmeja", "kokosmjölk", "selleri", "pasta"]},
+  {name:"Ingefära & morot gryta",emoji:"🫚",focus:"bas",cat:"gryta",power:true,howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["morot", "ingefära", "gurkmeja", "kokosmjölk", "selleri"]},
+  {name:"Quinoa & granatäpple sallad",emoji:"🥗",focus:"smak",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["quinoa", "granatäpple", "spenat", "avokado", "feta"]},
+  {name:"Quinoa & granatäpple bowl",emoji:"🥗",focus:"smak",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["quinoa", "granatäpple", "spenat", "avokado", "feta"]},
+  {name:"Quinoa & granatäpple pasta",emoji:"🥗",focus:"smak",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["quinoa", "granatäpple", "spenat", "avokado", "feta", "pasta"]},
+  {name:"Rödbeta & selleri sallad",emoji:"🥗",focus:"kansla",cat:"sallad",power:true,howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["rödbetor", "selleri", "morot", "ingefära", "persilja"]},
+  {name:"Rödbeta & selleri bowl",emoji:"🥗",focus:"kansla",cat:"bowl",power:true,howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["rödbetor", "selleri", "morot", "ingefära", "persilja", "quinoa"]},
+  {name:"Rödbeta & selleri pasta",emoji:"🥗",focus:"kansla",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["rödbetor", "selleri", "morot", "ingefära", "persilja", "pasta"]},
+  {name:"Rödbeta & selleri gryta",emoji:"🥗",focus:"kansla",cat:"gryta",power:true,howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["rödbetor", "selleri", "morot", "ingefära", "persilja", "kokosmjölk"]},
+  {name:"Scampi & citron sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["scampi", "citron", "tomat", "basilika", "chili"]},
+  {name:"Scampi & citron bowl",emoji:"🦐",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["scampi", "citron", "tomat", "basilika", "chili", "quinoa"]},
+  {name:"Scampi & citron pasta",emoji:"🦐",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["scampi", "citron", "tomat", "basilika", "chili", "pasta"]},
+  {name:"Scampi & citron wok",emoji:"🦐",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["scampi", "citron", "tomat", "basilika", "chili", "ris", "sojasås"]},
+  {name:"Scampi & citron grill",emoji:"🦐",focus:"driv",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["scampi", "citron", "tomat", "basilika", "chili"]},
+  {name:"Räkor & avokado sallad",emoji:"🥗",focus:"kansla",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["räkor", "avokado", "ruccola", "lime", "sesamfrön"]},
+  {name:"Räkor & avokado bowl",emoji:"🦐",focus:"kansla",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["räkor", "avokado", "ruccola", "lime", "sesamfrön", "quinoa"]},
+  {name:"Räkor & avokado pasta",emoji:"🦐",focus:"kansla",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["räkor", "avokado", "ruccola", "lime", "sesamfrön", "pasta"]},
+  {name:"Räkor & avokado wok",emoji:"🦐",focus:"kansla",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["räkor", "avokado", "ruccola", "lime", "sesamfrön", "ris", "sojasås"]},
+  {name:"Kyckling & broccoli sallad",emoji:"🥗",focus:"driv",cat:"sallad",howto:"Blanda alla råvaror i en skål. Ringla citron och olivolja. Toppa med frön.",items:["kyckling", "broccoli", "paprika", "morot", "ingefära"]},
+  {name:"Kyckling & broccoli bowl",emoji:"🍗",focus:"driv",cat:"bowl",howto:"Koka quinoa som bas. Lägg råvarorna ovanpå i sektioner. Ringla dressing och pressa citrus.",items:["kyckling", "broccoli", "paprika", "morot", "ingefära", "quinoa"]},
+  {name:"Kyckling & broccoli pasta",emoji:"🍗",focus:"driv",cat:"pasta",howto:"Koka pasta al dente. Fräs/tillsätt råvarorna, vänd ner pastan med en skvätt pastavatten.",items:["kyckling", "broccoli", "paprika", "morot", "ingefära", "pasta"]},
+  {name:"Kyckling & broccoli wok",emoji:"🍗",focus:"driv",cat:"wok",howto:"Koka ris. Woka råvarorna hastigt på hög värme med soja och sesam. Servera över ris.",items:["kyckling", "broccoli", "paprika", "morot", "ingefära", "ris", "sojasås"]},
+  {name:"Kyckling & broccoli gryta",emoji:"🍗",focus:"driv",cat:"gryta",howto:"Fräs aromater. Tillsätt råvaror och kokosmjölk, sjud tills mört. Smaka av.",items:["kyckling", "broccoli", "paprika", "morot", "ingefära", "kokosmjölk"]},
+  {name:"Kyckling & broccoli grill",emoji:"🍗",focus:"driv",cat:"grill",season:"grill",howto:"Grilla råvarorna med olivolja. Servera med citron och färska örter.",items:["kyckling", "broccoli", "paprika", "morot", "ingefära"]},
+  {name:"Tropisk smoothie",emoji:"🥤",focus:"smak",cat:"frukost",meal:"frukost",howto:"Mixa allt slätt. Drick direkt.",items:["ananasjuice", "mango", "banan", "spenat", "ingefära"]},
+  {name:"Bärsmoothie",emoji:"🫐",focus:"smak",cat:"frukost",meal:"frukost",howto:"Mixa bär, banan och yoghurt slätt.",items:["blåbär", "hallon", "jordgubbar", "banan", "grekisk yoghurt"]},
+  {name:"Grön powerstart",emoji:"🥬",focus:"driv",cat:"frukost",meal:"frukost",howto:"Mixa slätt, toppa med chiafrön.",items:["spenat", "avokado", "ananasjuice", "ingefära", "grönt te"]},
+  {name:"Rödbetssmoothie",emoji:"🥤",focus:"kansla",cat:"frukost",meal:"frukost",howto:"Mixa rödbetsjuice med bär och yoghurt.",items:["rödbetsjuice", "banan", "blåbär", "grekisk yoghurt", "honung"]},
+  {name:"Ingefärajuice-bowl",emoji:"🫚",focus:"driv",cat:"frukost",meal:"frukost",howto:"Yoghurt i skål, toppa med granola och bär. Juice vid sidan.",items:["ingefärajuice", "grekisk yoghurt", "granola", "blåbär", "mandel"]},
+  {name:"Overnight oats bär",emoji:"🥣",focus:"bas",cat:"frukost",meal:"frukost",howto:"Blanda kvällen innan, toppa på morgonen.",items:["havregryn", "grekisk yoghurt", "blåbär", "chiafrön", "honung"]},
+  {name:"Chiapudding & mango",emoji:"🥭",focus:"smak",cat:"frukost",meal:"frukost",howto:"Blötlägg chiafrön i kokosmjölk över natten. Toppa med mango.",items:["chiafrön", "kokosmjölk", "mango", "honung", "mynta"]},
+  {name:"Proteinomelett",emoji:"🍳",focus:"driv",cat:"frukost",meal:"frukost",howto:"Vispa ägg, stek med spenat och tomat. Servera med avokado.",items:["ägg", "spenat", "tomat", "avokado"]},
+  {name:"Cottage & granatäpple",emoji:"🥣",focus:"driv",cat:"frukost",meal:"frukost",howto:"Cottage cheese toppad med granatäpple, mandel och honung.",items:["cottage cheese", "granatäpple", "mandel", "honung"]},
+  {name:"Frukostsmoothie lax-dag",emoji:"🥤",focus:"driv",cat:"frukost",meal:"frukost",howto:"Mixa till en mättande smoothie.",items:["ananasjuice", "banan", "havregryn", "jordnötssmör", "kanel"]},
+  {name:"Asiatisk nudelsallad",emoji:"🍜",focus:"kansla",cat:"sallad",howto:"Koka nudlar, skölj kallt. Blanda med grönsaker, lime och sesam.",items:["edamame", "morot", "paprika", "koriander", "lime", "sesamfrön", "nudlar"]},
+  {name:"Laxsoppa med dill",emoji:"🍲",focus:"bas",cat:"soppa",howto:"Koka grönsaker mjuka, tillsätt lax sista minuterna. Smaka av med dill.",items:["lax", "morot", "fänkål", "potatis", "dill", "grädde"]},
+  {name:"Tomatsoppa med basilika",emoji:"🍲",focus:"kansla",cat:"soppa",howto:"Sjud tomat och morot, mixa slätt med kokosmjölk och basilika.",items:["tomat", "morot", "basilika", "kokosmjölk", "vitlök"]},
+  {name:"Räkpasta med chili",emoji:"🍝",focus:"driv",cat:"pasta",howto:"Koka pasta. Fräs scampi med chili och tomat, vänd ner pastan.",items:["scampi", "chili", "tomat", "basilika", "citron", "pasta"]},
+  {name:"Grönsaksgryta med kikärtor",emoji:"🍲",focus:"bas",cat:"gryta",howto:"Sjud allt tills mört, smaka av med gurkmeja.",items:["kikärtor", "sötpotatis", "spenat", "gurkmeja", "kokosmjölk", "tomat"]},
+  {name:"Fisksoppa medelhav",emoji:"🍲",focus:"bas",cat:"soppa",howto:"Koka fond med fänkål och saffran, tillsätt torsk sista minuterna.",items:["torsk", "fänkål", "tomat", "saffran", "potatis", "persilja"]},
+  {name:"Poké med lax",emoji:"🍣",focus:"smak",cat:"bowl",howto:"Ris i botten, toppa med rå/stekt lax och tillbehör. Pressa lime.",items:["lax", "ris", "edamame", "avokado", "mango", "sesamfrön", "lime"]},
+  {name:"Poké med räkor",emoji:"🍣",focus:"kansla",cat:"bowl",howto:"Ris i botten, toppa med räkor och tillbehör.",items:["räkor", "ris", "avokado", "mango", "ruccola", "sesamfrön", "lime"]},
+  {name:"Halloumiwok",emoji:"🥘",focus:"driv",cat:"wok",howto:"Woka halloumi och grönsaker, servera över ris.",items:["halloumi", "broccoli", "paprika", "morot", "ingefära", "ris", "sojasås"]},
+  {name:"Quinoasallad medelhav",emoji:"🥗",focus:"kansla",cat:"sallad",howto:"Blanda kokt quinoa med grönsaker och feta. Ringla citron.",items:["quinoa", "tomat", "gurka", "feta", "oliver", "citron", "ruccola"]}
 ];
 var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦","Rött vin":"🍷","Vitt vin":"🥂","Rosévin":"🌸","Öl":"🍺","Sprit":"🥃","Cider":"🍏","Alkoholfritt":"🚫"};
 function getArea(id){return AREAS.find(function(a){return a.id===id})||LISTS.projects.find(function(p){return p.id===id})}
@@ -806,6 +1094,32 @@ function calcAchievements(){
   a.sort(function(x,y){return(tOrd[x.tier]||2)-(tOrd[y.tier]||2)});
   return a;
 }
+function renderHealthKPI(){
+  var k=healthKPIs();
+  var tw=k?k.thisWeek:{scores:[0,0,0,0],total:0,count:0};
+  var lw=k?k.lastWeek:{scores:[0,0,0,0],total:0,count:0};
+  var trend=lw.total>0?Math.round((tw.total-lw.total)/lw.total*100):0;
+  var trendStr=tw.total===0&&lw.total===0?"":trend>0?"↑ "+trend+"%":trend<0?"↓ "+Math.abs(trend)+"%":"→ 0%";
+  var trendCol=trend>0?"#1a8a65":trend<0?"#c87a3a":"#999";
+  var cats=["Vitalitet","Balans","Energi","Återhämtning"];
+  var maxC=Math.max.apply(null,tw.scores.concat([1]));
+  // Veckodags-fokus (oskyldig rytm)
+  var df=dayFocusToday();
+  var advHtml='<div style="font-size:9px;color:var(--fg2);margin-top:4px;padding:4px 6px;background:var(--bg2);border-radius:6px">Fokus idag: <b>'+df.foci.map(function(f){return FOCUS_LABEL[f]}).join(" + ")+'</b></div>';
+  return '<div class="card anim-in anim-d3"><div class="card-b">'+
+    '<div class="flex aic jcb"><span style="font-size:11px;font-weight:600">💚 Hälsoscore</span><span style="font-size:9px;color:var(--fg3)">denna vecka</span></div>'+
+    '<div class="flex aic gap8" style="margin:8px 0">'+
+      '<div style="font-size:28px;font-weight:700;color:#1a8a65;font-family:var(--m)">'+(tw.total>0?"+":"")+tw.total+'</div>'+
+      '<div style="flex:1"><div style="font-size:10px;color:'+trendCol+';font-weight:600">'+trendStr+(trendStr?' vs förra veckan':'Inga inköp än')+'</div>'+
+      '<div style="font-size:9px;color:var(--fg3)">'+tw.count+' nyttiga inköp loggade</div></div></div>'+
+    advHtml+
+    '<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">'+
+    cats.map(function(c,i){var v=tw.scores[i];var pct=Math.max(2,Math.round(v/maxC*100));var col=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"][i];
+      return '<div class="flex aic gap6"><span style="width:74px;font-size:9px;color:var(--fg2)">'+c+'</span><div style="flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+col+'"></div></div><span style="width:24px;text-align:right;font-size:9px;font-family:var(--m);color:var(--fg2)">'+v+'</span></div>'
+    }).join('')+'</div>'+
+    '<button class="btn btn-s btn-sm mt8" id="healthDetail" style="width:100%">📊 Detaljer & historik</button>'+
+    '</div></div>'
+}
 function renderAchievements(){
   var ach=calcAchievements();if(!ach.length)return '';
   var tierCol={gold:"var(--amber)",silver:"var(--fg3)",bronze:"var(--coral)"};
@@ -891,6 +1205,8 @@ function renderWeather(){
   if(sunny&&feelsMax>=22)clothes.push("shorts + t-shirt");
   if(windy&&feelsMin<12)clothes.push("vindtätt");
   if(!clothes.length)clothes.push("t-shirt");
+  // Väderstyrt matförslag (grill på varma sommarhelger, särskilt semester v26-34)
+  var foodSugg=weatherFoodSuggestion(maxTemp,sunny,rainy);
   return '<div style="display:flex;align-items:flex-start;gap:10px">'+
     '<div style="font-size:28px;line-height:1">'+icon+'</div>'+
     '<div style="flex:1;min-width:0">'+
@@ -898,7 +1214,29 @@ function renderWeather(){
     '<div style="font-size:11px;color:var(--fg2);margin:2px 0">'+narrative+'</div>'+
     '<div style="font-size:10px;margin-top:3px">👧 '+clothes.join(" · ")+'</div>'+
     '<div style="font-size:9px;color:var(--fg3);margin-top:2px">Imorgon: '+wIcon(tmrwWc)+' '+tmrwMax+'°'+(windNow>8?' · 💨 '+windNow+' km/h':'')+'</div>'+
+    (foodSugg?'<div style="font-size:10px;color:var(--fg2);margin-top:5px;padding:4px 7px;background:linear-gradient(90deg,#FFF0E0,var(--bg2));border-radius:6px">'+foodSugg+'</div>':'')+
     '</div></div>'
+}
+// ISO-veckonummer
+function isoWeek(d){d=new Date(d);d.setHours(0,0,0,0);d.setDate(d.getDate()+3-((d.getDay()+6)%7));var w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/86400000-3+((w1.getDay()+6)%7))/7)}
+// Väderstyrt matförslag
+function weatherFoodSuggestion(maxTemp,sunny,rainy){
+  var now=new Date();var day=now.getDay();var wk=isoWeek(now);var month=now.getMonth();// 0=jan
+  var isWeekend=(day===0||day===5||day===6);// fre/lör/sön
+  var isVacation=(wk>=26&&wk<=34);
+  var isSummer=(month>=4&&month<=8);// maj-sep
+  // Sätt global flagga för grill-väder (används i auto-veckomeny)
+  GRILL_WEATHER=(maxTemp>=18&&sunny&&(isWeekend||isVacation));
+  // Grillförslag: varmt + soligt + (helg eller semester)
+  if(maxTemp>=18&&sunny&&(isWeekend||isVacation)){
+    if(isVacation)return '🔥 Semester och '+maxTemp+'° — perfekt grillkväll! Lax, kyckling eller halloumi med grillade grönsaker.';
+    return '🔥 Fint väder i helgen — passa på att grilla! Lax, kyckling eller halloumspett.';
+  }
+  if(maxTemp>=20&&sunny)return '☀️ Varmt idag — en fräsch sallad eller kall bowl sitter fint.';
+  if(maxTemp>=16&&sunny&&isSummer)return '🌿 Skönt väder — kanske något lätt på altanen ikväll?';
+  if(rainy&&maxTemp<12)return '🍲 Regnigt och svalt — en värmande soppa eller gryta passar bra.';
+  if(maxTemp<5)return '🍲 Kallt ute — dags för något varmt och mättande.';
+  return '';
 } // Vem använder denna enhet
 // shopSync removed — replaced by listsSync
 function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
@@ -911,17 +1249,22 @@ function connect(id){
   var listsRef=shopRef.parent.child("lists");
   var actRef=shopRef.parent.child("activity");
   actRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){ACTIVITY=d}});
+  var healthRef=shopRef.parent.child("healthLog");
+  healthRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){HEALTH_LOG=d;if(S.tab==="dash"&&isOwner())render()}});
   listsRef.on("value",function(snap){var d=snap.val();skipSync=true;
     if(d){
       LISTS.items=d.items||[];LISTS.history=d.history||{};LISTS.projects=d.projects||[];
       LISTS.activeArea=d.activeArea||"mat";LISTS.activeStores=d.activeStores||{};
-      LISTS.recipes=d.recipes||[];LISTS.weekMeals=d.weekMeals||[];
+      LISTS.recipes=d.recipes||[];LISTS.weekMeals=d.weekMeals||[];LISTS.weekPlan=d.weekPlan||{};
+      LISTS.staples=d.staples||{};
     }else{
       // First time — init with empty but don't overwrite
       LISTS.items=LISTS.items||[];LISTS.history=LISTS.history||{};LISTS.projects=LISTS.projects||[];
-      LISTS.recipes=LISTS.recipes||[];LISTS.weekMeals=LISTS.weekMeals||[];
+      LISTS.recipes=LISTS.recipes||[];LISTS.weekMeals=LISTS.weekMeals||[];LISTS.weekPlan=LISTS.weekPlan||{};
+      LISTS.staples=LISTS.staples||{};
     }
     LISTS_LOADED=true;
+    validateLists();// sanera data → förhindrar buggar
     // Seed default recipes if none exist
     if(!LISTS.recipes||!LISTS.recipes.length){LISTS.recipes=dc(DEFAULT_RECIPES);listsSync()}
     if(S.tab==="todo"||S.tab==="dash"){render()};skipSync=false});
@@ -997,6 +1340,8 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
 
   // Weather
   '<div class="card anim-in anim-d1" style="margin:8px 0"><div class="card-b" id="weatherPanel" style="padding:10px 12px">'+(WEATHER?renderWeather():'<div style="font-size:10px;color:var(--fg3)">Hämtar väder...</div>')+'</div></div>'+
+  // Lättsam livsstils-tips (lunch + vatten + kaffe)
+  renderLunchTip()+
 
   // Compact KPIs
   '<div class="flex gap4 anim-in anim-d1" style="margin:10px 0;flex-wrap:wrap">'+
@@ -1031,6 +1376,7 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
 
   // === ACHIEVEMENTS ===
   renderAchievements()+
+  (isOwner()?renderHealthKPI():'')+
 
   // === LOGG ===
   (ACTIVITY.length?'<div class="card anim-in anim-d4"><div class="card-b"><div style="font-size:11px;font-weight:600;margin-bottom:4px;color:var(--fg2)">Logg</div>'+
@@ -1267,7 +1613,208 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
 // === ATT GÖRA ===
 // Emoji for meals
 var MEAL_EMOJI={"tacos":"🌮","taco":"🌮","pasta":"🍝","lax":"🐟","fisk":"🐟","pizza":"🍕","soppa":"🍲","sallad":"🥗","köttfärssås":"🍝","bolognese":"🍝","lasagne":"🧀","wok":"🥘","curry":"🍛","steak":"🥩","gryta":"🥘","hamburgare":"🍔","burger":"🍔","sushi":"🍣","pannkakor":"🥞","omelett":"🍳","kyckling":"🍗","korv":"🌭","poke":"🥗","risotto":"🍚","gratäng":"🧀","falafel":"🧆","toast":"🍞","biff":"🥩","pulled":"🥩","bbq":"🔥","chili":"🌶️","pad thai":"🍜","ramen":"🍜","nudlar":"🍜","ugnsbakad":"🔥","oxfile":"🥩","lammfärsbiffar":"🥩","paj":"🥧","quiche":"🥧","wrap":"🌯","burrito":"🌯","nachos":"🧀","enchilada":"🌮","guacamole":"🥑","hummus":"🥙","plättar":"🥞","poke bowl":"🥗","lövbiff":"🥩","schnitzel":"🥩","poké":"🥗","carbonara":"🍝"};
+
+// === HÄLSOMODELL (Vit/Bal/Ene/Åter) — diskret poängsystem per råvara ===
+// [Smak, Känsla, Driv, Bas] per 100g
+var DIET_DB={
+  "vattenmelon":[2,3,2,2],"ananas":[3,1,1,2],"ananasjuice":[3,1,1,1],"ingefärajuice":[2,2,2,1],"rödbetsjuice":[1,3,2,1],"spenatjuice":[1,2,1,2],"rödbetor":[1,3,2,1],"rödbeta":[1,3,2,1],
+  "avokado":[1,2,1,2],"spenat":[1,2,1,2],"sallad":[1,2,1,2],"ruccola":[1,2,1,2],"grönkål":[1,2,1,2],"mangold":[1,2,1,2],
+  "kiwi":[2,1,1,2],"lax":[1,2,2,1],"ingefära":[1,2,2,1],"mörk choklad":[1,2,2,1],"choklad":[1,2,2,1],
+  "gurkmeja":[0,2,1,2],"kanel":[1,1,2,1],"grekisk yoghurt":[1,1,1,2],"yoghurt":[1,1,1,2],"pumpafrön":[1,1,2,1],
+  "valnötter":[1,1,2,1],"valnöt":[1,1,2,1],"jordgubbar":[2,1,1,2],"jordgubb":[2,1,1,2],"hallon":[2,1,1,1],
+  "blåbär":[1,2,1,1],"citron":[2,1,0,1],"lime":[2,1,0,1],"mynta":[2,1,0,1],"persilja":[1,1,1,1],
+  "selleri":[1,2,0,1],"gurka":[1,1,0,2],"tomat":[1,1,1,1],"morot":[1,1,1,1],"paprika":[1,1,1,1],
+  "mandel":[1,1,2,1],"chiafrön":[1,1,1,2],"linfrön":[1,1,1,2],"honung":[1,0,1,1],"grönt te":[1,2,1,1],
+  // Nya Smak-hjältar (dokumenterad/plausibel doft- & vätskeeffekt)
+  "bockhornsklöver":[3,1,1,1],"papaya":[3,1,0,2],"honungsmelon":[2,1,0,2],"cantaloupe":[2,1,0,2],"kokosvatten":[2,1,0,2],
+  "kefir":[1,1,1,2],"tranbär":[2,1,0,1],"kardemumma":[2,1,1,1],"fänkålsfrö":[2,1,0,1],"vetegräs":[2,2,1,1],"pepparmynta":[2,1,0,1],
+  // Libido/cirkulation (zink, NO, omega-3)
+  "ostron":[0,1,3,1],"pistage":[0,1,2,1],"pistagenötter":[0,1,2,1],"sardiner":[0,2,2,1],"makrill":[0,2,2,1],"maca":[1,1,2,1],"ginseng":[0,1,2,0],
+  // Proteiner & middagsråvaror
+  "räkor":[1,2,2,1],"scampi":[1,2,2,1],"tonfisk":[1,1,2,1],"torsk":[1,1,1,1],"kyckling":[0,1,2,1],"kycklingfilé":[0,1,2,1],
+  "ägg":[0,1,2,1],"halloumi":[1,1,1,1],"quinoa":[1,1,1,2],"bulgur":[0,1,1,1],"linser":[1,1,2,1],"kikärtor":[1,1,2,1],
+  "bönor":[0,1,1,1],"sötpotatis":[1,1,1,2],"zucchini":[1,1,0,1],
+  "fänkål":[1,2,1,1],"granatäpple":[2,1,2,1],"mango":[2,1,1,2],"apelsin":[2,1,0,1],"basilika":[1,1,1,1],
+  "koriander":[1,1,1,1],"chili":[1,2,2,0],"kokosmjölk":[1,1,1,2],"olivolja":[0,1,1,1],"feta":[1,1,1,1],
+  "sojabönor":[1,1,2,1],"edamame":[1,1,2,1],"tofu":[0,1,1,1],"sesamfrön":[1,1,2,1],"saffran":[1,1,3,1],
+  // Svavel/doft-problematiska — sänkt Smak (men cirkulation/näring kvar)
+  "broccoli":[-1,2,1,1],"sparris":[-1,2,1,1],"blomkål":[-1,1,1,1],"kål":[-1,1,1,1],"brysselkål":[-1,1,1,1],
+  // Frukostråvaror
+  "havregryn":[0,1,1,2],"müsli":[0,1,1,1],"banan":[1,0,1,2],"äpple":[1,1,0,1],"jordnötssmör":[0,1,2,1],
+  "äggröra":[0,1,2,1],"omelett":[0,1,2,1],"smoothie":[2,1,1,2],"granola":[0,1,1,1],"cottage cheese":[0,1,2,2],
+  // Negativa
+  "vitlök":[-3,0,0,0],"lök":[-2,0,0,0],"rödlök":[-2,0,0,0],"gul lök":[-2,0,0,0],"alkohol":[-2,-2,-2,-1],
+  "öl":[-2,-2,-2,-1],"vin":[-2,-2,-2,-1],"sprit":[-2,-2,-2,-1],"snus":[-2,-1,-2,0],"kaffe":[-2,0,1,-1],
+  "socker":[-1,-1,0,-1],"chips":[-1,-1,-1,-1],"korv":[-1,-1,0,-1],"bacon":[-1,-1,0,-1],
+  "nötkött":[-2,0,1,0],"blåmögelost":[-2,0,0,0],"grädde":[-1,0,0,-1],"pommes":[-2,-1,-1,-1],"smör":[-1,0,0,0],"ost":[0,0,0,0],
+  "pasta":[0,0,0,0],"ris":[0,0,1,1],"nudlar":[0,0,0,0],"sojasås":[0,0,0,0],"potatis":[0,0,0,1],"dill":[1,1,0,1],"oliver":[0,1,1,0]
+};
+var DIET_CATS=["Vitalitet","Balans","Energi","Återhämtning"];var DIET_CATS_SHORT=["Vit","Bal","Ene","Åter"];
+function dietScore(text){
+  var t=(text||"").toLowerCase();
+  var best=null,bestLen=0;
+  for(var k in DIET_DB){if(t.indexOf(k)>=0&&k.length>bestLen){best=k;bestLen=k.length}}
+  if(best)return{key:best,scores:DIET_DB[best],total:DIET_DB[best].reduce(function(a,b){return a+b},0)};
+  return null;
+}
+function dietBadge(text){
+  var d=dietScore(text);if(!d)return '';
+  var col=d.total>=5?"#1a8a65":d.total>=2?"#7a9a3a":d.total>=0?"#999":d.total>=-2?"#c87a3a":"#c83a3a";
+  return '<span class="diet-badge" data-diet="'+encodeURIComponent(text)+'" style="cursor:pointer;font-size:9px;color:'+col+';font-weight:600;font-family:var(--m)" title="Vit/Bal/Ene/Åter: '+d.scores.join("/")+'">'+(d.total>0?"+":"")+d.total+'</span>';
+}
+var COOKED_CATS={wok:1,gryta:1,soppa:1,pasta:1,grill:1};
+// items: array, cat: receptkategori (för tillagnings-modifierare)
+function dietMealScore(items,cat){
+  var cooked=cat&&COOKED_CATS[cat];
+  var sum=[0,0,0,0],hits=0;
+  (items||[]).forEach(function(ing,idx){
+    var d=dietScore(ing);if(!d)return;
+    var sc=d.scores.slice();
+    if(cooked){
+      // Tillagning: mildare svavel/lök-doft (negativa Smak halveras), värmekänsliga plus (Smak/Känsla) -25%
+      if(sc[0]<0)sc[0]*=0.5;
+      if(sc[0]>0)sc[0]*=0.75;
+      if(sc[1]>0)sc[1]*=0.75;
+    }
+    // Hjälte-viktning: de 2 första råvarorna väger tyngre
+    var heroW=idx<2?1.5:1;
+    for(var i=0;i<4;i++)sum[i]+=sc[i]*heroW;
+    hits++;
+  });
+  // Avtagande effekt: långa listor dämpas mjukt (balans > stapling)
+  if(hits>5){var damp=1-Math.min(0.3,0.04*(hits-5));for(var j=0;j<4;j++)sum[j]*=damp}
+  for(var k=0;k<4;k++)sum[k]=Math.round(sum[k]);
+  return{scores:sum,total:sum.reduce(function(a,b){return a+b},0),hits:hits};
+}
+// === VECKOMENY (timing-modell) ===
+// Primär fokus per dag + smakW = Smak-laddning (ramp mot helg, fördröjnings-optimerad)
+// Effekt dröjer 1-3 dagar → ladda Smak från onsdag för att peaka på helgen
+var WEEKDAYS=[
+  {k:"mon",n:"Mån",focus:"bas",smakW:0.3},
+  {k:"tue",n:"Tis",focus:"driv",smakW:0.4},
+  {k:"wed",n:"Ons",focus:"driv",smakW:0.7},
+  {k:"thu",n:"Tors",focus:"smak",smakW:1.0},
+  {k:"fri",n:"Fre",focus:"smak",smakW:1.3},
+  {k:"sat",n:"Lör",focus:"smak",smakW:1.6},
+  {k:"sun",n:"Sön",focus:"kansla",smakW:1.2}
+];
+var FOCUS_LABEL={driv:"Energi",bas:"Återhämtning",smak:"Vitalitet",kansla:"Balans"};
+var FOCUS_LABEL_REAL={driv:"Driv",bas:"Bas",smak:"Smak",kansla:"Känsla"};
+var FOCUS_EMOJI={driv:"🚀",bas:"🧘",smak:"🍑",kansla:"🌿"};
+var FOCUS_COLOR={driv:"#c87a3a",bas:"#3a8ac8",smak:"#c83a7a",kansla:"#8a3ac8"};
+var FOCUS_IDX={smak:0,kansla:1,driv:2,bas:3};
+// Ägare ser riktiga ord, vanlig user ser hälsobegrepp
+function focusName(f){return isOwner()?FOCUS_LABEL_REAL[f]:FOCUS_LABEL[f]}
+var SHOW_ALL_MEALS=false;
+var GRILL_WEATHER=false;// sätts av väderfunktionen
+// Hur väl passar en rätt en viss dag? Väger in primärfokus + Smak-ramp
+function recipeFocusScore(recipe,day){
+  var ms=dietMealScore(recipe.items||[],recipe.cat);
+  var focus=typeof day==="string"?day:day.focus;
+  var smakW=typeof day==="object"?(day.smakW||0):0;
+  var idx=FOCUS_IDX[focus];
+  var focusScore=ms.scores[idx]*2;
+  var smakScore=ms.scores[0]*smakW*1.5;// Smak (idx 0) laddas efter dagens vikt
+  var tagBonus=(recipe.focus===focus)?8:0;
+  if(recipe.focus==="smak"&&smakW>0)tagBonus+=smakW*4;
+  if(recipe.power)tagBonus+=5;// power foods lyfts fram
+  // Treats straffas hårdare ju högre laddningsdag → hamnar tidigt i veckan
+  if(recipe.treat)tagBonus-=smakW*12;
+  // Grillrätter lyfts på grillväder, tonas ner annars
+  if(recipe.season==="grill")tagBonus+=GRILL_WEATHER?6:-8;
+  // Betyg påverkar ranking: ⭐ favorit +12, 👍 +6, 👎 -20 (hamnar längst ner)
+  if(recipe.rating===2)tagBonus+=12;
+  else if(recipe.rating===1)tagBonus+=6;
+  else if(recipe.rating===-1)tagBonus-=20;
+  return focusScore+smakScore+ms.total*0.2+tagBonus;
+}
+// Meal-slot helpers — weekPlan[day] kan vara sträng (middag) eller {b,l,d}
+function getDayMeals(dayKey){
+  var v=(LISTS.weekPlan||{})[dayKey];
+  if(!v)return{};
+  if(typeof v==="string")return{d:v};
+  return v;
+}
+function setDayMeal(dayKey,slot,name){
+  if(!LISTS.weekPlan)LISTS.weekPlan={};
+  var cur=LISTS.weekPlan[dayKey];
+  var obj=(typeof cur==="string")?{d:cur}:(cur?Object.assign({},cur):{});
+  if(name===null)delete obj[slot];else obj[slot]=name;
+  if(Object.keys(obj).length===0)delete LISTS.weekPlan[dayKey];
+  else LISTS.weekPlan[dayKey]=obj;
+}
+function allPlannedMeals(){
+  var wp=LISTS.weekPlan||{};var names=[];
+  Object.keys(wp).forEach(function(k){var m=getDayMeals(k);["b","l","d"].forEach(function(s){if(m[s])names.push(m[s])})});
+  return names;
+}
+// Auto-föreslå middag för veckan (Smak-rampad, helg får högst Smak)
+function suggestWeekMeals(){
+  var recipes=LISTS.recipes||[];if(!recipes.length)return{};
+  var dinner=recipes.map(function(r,i){return{r:r,i:i}}).filter(function(x){return x.r.meal!=="frukost"});
+  if(!dinner.length)dinner=recipes.map(function(r,i){return{r:r,i:i}});
+  var plan={},used=[];
+  // Sortera dagar efter smakW fallande → helg/hög-smak-dagar väljer först bland Smak-rika rätter
+  var order=WEEKDAYS.map(function(d,i){return{d:d,i:i}}).sort(function(a,b){return(b.d.smakW||0)-(a.d.smakW||0)});
+  order.forEach(function(o){
+    var day=o.d;
+    var ranked=dinner.map(function(x){return{i:x.i,name:x.r.name,score:recipeFocusScore(x.r,day)}})
+      .filter(function(x){return used.indexOf(x.i)<0})
+      .sort(function(a,b){return b.score-a.score});
+    if(ranked.length){var cur=plan[day.k];plan[day.k]=typeof cur==="object"?Object.assign(cur,{d:ranked[0].name}):ranked[0].name;used.push(ranked[0].i);
+      if(used.length>=dinner.length)used=[]}
+  });
+  return plan;
+}
 function mealEmoji(name){var n=name.toLowerCase();for(var k in MEAL_EMOJI){if(n.indexOf(k)>=0)return MEAL_EMOJI[k]}return"🍽️"}
+// === HEALTH TRACKING (privat, ME-gated) ===
+var HEALTH_LOG=null;
+function logHealth(action,item,scores,total){
+  if(!HEALTH_LOG)HEALTH_LOG=[];
+  HEALTH_LOG.push({t:Date.now(),action:action,item:item,scores:scores,total:total,who:ME||"?"});
+  // Keep last 500 entries
+  if(HEALTH_LOG.length>500)HEALTH_LOG=HEALTH_LOG.slice(-500);
+  if(shopRef){var r=shopRef.parent.child("healthLog");r.set(HEALTH_LOG)}
+}
+function healthKPIs(){
+  if(!HEALTH_LOG||!HEALTH_LOG.length)return null;
+  var now=Date.now(),wk=604800000;
+  var thisWeek=HEALTH_LOG.filter(function(e){return now-e.t<wk});
+  var lastWeek=HEALTH_LOG.filter(function(e){return now-e.t>=wk&&now-e.t<wk*2});
+  function agg(arr){var s=[0,0,0,0],tot=0;arr.forEach(function(e){if(e.scores)for(var i=0;i<4;i++)s[i]+=e.scores[i];tot+=e.total||0});return{scores:s,total:tot,count:arr.length}}
+  return{thisWeek:agg(thisWeek),lastWeek:agg(lastWeek),allTime:agg(HEALTH_LOG)};
+}
+function isOwner(){return(ME||"").toLowerCase().indexOf("daniel")>=0}
+// Veckodags-fokus (oskyldig rytm, ingen tracking)
+function dayFocusToday(){
+  var d=new Date().getDay();// 0=sön
+  // mån-ons: energi+återhämtning, tors-sön: vitalitet+balans
+  if(d>=1&&d<=3)return{foci:["driv","bas"]};
+  return{foci:["smak","kansla"]};
+}
+// Lättsam lunch- och livsstilstips (synlig för alla, mjuk ton)
+function renderLunchTip(){
+  var df=dayFocusToday();var f=df.foci[0];
+  var lunchIdeas={
+    smak:["en fräsch sallad med citrus och frukt","en bowl med mango eller granatäpple","något med ananas eller vattenmelon"],
+    kansla:["en grön sallad med spenat eller rödbetor","en bowl med avokado och rödbetor","något med fänkål eller broccoli"],
+    driv:["en proteinrik bowl med lax eller kyckling","något med frön, nötter eller ägg","en sallad toppad med pumpafrön"],
+    bas:["en mättande bowl med quinoa eller havre","något med avokado och yoghurt","en grönsaksrik soppa"]
+  };
+  var ideas=lunchIdeas[f]||lunchIdeas.smak;
+  // Rotera dagligen
+  var dayNum=Math.floor(Date.now()/86400000);
+  var idea1=ideas[dayNum%ideas.length];
+  var idea2=ideas[(dayNum+1)%ideas.length];
+  var tips=["Drick mycket vatten idag 💧","Ta det lugnt med kaffet ☕","Kom ihåg vattenflaskan 💧","En extra glas vatten gör skillnad 💧"];
+  var tip=tips[dayNum%tips.length];
+  return '<div class="card anim-in anim-d2" style="margin:8px 0"><div class="card-b" style="padding:9px 12px;background:linear-gradient(90deg,#F0F7F0,var(--card))">'+
+    '<div style="font-size:11px;font-weight:600;margin-bottom:3px">🥗 Lunchtips idag</div>'+
+    '<div style="font-size:11px;color:var(--fg2)">Försök få i dig '+idea1+' eller '+idea2+'.</div>'+
+    '<div style="font-size:10px;color:var(--fg3);margin-top:3px">'+tip+' — och ta det lugnt, ingen stress. 😊</div>'+
+    '</div></div>'
+}
+
 
 function rTodo(){
   var items=LISTS.items||[];
@@ -1299,29 +1846,98 @@ function rTodo(){
   var allAreas=AREAS.concat(LISTS.projects||[]);
   var counts={};allAreas.forEach(function(a){counts[a.id]=(items||[]).filter(function(it){return!it.done&&it.area===a.id}).length});
 
-  return '<div class="shop-add"><input id="todoInput" placeholder="'+(isShop?"Lägg till vara...":"Lägg till uppgift...")+'" autofocus><button class="btn btn-p btn-sm" id="todoAdd">+</button></div>'+
+  return '<div class="shop-add"><input id="todoInput" placeholder="'+(isShop?"Lägg till vara...":"Lägg till uppgift...")+'" autofocus><button class="btn btn-p btn-sm" id="todoAdd">+</button>'+(isShop?'<button class="btn btn-s btn-sm" id="addStaple" title="Lägg till basvara">🧺</button>':'')+'</div>'+
     // Area tabs
     '<div class="task-filter" style="margin-bottom:6px">'+allAreas.map(function(a){var c=counts[a.id]||0;return '<button class="'+(al===a.id?"a":"")+'" data-area="'+a.id+'">'+a.icon+' '+a.name+(c?' <b>'+c+'</b>':'')+'</button>'}).join('')+
     '<button data-area="_add" style="color:var(--teal);border-style:dashed">+</button></div>'+
     // Store selector (for shop areas)
     (isShop&&area.stores&&area.stores.length>1?'<div class="flex aic gap4" style="margin-bottom:8px"><select id="storeSelect" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);flex:1">'+area.stores.map(function(s){return '<option value="'+s.id+'"'+(store&&store.id===s.id?" selected":"")+'>'+s.name+'</option>'}).join('')+'</select></div>':
     (store?'<div style="font-size:10px;color:var(--fg2);margin-bottom:6px">'+store.name+'</div>':''))+
-    // Meals section (only for mat area)
+    // Meals section (only for mat area) — VECKOMENY
     (al==="mat"?(function(){
-      var recipes=LISTS.recipes||[];var wm=LISTS.weekMeals||[];
+      var recipes=LISTS.recipes||[];var wp=LISTS.weekPlan||{};
+      var allNames=allPlannedMeals();
+      var wpScore=(function(){var tot=0,sc=[0,0,0,0];allNames.forEach(function(n){var r=recipes.find(function(x){return x.name===n});if(r){var m=dietMealScore(r.items,r.cat);tot+=m.total;for(var i=0;i<4;i++)sc[i]+=m.scores[i]}});return{scores:sc,total:tot}})();
+      // En måltidsslot (b/l/d) renderas
+      function slotRow(day,slot,slotLabel,slotEmoji){
+        var meals=getDayMeals(day.k);var name=meals[slot];
+        var rec=name?recipes.find(function(r){return r.name===name}):null;
+        var emoji=rec?(rec.emoji||mealEmoji(rec.name)):"";
+        if(rec){var ms=dietMealScore(rec.items,rec.cat);var fi=FOCUS_IDX[day.focus];var fp=ms.scores[fi];
+          var tag=rec.power?' <span style="font-size:8px" title="Power food">⚡</span>':rec.treat?' <span style="font-size:8px" title="Treat — bäst tidigt i veckan">🍔</span>':'';
+          var treatWarn=rec.treat&&day.smakW>=1.0?' <span style="color:#c87a3a;font-size:8px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
+          return '<div class="meal-slot" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px"><span style="width:16px;opacity:.6">'+slotEmoji+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+emoji+' '+rec.name+tag+treatWarn+'</span><span style="font-size:8px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600">'+fp+'</span><span style="font-size:8px;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)">'+(ms.total>=0?"+":"")+ms.total+'</span><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" style="width:16px;height:16px;font-size:9px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" style="width:16px;height:16px;font-size:9px">×</button></div>';
+        }
+        return '<div class="meal-slot" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px;color:var(--fg3)"><span style="width:16px;opacity:.6">'+slotEmoji+'</span><span style="flex:1">+ '+slotLabel+'</span></div>';
+      }
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
-        '<div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🍽️ Maträtter</span><button class="btn btn-s btn-sm" id="addMeal">+ Ny rätt</button></div>'+
-        (recipes.length?'<div class="inv-grid mt6">'+recipes.map(function(r,i){
-          var sel=wm.indexOf(r.name)>=0;var emoji=r.emoji||mealEmoji(r.name);
-          return '<div style="display:inline-flex;align-items:center;gap:2px"><button class="inv-btn'+(sel?" sel":"")+'" data-meal="'+i+'" title="Klicka för att välja">'+emoji+' '+r.name+'</button><button class="ib" data-editmeal="'+i+'" style="width:18px;height:18px;font-size:9px" title="Redigera">✏️</button></div>'
+        '<div class="flex aic jcb"><span style="font-size:11px;font-weight:600">📅 Veckomeny <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span><div class="flex gap4"><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla":"🍽️")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div></div>'+
+        (isOwner()?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Smak laddas mot helgen 🍑 · middag räcker, frukost/lunch valfritt</div>':'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Middag räcker — frukost & lunch är valfria</div>')+
+        // Veckokalender
+        '<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">'+
+        WEEKDAYS.map(function(day){
+          var fc=FOCUS_COLOR[day.focus];var fl=focusName(day.focus);var fe=FOCUS_EMOJI[day.focus];
+          // Smak-ramp indikator
+          var smakBar=isOwner()?(day.smakW>=1.3?"🍑🍑":day.smakW>=0.7?"🍑":""):"";
+          return '<div style="display:flex;gap:6px;padding:4px 6px;border-radius:7px;background:var(--bg2)">'+
+            '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:34px"><span style="font-size:10px;font-weight:600;color:var(--fg2)">'+day.n+'</span><span style="font-size:13px" title="'+fl+'">'+fe+'</span></div>'+
+            '<div style="width:4px;border-radius:2px;background:'+fc+';flex-shrink:0" title="'+fl+'"></div>'+
+            '<div style="flex:1;min-width:0">'+
+              (SHOW_ALL_MEALS?slotRow(day,"b","frukost","🍳")+slotRow(day,"l","lunch","🥗"):'')+
+              slotRow(day,"d","middag","🍽️")+
+            '</div>'+
+            (smakBar?'<div style="display:flex;align-items:center;font-size:8px" title="Fokusdag">'+smakBar+'</div>':'')+
+          '</div>'
         }).join('')+'</div>'+
-        (wm.length?'<div class="flex aic jcb mt6"><span style="font-size:10px;color:var(--fg2)">'+wm.length+' rätter valda</span><button class="btn btn-p btn-sm" id="addMealItems">Lägg till ingredienser →</button></div>':''):
-        '<div style="font-size:10px;color:var(--fg3);margin-top:4px">Skapa maträtter → välj för veckan → ingredienser läggs till automatiskt</div>')+
+        // Veckopoäng + balans
+        (allNames.length?(function(){
+          var sc=wpScore.scores;var maxS=Math.max.apply(null,sc.concat([1]));
+          var cats=isOwner()?["🍑 Smak","🌿 Känsla","🚀 Driv","🧘 Bas"]:["🍑 Vitalitet","🌿 Balans","🚀 Energi","🧘 Återhämtning"];
+          var catShort=isOwner()?["Smak","Känsla","Driv","Bas"]:["Vitalitet","Balans","Energi","Återhämtning"];
+          var colors=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"];
+          var minIdx=sc.indexOf(Math.min.apply(null,sc));
+          var boosters={0:"ananas, vattenmelon eller citrus",1:"rödbetor, spenat eller ingefära",2:"lax, pumpafrön eller mörk choklad",3:"avokado, kiwi eller yoghurt"};
+          var balanced=(maxS-Math.min.apply(null,sc))<=Math.max(4,maxS*0.4);
+          var scoreCol=wpScore.total>=120?"#1a8a65":wpScore.total>=70?"#7a9a3a":"#c87a3a";
+          var plannedCount=allNames.length;
+          var cheer=wpScore.total>=140?"🌟 Fantastisk vecka — ni är på topp!":wpScore.total>=100?"💪 Stark vecka, bra jobbat!":wpScore.total>=60?"👍 Fin start — fyll på lite till!":"🌱 Bra början!";
+          return '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+
+            '<div class="flex aic jcb" style="margin-bottom:2px"><span style="font-size:10px;color:var(--fg2)">Veckans hälsoscore</span><span style="font-size:18px;font-weight:700;font-family:var(--m);color:'+scoreCol+'">+'+wpScore.total+'</span></div>'+
+            '<div style="font-size:10px;color:'+scoreCol+';font-weight:600;margin-bottom:7px">'+cheer+'</div>'+
+            '<div style="display:flex;flex-direction:column;gap:3px">'+
+            cats.map(function(c,i){var pct=Math.max(3,Math.round(sc[i]/maxS*100));var weak=i===minIdx&&!balanced;
+              return '<div class="flex aic gap6"><span style="width:90px;font-size:9px;color:'+(weak?"#c87a3a":"var(--fg2)")+(weak?";font-weight:600":"")+'">'+c+(weak?" ⚠":"")+'</span><div style="flex:1;height:7px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+colors[i]+';transition:width .4s"></div></div><span style="width:22px;text-align:right;font-size:9px;font-family:var(--m);color:var(--fg2)">'+sc[i]+'</span></div>'
+            }).join('')+'</div>'+
+            (balanced?'<div style="font-size:9px;color:#1a8a65;margin-top:6px">✓ Härligt balanserad vecka!</div>':
+              '<div style="font-size:9px;color:#c87a3a;margin-top:6px">💡 Lite låg på '+catShort[minIdx]+' — prova en rätt med '+boosters[minIdx]+'</div>')+
+            '<button class="btn btn-p btn-sm mt6" id="addMealItems" style="width:100%">Lägg till veckans inköp →</button>'+
+          '</div>'
+        })():
+        '<div style="font-size:10px;color:var(--fg3);margin-top:6px;text-align:center;padding:8px">✨ Tryck <b>Auto</b> för en smart veckomeny — eller klicka en dag för att välja själv. Det blir gott!</div>')+
       '</div>'
     })():'')+
     // Price estimate
     (isShop&&estTotal>0?'<div class="shop-total"><span style="font-size:11px">Uppskattat</span><span style="font-size:14px;font-weight:600;font-family:var(--m)">~'+Math.round(estTotal)+' kr</span></div>':'')+
     // Quick-add suggestions
+    // Komplettera korgen-nudge (bara mat-området)
+    (al==="mat"&&pending.length>=2?(function(){
+      var sc=[0,0,0,0];pending.forEach(function(it){var d=dietScore(it.text);if(d)for(var i=0;i<4;i++)sc[i]+=d.scores[i]});
+      var cats=["Vitalitet","Balans","Energi","Återhämtning"];
+      var minV=Math.min.apply(null,sc);var minIdx=sc.indexOf(minV);
+      var maxV=Math.max.apply(null,sc);
+      var boosters={0:["ananas","vattenmelon","kiwi","citron"],1:["rödbetor","spenat","ingefära","avokado"],2:["lax","pumpafrön","mörk choklad","mandel"],3:["avokado","kiwi","grekisk yoghurt","gurka"]};
+      if(maxV>0&&minV<maxV*0.5){
+        var sugg=boosters[minIdx].filter(function(b){return!pending.some(function(it){return it.text.toLowerCase().indexOf(b)>=0})});
+        if(sugg.length)return '<div style="background:linear-gradient(90deg,#FFF4E0,var(--bg2));border-radius:8px;padding:7px 9px;margin-bottom:6px;font-size:10px"><span style="color:#c87a3a">💡 Korgen är lite låg på '+cats[minIdx]+'.</span> Lägg till: '+sugg.slice(0,3).map(function(b){return '<button class="inv-btn" style="font-size:10px;margin:1px" data-qadd="'+b+'">+ '+b+'</button>'}).join("")+'</div>'
+      }
+      return '';
+    })():'')+
+    // Basvaru-nudge — varor du brukar handla men som saknas på listan
+    (isShop?(function(){
+      var staples=getStapleSuggestions(al);
+      if(!staples.length)return '';
+      return '<div style="background:linear-gradient(90deg,#EEF3FA,var(--bg2));border-radius:8px;padding:7px 9px;margin-bottom:6px;font-size:10px"><span style="color:var(--fg2)">🧺 Basvaror du brukar handla:</span> '+staples.slice(0,6).map(function(s){return '<button class="inv-btn" style="font-size:10px;margin:1px" data-qadd="'+s.text+'">+ '+s.text+'</button>'}).join("")+'</div>'
+    })():'')+
     (suggestions.length?'<div class="inv-grid" style="margin-bottom:6px">'+suggestions.slice(0,8).map(function(f){return '<button class="inv-btn" data-qadd="'+f.name+'">+ '+f.name+'</button>'}).join('')+'</div>':'')+
     // Items
     (function(){
@@ -1345,6 +1961,7 @@ function rItem(it,idx,isShop){
     '<span class="name">'+it.text+'</span>'+
     (isShop&&it.cat?'<span class="cat-tag" style="cursor:pointer" data-setcat="'+idx+'" title="Byt kategori">'+(CAT_ICONS[it.cat]||"")+'</span>':'')+
     (isShop&&!it.cat?'<span class="cat-tag" style="cursor:pointer;color:var(--fg3)" data-setcat="'+idx+'">kategori?</span>':'')+
+    (isShop&&getArea(it.area)&&it.area==="mat"?dietBadge(it.text):'')+
     (isShop&&it.price?'<span class="price-tag">'+it.price+'kr</span>':'')+(isShop&&!it.price?'<span class="price-tag" style="cursor:pointer;color:var(--fg3)" data-setprice="'+idx+'">pris?</span>':'')+
     (!isShop&&it.pri==="hög"?'<span style="font-size:9px;color:var(--rose)">⬆</span>':'')+
     (!isShop&&it.assignee?'<span style="font-size:9px;color:var(--purple)">'+it.assignee+'</span>':'')+
@@ -1377,9 +1994,22 @@ function bindTodo(){
   }
   inp.addEventListener("keydown",function(e){if(e.key==="Enter"){addItem(inp.value);inp.value=""}});
   var addBtn=document.getElementById("todoAdd");if(addBtn)addBtn.addEventListener("click",function(){addItem(inp.value);inp.value=""});
+  // Lägg till basvara manuellt
+  var addStapleBtn=document.getElementById("addStaple");if(addStapleBtn)addStapleBtn.addEventListener("click",function(){
+    var name=prompt("Basvara (t.ex. tandkräm, diskmedel, hushållspapper):");if(!name||!name.trim())return;name=name.trim();
+    var guess=guessArea(name);var key=name.toLowerCase();
+    if(!LISTS.staples)LISTS.staples={};
+    LISTS.staples[key]={text:name,area:LISTS.activeArea||guess.area,cat:guess.cat,auto:false};
+    addItem(name);// lägg även på listan direkt
+    toast("🧺 "+name+" sparad som basvara");});
   document.querySelectorAll("[data-qadd]").forEach(function(el){el.addEventListener("click",function(){addItem(el.dataset.qadd)})});
   // Check/uncheck
-  document.querySelectorAll("[data-chk]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.chk);var it=LISTS.items[idx];it.done=!it.done;addActivity(ME||"Okänd",(it.done?"✓ ":"↩ ")+it.text);listsSync();render()})});
+  document.querySelectorAll("[data-chk]").forEach(function(el){el.addEventListener("click",function(){var idx=N(el.dataset.chk);var it=LISTS.items[idx];it.done=!it.done;addActivity(ME||"Okänd",(it.done?"✓ ":"↩ ")+it.text);
+    // Track health score for mat items
+    if(it.done&&it.area==="mat"){var d=dietScore(it.text);if(d){logHealth("bought",it.text,d.scores,d.total)}}
+    // Track frequency → basvara (alla områden)
+    if(it.done)trackPurchase(it);
+    listsSync();render()})});
   // Delete
   document.querySelectorAll("[data-tdel]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();LISTS.items.splice(N(el.dataset.tdel),1);listsSync();render()})});
   // Priority
@@ -1395,6 +2025,15 @@ function bindTodo(){
   // Store select
   var ss2=document.getElementById("storeSelect");if(ss2)ss2.addEventListener("change",function(e){if(!LISTS.activeStores)LISTS.activeStores={};LISTS.activeStores[LISTS.activeArea]=e.target.value;listsSync();render()});
   // Set category (click cat tag → cycle/pick → learn)
+  // Diet info button
+  var dietI=document.getElementById("dietInfo");if(dietI)dietI.addEventListener("click",function(){
+    alert("Hälsoscore för råvaror (per 100g)\n\nFyra dimensioner:\n• Vitalitet — fräschhet & lyster\n• Balans — cirkulation & flöde\n• Energi — vitalitet & ork\n• Återhämtning — vätska & stabilitet\n\nGröna siffror = bra. Röda = minimera.\n\nTopp: ananas, vattenmelon, rödbetor, lax, ingefära, avokado.\nMinimera: vitlök, lök, alkohol.\n\nMån–Ons: fokus Energi+Återhämtning\nTors–Sön: fokus Vitalitet+Balans\n\nKlicka på en siffra för detaljscore.");
+  });
+  // Diet badge — click for breakdown
+  document.querySelectorAll(".diet-badge").forEach(function(el){el.addEventListener("click",function(e){
+    e.stopPropagation();var txt=decodeURIComponent(el.dataset.diet);var d=dietScore(txt);if(!d)return;
+    toast(txt+" — Vit:"+d.scores[0]+" Bal:"+d.scores[1]+" Ene:"+d.scores[2]+" Åter:"+d.scores[3]+" (totalt "+(d.total>0?"+":"")+d.total+")");
+  })});
   document.querySelectorAll("[data-setcat]").forEach(function(el){el.addEventListener("click",function(e){
     e.stopPropagation();var idx=N(el.dataset.setcat);var it=LISTS.items[idx];
     var area=getArea(it.area);var store=getActiveStore(it.area);
@@ -1417,42 +2056,113 @@ function bindTodo(){
     di.addEventListener("change",function(){LISTS.items[idx].deadline=di.value;listsSync();render();di.remove()});
     di.addEventListener("blur",function(){setTimeout(function(){di.remove()},200)})})});
   // === MEALS ===
+  // === VECKOMENY ===
   var addMealBtn=document.getElementById("addMeal");if(addMealBtn)addMealBtn.addEventListener("click",function(){
-    var name=prompt("Maträtt (t.ex. Tacos, Laxpasta, Köttfärssås):");if(!name)return;
+    var name=prompt("Maträtt (t.ex. Tacos, Laxbowl):");if(!name)return;
     var emoji=mealEmoji(name);
     var customEmoji=prompt("Emoji (förslag: "+emoji+"):",emoji);if(customEmoji)emoji=customEmoji;
-    var ingStr=prompt("Ingredienser (kommaseparerade):\nt.ex. tortillas, färs, paprika, lök, gräddfil");if(!ingStr)return;
+    var ingStr=prompt("Ingredienser (kommaseparerade):\nt.ex. lax, spenat, avokado, citron");if(!ingStr)return;
     var items=ingStr.split(",").map(function(s){return s.trim()}).filter(Boolean);
     if(!LISTS.recipes)LISTS.recipes=[];
     LISTS.recipes.push({name:name,emoji:emoji,items:items});
-    addActivity(ME||"Okänd","skapade "+emoji+" "+name);listsSync();render()});
-  // Edit meal
-  document.querySelectorAll("[data-editmeal]").forEach(function(el){el.addEventListener("click",function(e){
-    e.stopPropagation();var idx=N(el.dataset.editmeal);var rec=(LISTS.recipes||[])[idx];if(!rec)return;
-    var action=prompt(rec.emoji+" "+rec.name+"\n\nIngredienser: "+rec.items.join(", ")+"\n\n1. Ändra namn\n2. Ändra ingredienser\n3. Ändra emoji\n4. Ta bort\n\nAnge nummer:");
-    if(!action)return;
-    if(action==="1"){var nn=prompt("Nytt namn:",rec.name);if(nn)rec.name=nn}
-    else if(action==="2"){var ni=prompt("Ingredienser (kommaseparerade):",rec.items.join(", "));if(ni)rec.items=ni.split(",").map(function(s){return s.trim()}).filter(Boolean)}
-    else if(action==="3"){var ne=prompt("Ny emoji:",rec.emoji);if(ne)rec.emoji=ne}
-    else if(action==="4"){if(confirm("Ta bort "+rec.name+"?")){LISTS.recipes.splice(idx,1);var wmi=(LISTS.weekMeals||[]).indexOf(rec.name);if(wmi>=0)LISTS.weekMeals.splice(wmi,1)}}
-    listsSync();render()})});
-  // Toggle meal selection
-  document.querySelectorAll("[data-meal]").forEach(function(el){el.addEventListener("click",function(){
-    if(!LISTS.weekMeals)LISTS.weekMeals=[];var idx=N(el.dataset.meal);var rec=(LISTS.recipes||[])[idx];if(!rec)return;
-    var wmi=LISTS.weekMeals.indexOf(rec.name);
-    if(wmi>=0)LISTS.weekMeals.splice(wmi,1);else LISTS.weekMeals.push(rec.name);
-    listsSync();render()})});
-  // Add meal ingredients to shopping list
+    // Auto-score feedback
+    var ms=dietMealScore(items);
+    var grade=ms.total>=30?"Utmärkt! 🌟":ms.total>=20?"Bra 👍":ms.total>=10?"Okej":ms.total>=0?"Neutral":"Lågt — överväg fler nyttiga råvaror";
+    addActivity(ME||"Okänd","skapade "+emoji+" "+name);listsSync();
+    alert(emoji+" "+name+"\n\nHälsoscore: "+(ms.total>0?"+":"")+ms.total+" ("+grade+")\n\nVitalitet: "+ms.scores[0]+"\nBalans: "+ms.scores[1]+"\nEnergi: "+ms.scores[2]+"\nÅterhämtning: "+ms.scores[3]+"\n\n("+ms.hits+" av "+items.length+" råvaror har score)");
+    render()});
+  // Toggle alla måltider (frukost/lunch/middag)
+  var tm=document.getElementById("toggleMeals");if(tm)tm.addEventListener("click",function(){SHOW_ALL_MEALS=!SHOW_ALL_MEALS;render()});
+  // Auto-fill week by timing
+  var autoW=document.getElementById("autoWeek");if(autoW)autoW.addEventListener("click",function(){
+    var plan=suggestWeekMeals();if(!Object.keys(plan).length){toast("Inga rätter än — skapa några först");return}
+    LISTS.weekPlan=plan;addActivity(ME||"Okänd","auto-fyllde veckomenyn");listsSync();toast("✨ Veckomeny skapad — Smak laddad mot helgen");render()});
+  // Click meal-slot → pick recipe (bottom-sheet med tappbara kort)
+  document.querySelectorAll(".meal-slot").forEach(function(el){el.addEventListener("click",function(e){
+    if(e.target.classList.contains("clear-slot")||e.target.classList.contains("recipe-show"))return;
+    var day=el.dataset.day;var slot=el.dataset.slot;var dayObj=WEEKDAYS.find(function(d){return d.k===day});
+    var recipes=LISTS.recipes||[];if(!recipes.length){toast("Skapa rätter först");return}
+    var pool=recipes.filter(function(r){return slot==="b"?r.meal==="frukost":r.meal!=="frukost"});
+    if(!pool.length)pool=recipes;
+    var ranked=pool.map(function(r){return{r:r,score:recipeFocusScore(r,dayObj)}}).sort(function(a,b){return b.score-a.score});
+    var fi=FOCUS_IDX[dayObj.focus];var slotName=slot==="b"?"Frukost":slot==="l"?"Lunch":"Middag";
+    var fEmoji=FOCUS_EMOJI[dayObj.focus];
+    var CAT_LABELS={sallad:"🥗 Sallad",bowl:"🥣 Bowl",pasta:"🍝 Pasta",wok:"🥘 Wok",gryta:"🍲 Gryta",soppa:"🍲 Soppa",grill:"🔥 Grill",frukost:"🍳 Frukost"};
+    var cards=ranked.slice(0,60).map(function(x){var ms=dietMealScore(x.r.items,x.r.cat);
+      var tag=x.r.power?"⚡ Power":x.r.treat?"🍔 Treat":x.r.season==="grill"?"🔥 Grill":"";
+      var rateTag=x.r.rating===2?" ⭐":x.r.rating===1?" 👍":"";
+      var meta=focusName(dayObj.focus)+" "+ms.scores[fi]+(tag?" · "+tag:"");
+      var sc=ms.total>=25?"#1a8a65":ms.total>=10?"#7a9a3a":ms.total>=0?"#999":"#c83a3a";
+      var scBg=ms.total>=25?"#E6F4EE":ms.total>=0?"var(--bg2)":"#FBEAEA";
+      return{emoji:x.r.emoji||"🍽️",name:x.r.name+rateTag,meta:meta,score:(ms.total>=0?"+":"")+ms.total,scoreColor:sc,scoreBg:scBg,value:x.r.name,cat:x.r.cat||"övrigt"};
+    });
+    // Kategorier som faktiskt finns bland korten
+    var catsPresent={};cards.forEach(function(c){if(c.cat&&CAT_LABELS[c.cat])catsPresent[c.cat]=true});
+    var catList=Object.keys(catsPresent).map(function(k){return{key:k,label:CAT_LABELS[k]}});
+    var sub=dayObj.n+" · "+fEmoji+" "+focusName(dayObj.focus)+(isOwner()&&dayObj.smakW>=0.7?" · Smak-laddning 🍑":"");
+    openSheet("Välj "+slotName.toLowerCase(),sub,cards,function(name){setDayMeal(day,slot,name);listsSync();toast("✨ "+slotName+" satt!");render()},catList.length>=2?catList:null);
+  });
+  });
+  // Clear a meal slot
+  document.querySelectorAll(".clear-slot").forEach(function(el){el.addEventListener("click",function(e){
+    e.stopPropagation();setDayMeal(el.dataset.day,el.dataset.slot,null);listsSync();render()})});
+  // Show recipe (gör såhär)
+  document.querySelectorAll(".recipe-show").forEach(function(el){el.addEventListener("click",function(e){
+    e.stopPropagation();var name=decodeURIComponent(el.dataset.recipe);var rec=(LISTS.recipes||[]).find(function(r){return r.name===name});if(!rec)return;
+    var ms=dietMealScore(rec.items,rec.cat);
+    var grade=ms.total>=30?"Utmärkt 🌟":ms.total>=20?"Bra 👍":ms.total>=10?"Okej":"Neutral";
+    var cats=isOwner()?["Smak","Känsla","Driv","Bas"]:["Vitalitet","Balans","Energi","Återhämtning"];
+    var colors=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"];
+    var bars=cats.map(function(c,i){var v=ms.scores[i];var pct=Math.max(3,Math.round(Math.abs(v)/Math.max(1,Math.max.apply(null,ms.scores.map(Math.abs)))*100));return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="width:80px;font-size:11px;color:var(--fg2)">'+c+'</span><div style="flex:1;height:7px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+colors[i]+'"></div></div><span style="width:24px;text-align:right;font-size:11px;font-family:var(--m)">'+v+'</span></div>'}).join('');
+    var body='<div style="font-size:12px;color:var(--fg2);margin-bottom:10px"><b>📋 Ingredienser</b><br>'+rec.items.join(", ")+'</div>'+
+      '<div style="font-size:12px;color:var(--fg2);margin-bottom:12px"><b>👨‍🍳 Gör såhär</b><br>'+(rec.howto||"(Inga instruktioner)")+'</div>'+
+      '<div style="background:var(--bg2);border-radius:12px;padding:12px;margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;font-weight:600">💚 Hälsoscore</span><span style="font-size:18px;font-weight:700;font-family:var(--m);color:'+(ms.total>=20?"#1a8a65":"#999")+'">'+(ms.total>=0?"+":"")+ms.total+'</span></div>'+bars+'</div>'+
+      // Betygsknappar
+      '<div style="font-size:11px;font-weight:600;margin-bottom:6px">Vad tycker ni om rätten?</div>'+
+      '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+        '<button class="rate-btn" data-rate="2" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(rec.rating===2?"#e0a800":"var(--border)")+';background:'+(rec.rating===2?"#FFF6D9":"var(--bg2)")+';font-size:16px;cursor:pointer">⭐<div style="font-size:9px;color:var(--fg2)">Favorit</div></button>'+
+        '<button class="rate-btn" data-rate="1" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(rec.rating===1?"#1a8a65":"var(--border)")+';background:'+(rec.rating===1?"#E6F4EE":"var(--bg2)")+';font-size:16px;cursor:pointer">👍<div style="font-size:9px;color:var(--fg2)">Gillar</div></button>'+
+        '<button class="rate-btn" data-rate="-1" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(rec.rating===-1?"#c83a3a":"var(--border)")+';background:'+(rec.rating===-1?"#FBEAEA":"var(--bg2)")+';font-size:16px;cursor:pointer">👎<div style="font-size:9px;color:var(--fg2)">Sällan</div></button>'+
+      '</div>'+
+      '<button class="del-recipe" style="width:100%;padding:10px;border-radius:10px;border:1px solid #c83a3a;background:transparent;color:#c83a3a;font-size:12px;cursor:pointer">🗑️ Ta bort rätten</button>';
+    openInfoSheet((rec.emoji||"🍽️")+" "+rec.name+(rec.rating===2?" ⭐":rec.rating===1?" 👍":rec.rating===-1?" 👎":""),grade,body);
+    // Betyg-events
+    setTimeout(function(){
+      document.querySelectorAll(".rate-btn").forEach(function(b){b.addEventListener("click",function(){
+        var rt=N(b.dataset.rate);rec.rating=(rec.rating===rt)?0:rt;// toggla av om samma
+        listsSync();closeSheet();toast(rec.rating===2?"⭐ Favorit!":rec.rating===1?"👍 Gillas":rec.rating===-1?"👎 Visas mer sällan":"Betyg rensat");render();
+      })});
+      var del=document.querySelector(".del-recipe");if(del)del.addEventListener("click",function(){
+        if(confirm("Ta bort \""+rec.name+"\" från receptbanken?")){
+          var i=LISTS.recipes.indexOf(rec);if(i>=0)LISTS.recipes.splice(i,1);
+          // Rensa ur veckoplan
+          if(LISTS.weekPlan)Object.keys(LISTS.weekPlan).forEach(function(k){var v=LISTS.weekPlan[k];if(typeof v==="string"&&v===rec.name)delete LISTS.weekPlan[k];else if(v&&typeof v==="object"){["b","l","d"].forEach(function(s){if(v[s]===rec.name)delete v[s]});if(!Object.keys(v).length)delete LISTS.weekPlan[k]}});
+          listsSync();closeSheet();toast("🗑️ "+rec.name+" borttagen");render();
+        }
+      });
+    },50);
+  })});
+  // Add week's ingredients to shopping (alla måltider b/l/d)
   var addMI=document.getElementById("addMealItems");if(addMI)addMI.addEventListener("click",function(){
-    var added=0,skipped=0,askDupes=[];
-    (LISTS.weekMeals||[]).forEach(function(mn){var rec=(LISTS.recipes||[]).find(function(r){return r.name===mn});if(rec)(rec.items||[]).forEach(function(ing){
+    var recipes=LISTS.recipes||[];var names=allPlannedMeals();
+    var added=0,askDupes=[];
+    names.forEach(function(n){var rec=recipes.find(function(r){return r.name===n});if(rec)(rec.items||[]).forEach(function(ing){
       var exists=(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
-      if(exists){skipped++;askDupes.push(ing)}
-      else{var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++}
+      if(exists){if(askDupes.indexOf(ing)<0)askDupes.push(ing)}
+      else{var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];if(!LISTS.items.some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done})){LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++}}
     })});
-    if(askDupes.length){var addDupes=confirm(askDupes.length+" varor finns redan på listan:\n"+askDupes.join(", ")+"\n\nVill du lägga till dem ändå (du kanske behöver dubbelt)?");
+    if(askDupes.length){var addDupes=confirm(askDupes.length+" varor finns redan:\n"+askDupes.join(", ")+"\n\nLägg till ändå?");
       if(addDupes){askDupes.forEach(function(ing){var guess=guessArea(ing);LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++})}}
-    if(added)addActivity(ME||"Okänd","la till "+added+" ingredienser");listsSync();toast(added+" tillagda"+(skipped&&!askDupes.length?", "+skipped+" fanns redan":""));render()});
+    if(added)addActivity(ME||"Okänd","la till "+added+" ingredienser från veckomenyn");listsSync();
+    // Basvaru-fråga för smidighet
+    var staples=getStapleSuggestions("mat").concat(getStapleSuggestions(null).filter(function(s){return s.area!=="mat"}));
+    if(staples.length){
+      var stapleNames=staples.slice(0,8).map(function(s){return s.text});
+      var addStaples=confirm(added+" varor tillagda.\n\nVill du även lägga till dina basvaror?\n"+stapleNames.join(", "));
+      if(addStaples){var sa=0;staples.forEach(function(s){if(!(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===s.text.toLowerCase()&&!li.done})){LISTS.items.push({text:s.text,area:s.area,cat:s.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});sa++}});listsSync();toast(added+" varor + "+sa+" basvaror tillagda")}
+      else toast(added+" varor tillagda");
+    }else toast(added+" varor tillagda");
+    render()});
   // Clear done
   var clr=document.getElementById("clearDone");if(clr)clr.addEventListener("click",function(){var al=LISTS.activeArea;LISTS.items=(LISTS.items||[]).filter(function(it){return!it.done||it.area!==al});listsSync();render()});
 }
@@ -1482,6 +2192,13 @@ function bindAll(f,c){
   if(S.tab==="todo")bindTodo();
   // Dashboard prospect cards — click to open
   document.querySelectorAll(".prospect-card[data-opi]").forEach(function(el){el.addEventListener("click",function(){S.tab="prospekt";S.viewIdx=N(el.dataset.opi);render();setTimeout(updateCharts,100)})});
+  // Health detail (owner only)
+  var hd=document.getElementById("healthDetail");if(hd)hd.addEventListener("click",function(){
+    var k=healthKPIs();if(!k){toast("Ingen data än");return}
+    var log=(HEALTH_LOG||[]).slice(-20).reverse();
+    var lines=log.map(function(e){var d=new Date(e.t);var ds=d.getDate()+"/"+(d.getMonth()+1);return ds+" "+e.item+" ("+(e.total>0?"+":"")+e.total+")"}).join("\n");
+    alert("📊 Hälsoscore historik\n\nDenna vecka: "+(k.thisWeek.total>0?"+":"")+k.thisWeek.total+" ("+k.thisWeek.count+" inköp)\nFörra veckan: "+(k.lastWeek.total>0?"+":"")+k.lastWeek.total+" ("+k.lastWeek.count+")\nTotalt: "+(k.allTime.total>0?"+":"")+k.allTime.total+" ("+k.allTime.count+" inköp)\n\nVitalitet: "+k.allTime.scores[0]+"\nBalans: "+k.allTime.scores[1]+"\nEnergi: "+k.allTime.scores[2]+"\nÅterhämtning: "+k.allTime.scores[3]+"\n\n— Senaste 20 inköp —\n"+lines);
+  });
   // Dashboard todo items — click to navigate
   document.querySelectorAll("[data-todogoto]").forEach(function(el){el.addEventListener("click",function(){
     var goto=el.dataset.todogoto;if(!goto)return;

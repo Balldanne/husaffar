@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
 :root{--bg:#FDFBF7;--bg2:#F5F1EA;--fg:#2D2519;--fg2:#6B6358;--fg3:#9C9588;--border:#E8E3DA;--card:#FFF;--coral:#C2532E;--coralL:#FAECE7;--amber:#D4890F;--amberL:#FFF4DE;--teal:#1A8A65;--tealL:#E6F5EE;--purple:#6B4DAA;--purpleL:#EEEDFE;--blue:#2E78B7;--blueL:#E6F1FB;--rose:#C04050;--roseL:#FCE8EB;--green:#3B8A2E;--greenL:#EAF5E6;--r:12px;--f:'DM Sans',system-ui,sans-serif;--m:'JetBrains Mono',monospace}
 .dark{--bg:#141210;--bg2:#1E1B17;--fg:#E8E3DA;--fg2:#9C9588;--fg3:#6B6358;--border:#2D2A24;--card:#1E1B17;--coral:#E07050;--coralL:#2D1A14;--amber:#F0A030;--amberL:#2D2214;--teal:#3DB88A;--tealL:#142D22;--purple:#9B7DD8;--purpleL:#1E1A30;--blue:#5098D8;--blueL:#14202D;--rose:#E06070;--roseL:#2D141A;--green:#5DB84A;--greenL:#142D14}
@@ -176,6 +177,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 // === FIREBASE ===
 firebase.initializeApp({apiKey:"AIzaSyDmQKsqqai1DKB2sJ4F0hIbX1EbknLNpA4",authDomain:"hus-och-budget.firebaseapp.com",databaseURL:"https://hus-och-budget-default-rtdb.europe-west1.firebasedatabase.app",projectId:"hus-och-budget",storageBucket:"hus-och-budget.firebasestorage.app",messagingSenderId:"1019610713349",appId:"1:1019610713349:web:26c9ec60dfd8009c1b3b6c"});
 var db=firebase.database();
+var auth=firebase.auth();
 
 // === UTILS ===
 function N(v){var n=Number(v);return isNaN(n)?0:n}
@@ -1274,13 +1276,53 @@ function connect(id){
     S.family=fam}
     if(d.prospects)S.prospects=d.prospects;S.screen="app";skipSync=false;render();setTimeout(updateCharts,200);setTimeout(updateCharts,600)});
   dbRef.once("value",function(snap){if(!snap.val())dbRef.set({family:S.family,prospects:[]})});
-  S.screen="app";localStorage.setItem("hid",id);render()
+  S.screen="app";render()
 }
 
 // === RENDER ===
-function render(){var a=document.getElementById("app");a.className=S.dark?"dark":"";if(S.screen==="login"){rLogin(a);return}rApp(a)}
+function render(){var a=document.getElementById("app");a.className=S.dark?"dark":"";if(S.screen==="login"){rLogin(a);return}if(S.screen==="pending"){rPending(a);return}rApp(a)}
 
-function rLogin(el){el.innerHTML='<div class="login"><div class="logo" style="width:64px;height:64px;border-radius:16px"><svg viewBox="0 0 36 36" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><h2>Family Command</h2><p>Ange ert hushålls-ID (min 6 tecken)</p><input id="hi" type="text" placeholder="t.ex. familjen-2025" value="'+S.hid+'"><button class="btn btn-p" id="hb">Anslut</button><p style="font-size:10px;color:var(--fg3)">Data synkas i realtid mellan familjemedlemmar</p></div>';document.getElementById("hi").addEventListener("input",function(e){S.hid=e.target.value});document.getElementById("hb").addEventListener("click",function(){var id=S.hid.trim();if(id.length<6)return alert("Minst 6 tecken");connect(id)});document.getElementById("hi").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("hb").click()})}
+function rLogin(el){
+  var mode=S.authMode||"in";// "in" = logga in, "up" = skapa konto
+  el.innerHTML='<div class="login"><div class="logo" style="width:64px;height:64px;border-radius:16px"><svg viewBox="0 0 36 36" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div>'+
+    '<h2>Family Command</h2>'+
+    '<p>'+(mode==="in"?"Logga in med din e-post":"Skapa ditt konto")+'</p>'+
+    '<input id="authEmail" type="email" placeholder="E-post" autocomplete="email" value="'+(S.authEmail||"")+'">'+
+    '<input id="authPass" type="password" placeholder="Lösenord (minst 8 tecken)" autocomplete="'+(mode==="in"?"current-password":"new-password")+'">'+
+    '<button class="btn btn-p" id="authBtn">'+(mode==="in"?"Logga in":"Skapa konto")+'</button>'+
+    '<p id="authErr" style="color:var(--rose);font-size:11px;min-height:14px"></p>'+
+    '<p style="font-size:11px;color:var(--fg3)">'+(mode==="in"?'Inget konto än? ':'Har du redan konto? ')+'<a id="authToggle" style="color:var(--teal);cursor:pointer;text-decoration:underline">'+(mode==="in"?"Skapa konto":"Logga in")+'</a></p>'+
+    (mode==="in"?'<p style="font-size:10px;color:var(--fg3)"><a id="authReset" style="color:var(--fg2);cursor:pointer;text-decoration:underline">Glömt lösenord?</a></p>':'')+
+    '<p style="font-size:10px;color:var(--fg3);margin-top:10px">🔒 Krypterad inloggning · data skyddad bakom konto</p></div>';
+  var em=document.getElementById("authEmail"),pw=document.getElementById("authPass"),err=document.getElementById("authErr");
+  em.addEventListener("input",function(e){S.authEmail=e.target.value});
+  function showErr(m){err.textContent=m}
+  function doAuth(){
+    var email=(em.value||"").trim(),pass=pw.value||"";
+    if(!email||!pass){showErr("Fyll i e-post och lösenord");return}
+    if(mode==="up"&&pass.length<8){showErr("Lösenordet måste vara minst 8 tecken");return}
+    if(mode==="up"&&!isAllowedEmail(email)){showErr("Den här e-posten är inte inbjuden. Be admin lägga till dig.");return}
+    showErr("");
+    var p=mode==="up"?auth.createUserWithEmailAndPassword(email,pass):auth.signInWithEmailAndPassword(email,pass);
+    p.catch(function(e){
+      var msg=e.code==="auth/wrong-password"||e.code==="auth/invalid-credential"?"Fel e-post eller lösenord":
+        e.code==="auth/user-not-found"?"Inget konto med den e-posten — skapa ett":
+        e.code==="auth/email-already-in-use"?"E-posten har redan ett konto — logga in":
+        e.code==="auth/invalid-email"?"Ogiltig e-postadress":
+        e.code==="auth/weak-password"?"För svagt lösenord (minst 8 tecken)":
+        "Något gick fel: "+(e.message||e.code);
+      showErr(msg);
+    });
+    // Vid lyckad auth tar onAuthStateChanged över
+  }
+  document.getElementById("authBtn").addEventListener("click",doAuth);
+  pw.addEventListener("keydown",function(e){if(e.key==="Enter")doAuth()});
+  document.getElementById("authToggle").addEventListener("click",function(){S.authMode=mode==="in"?"up":"in";render()});
+  var rs=document.getElementById("authReset");if(rs)rs.addEventListener("click",function(){
+    var email=(em.value||"").trim();if(!email){showErr("Skriv din e-post först");return}
+    auth.sendPasswordResetEmail(email).then(function(){showErr("")||(err.style.color="var(--teal)",err.textContent="Återställningslänk skickad till "+email)}).catch(function(e){showErr("Kunde inte skicka: "+(e.message||e.code))});
+  });
+}
 
 function rApp(el){var f=S.family,c=calcFamily(f);
   var pillsHtml='';
@@ -1290,7 +1332,7 @@ function rApp(el){var f=S.family,c=calcFamily(f);
   var todoBadge=(LISTS.items||[]).filter(function(t){return!t.done}).length;
   var prospBadge=S.prospects.length;
   var meInitial=ME?ME[0]:"?";var meCol=ME===f.persons[0].name?"var(--purple)":"var(--teal)";
-  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="meBtn" title="Byt person" style="background:'+meCol+';color:#fff;font-size:11px;font-weight:700;border-radius:50%;width:26px;height:26px">'+meInitial+'</button><button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
+  el.innerHTML='<div class="app"><header><div class="inner"><div class="flex aic" style="min-width:0"><div class="logo"><svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/></linearGradient></defs><path d="M18 4L4 14v16a2 2 0 002 2h8v-8a4 4 0 018 0v8h8a2 2 0 002-2V14z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="14" r="3" fill="none" stroke="#e94560" stroke-width="1.5"/><path d="M12 19a6 6 0 0112 0" fill="none" stroke="#e94560" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="htitle"><h1>Family Command</h1><p>Ekonomi · Bostad · Familj</p></div></div><div class="hpills">'+pillsHtml+'<button class="ib" id="meBtn" title="Byt person" style="background:'+meCol+';color:#fff;font-size:11px;font-weight:700;border-radius:50%;width:26px;height:26px">'+meInitial+'</button><button class="ib" id="td">'+(IS_ADMIN?'<button class="ib" id="membersBtn" title="Medlemmar">👥</button>':'')+'<button class="ib" id="td">'+(S.dark?"☀️":"🌙")+'</button><button class="ib" id="lo">🔑</button></div></div></header>'+
   '<div class="tabs">'+
   '<button class="tab '+(S.tab==="dash"?"a":"")+'" data-t="dash"><span class="tab-icon">📊</span><span class="tab-label">Översikt</span></button>'+
   '<button class="tab '+(S.tab==="bostad"?"a":"")+'" data-t="bostad"><span class="tab-icon">🏠</span><span class="tab-label">Ekonomi</span></button>'+
@@ -1786,7 +1828,7 @@ function healthKPIs(){
   function agg(arr){var s=[0,0,0,0],tot=0;arr.forEach(function(e){if(e.scores)for(var i=0;i<4;i++)s[i]+=e.scores[i];tot+=e.total||0});return{scores:s,total:tot,count:arr.length}}
   return{thisWeek:agg(thisWeek),lastWeek:agg(lastWeek),allTime:agg(HEALTH_LOG)};
 }
-function isOwner(){return(ME||"").toLowerCase().indexOf("daniel")>=0}
+function isOwner(){return(typeof IS_ADMIN!=="undefined"&&IS_ADMIN)||(ME||"").toLowerCase().indexOf("daniel")>=0}
 // Veckodags-fokus (oskyldig rytm, ingen tracking)
 function dayFocusToday(){
   var d=new Date().getDay();// 0=sön
@@ -2208,7 +2250,8 @@ function bindAll(f,c){
     render();setTimeout(updateCharts,100)})});
   // Expand/collapse
   document.querySelectorAll(".sec-h").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();toggleSec(el.dataset.sec)})});
-  document.getElementById("lo").addEventListener("click",function(){localStorage.removeItem("hid");if(dbRef)dbRef.off();if(shopRef)shopRef.off();dbRef=null;shopRef=null;S.screen="login";S.hid="";render()});
+  document.getElementById("lo").addEventListener("click",function(){auth.signOut();localStorage.removeItem("hid");if(dbRef)dbRef.off();if(shopRef)shopRef.off();dbRef=null;shopRef=null;LISTS_LOADED=false;S.screen="login";S.hid="";render()});
+  var mb=document.getElementById("membersBtn");if(mb)mb.addEventListener("click",openMembersPanel);
   document.querySelectorAll(".tab").forEach(function(t){t.addEventListener("click",function(){S.viewIdx=null;S.tab=t.dataset.t;render();setTimeout(updateCharts,60)})});
   // Bostad
   var bF=function(id,k,p){var el=document.getElementById(id);if(el)el.addEventListener("change",function(e){var fam=dc(S.family);fam[k]=p?p(e.target.value):e.target.value;ss({family:fam})})};
@@ -2491,7 +2534,92 @@ function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e
   // Dashboard charts removed in v16 (feed-focused design)
 }
 
-var saved=localStorage.getItem("hid");if(saved){S.hid=saved;connect(saved)}else render();
+// Auth-state styr appen: inloggad → anslut, utloggad → login
+// === MEDLEMSSYSTEM ===
+var HOUSEHOLD_ID="Bagare416";// delat hushåll
+// FYLL I din (Daniels) e-post nedan — den blir admin. Måste matcha e-posten i Firebase-reglerna.
+var ADMIN_EMAIL="";// t.ex. "daniel@gmail.com"
+// Valfri allowlist: fyll i för att blockera registrering för andra än dessa. Tom = vem som helst kan be om åtkomst (men måste godkännas).
+var ALLOWED_EMAILS=[];// t.ex. ["daniel@gmail.com","malin@gmail.com"]
+var IS_ADMIN=false,MEMBER=null,MEMBERS=null,membersAllRef=null;
+
+function isAllowedEmail(email){
+  email=(email||"").toLowerCase();
+  if(!ALLOWED_EMAILS.length)return true;
+  return ALLOWED_EMAILS.map(function(e){return e.toLowerCase()}).indexOf(email)>=0;
+}
+
+auth.onAuthStateChanged(function(user){
+  if(!user){
+    if(dbRef){dbRef.off();dbRef=null}if(shopRef){shopRef.off();shopRef=null}
+    if(membersAllRef){membersAllRef.off();membersAllRef=null}
+    LISTS_LOADED=false;IS_ADMIN=false;MEMBER=null;MEMBERS=null;S.screen="login";render();return;
+  }
+  var email=(user.email||"").toLowerCase();
+  ME=email?email.split("@")[0]:"";
+  var mref=db.ref("households/"+HOUSEHOLD_ID+"/members/"+user.uid);
+  mref.once("value").then(function(snap){
+    var m=snap.val();
+    var isAdminEmail=ADMIN_EMAIL&&email===ADMIN_EMAIL.toLowerCase();
+    if(!m){
+      // Ny medlem: admin-mejlet auto-godkänns, övriga blir väntande
+      m={email:email,approved:!!isAdminEmail,admin:!!isAdminEmail,ts:Date.now()};
+      mref.set(m).catch(function(){});
+    }else if(isAdminEmail&&(!m.admin||!m.approved)){
+      m.admin=true;m.approved=true;mref.update({admin:true,approved:true}).catch(function(){});
+    }
+    MEMBER=m;IS_ADMIN=!!m.admin;
+    if(m.approved){
+      S.screen="app";
+      if(IS_ADMIN)watchMembers();
+      if(!dbRef)connect(HOUSEHOLD_ID);else render();
+    }else{
+      S.screen="pending";render();
+    }
+  }).catch(function(){
+    // Regler blockerar (ej godkänd än) → visa väntläge
+    MEMBER={email:email,approved:false};S.screen="pending";render();
+  });
+});
+
+function watchMembers(){
+  if(membersAllRef)return;
+  membersAllRef=db.ref("households/"+HOUSEHOLD_ID+"/members");
+  membersAllRef.on("value",function(snap){MEMBERS=snap.val()||{};if(S.tab==="dash")render()});
+}
+// Admin: godkänn/återkalla/ta bort medlem
+function setMemberApproval(uid,approved){
+  db.ref("households/"+HOUSEHOLD_ID+"/members/"+uid+"/approved").set(approved).catch(function(e){toast("Kunde inte: "+e.message)});
+}
+function removeMember(uid){
+  db.ref("households/"+HOUSEHOLD_ID+"/members/"+uid).remove().catch(function(e){toast("Kunde inte: "+e.message)});
+}
+// Admin-panel som sheet
+function openMembersPanel(){
+  if(!IS_ADMIN||!MEMBERS){toast("Inga medlemmar att visa");return}
+  var rows=Object.keys(MEMBERS).map(function(uid){var m=MEMBERS[uid];
+    var status=m.admin?"👑 Admin":m.approved?"✓ Godkänd":"⏳ Väntar";
+    var btns=m.admin?'':(m.approved?
+      '<button class="mem-act" data-act="revoke" data-uid="'+uid+'" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer">Återkalla</button>':
+      '<button class="mem-act" data-act="approve" data-uid="'+uid+'" style="padding:6px 10px;border-radius:8px;border:none;background:#1a8a65;color:#fff;font-size:11px;cursor:pointer">Godkänn</button>')+
+      (m.admin?'':'<button class="mem-act" data-act="remove" data-uid="'+uid+'" style="padding:6px 10px;border-radius:8px;border:1px solid #c83a3a;background:transparent;color:#c83a3a;font-size:11px;cursor:pointer;margin-left:6px">Ta bort</button>');
+    return '<div style="display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;background:var(--bg2);margin-bottom:7px"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis">'+(m.email||uid)+'</div><div style="font-size:10px;color:var(--fg2)">'+status+'</div></div>'+btns+'</div>';
+  }).join('');
+  openInfoSheet("👥 Medlemmar","Godkänn vem som når familjens data",rows||'<div style="color:var(--fg3);font-size:12px">Inga medlemmar än</div>');
+  setTimeout(function(){document.querySelectorAll(".mem-act").forEach(function(b){b.addEventListener("click",function(){
+    var uid=b.dataset.uid,act=b.dataset.act;
+    if(act==="approve"){setMemberApproval(uid,true);toast("✓ Godkänd")}
+    else if(act==="revoke"){setMemberApproval(uid,false);toast("Åtkomst återkallad")}
+    else if(act==="remove"){if(confirm("Ta bort medlemmen helt?")){removeMember(uid);toast("Borttagen")}}
+    closeSheet();
+  })})},50);
+}
+// Väntläge-skärm
+function rPending(el){
+  el.innerHTML='<div class="login"><div style="font-size:48px;margin-bottom:8px">⏳</div><h2>Väntar på godkännande</h2><p style="font-size:13px;color:var(--fg2)">Ditt konto ('+((MEMBER&&MEMBER.email)||"")+') har registrerats men måste godkännas av familjens admin innan du får tillgång.</p><button class="btn btn-s" id="poLogout" style="margin-top:12px">Logga ut</button><button class="btn btn-s" id="poRefresh" style="margin-top:6px">Kontrollera igen</button></div>';
+  document.getElementById("poLogout").addEventListener("click",function(){auth.signOut()});
+  document.getElementById("poRefresh").addEventListener("click",function(){location.reload()});
+}
 fetchWeather();
 </script>
 </body>

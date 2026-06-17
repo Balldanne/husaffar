@@ -771,7 +771,7 @@ var AREAS=[
   {id:"bil",name:"Bil",icon:"🚗",type:"tasks",stores:[]},
   {id:"barn",name:"Barn",icon:"👶",type:"tasks",stores:[]}
 ];
-var LISTS={items:null,history:null,activeArea:"mat",activeStores:{},projects:null,recipes:null,weekMeals:null,weekPlan:null,staples:null,mealEaten:null,workouts:null,workoutDone:null,trainPlan:null,trainLog:null,runLog:null,trainGoals:null};
+var LISTS={items:null,history:null,activeArea:"mat",activeStores:{},projects:null,recipes:null,weekMeals:null,weekPlan:null,staples:null,mealEaten:null,workouts:null,workoutDone:null,trainPlan:null,trainLog:null,runLog:null,trainGoals:null,mealLog:null};
 var LISTS_LOADED=false;
 var STAPLE_THRESHOLD=3;// köpt så här många ggr → basvara
 // Sanera data — förhindrar buggar med trasiga items/rätter
@@ -1967,11 +1967,11 @@ function connect(id){
       LISTS.items=d.items||[];LISTS.history=d.history||{};LISTS.projects=d.projects||[];
       LISTS.activeArea=d.activeArea||"mat";LISTS.activeStores=d.activeStores||{};
       LISTS.recipes=d.recipes||[];LISTS.weekMeals=d.weekMeals||[];LISTS.weekPlan=d.weekPlan||{};
-      LISTS.staples=d.staples||{};LISTS.mealEaten=d.mealEaten||{};LISTS.workouts=d.workouts||{};LISTS.workoutDone=d.workoutDone||{};LISTS.trainPlan=d.trainPlan||{};LISTS.trainLog=d.trainLog||[];LISTS.runLog=d.runLog||[];LISTS.trainGoals=d.trainGoals||{};
+      LISTS.staples=d.staples||{};LISTS.mealEaten=d.mealEaten||{};LISTS.workouts=d.workouts||{};LISTS.workoutDone=d.workoutDone||{};LISTS.trainPlan=d.trainPlan||{};LISTS.trainLog=d.trainLog||[];LISTS.runLog=d.runLog||[];LISTS.trainGoals=d.trainGoals||{};LISTS.mealLog=d.mealLog||{};
     }else{
       LISTS.items=LISTS.items||[];LISTS.history=LISTS.history||{};LISTS.projects=LISTS.projects||[];
       LISTS.recipes=LISTS.recipes||[];LISTS.weekMeals=LISTS.weekMeals||[];LISTS.weekPlan=LISTS.weekPlan||{};
-      LISTS.staples=LISTS.staples||{};LISTS.mealEaten=LISTS.mealEaten||{};LISTS.workouts=LISTS.workouts||{};LISTS.workoutDone=LISTS.workoutDone||{};LISTS.trainPlan=LISTS.trainPlan||{};LISTS.trainLog=LISTS.trainLog||[];LISTS.runLog=LISTS.runLog||[];LISTS.trainGoals=LISTS.trainGoals||{};
+      LISTS.staples=LISTS.staples||{};LISTS.mealEaten=LISTS.mealEaten||{};LISTS.workouts=LISTS.workouts||{};LISTS.workoutDone=LISTS.workoutDone||{};LISTS.trainPlan=LISTS.trainPlan||{};LISTS.trainLog=LISTS.trainLog||[];LISTS.runLog=LISTS.runLog||[];LISTS.trainGoals=LISTS.trainGoals||{};LISTS.mealLog=LISTS.mealLog||{};
     }
     var firstLoad=!LISTS_LOADED;LISTS_LOADED=true;
     validateLists();
@@ -2091,10 +2091,8 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
 
   // Weather
   '<div class="card anim-in anim-d1" style="margin:8px 0"><div class="card-b" id="weatherPanel" style="padding:10px 12px">'+(WEATHER?renderWeather():'<div style="font-size:10px;color:var(--fg3)">Hämtar väder...</div>')+'</div></div>'+
-  // Lättsam livsstils-tips (lunch + vatten + kaffe)
-  renderLunchTip()+
-  // Dagens träning
-  renderWorkoutCard()+
+  // === DYGNSFLÖDE: frukost → (todo) → lunch → middag → träning. Aktuell måltid framhävd. ===
+  (function(){var cs=currentSlot();return renderMealCard("b",cs==="b")})()+
 
   // Compact KPIs
   '<div class="flex gap4 anim-in anim-d1" style="margin:10px 0;flex-wrap:wrap">'+
@@ -2114,8 +2112,11 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
   (!listsReady?'<div style="text-align:center;padding:16px;font-size:11px;color:var(--fg3)">Laddar uppgifter...</div>':
   '<div style="text-align:center;padding:16px"><div style="font-size:24px;margin-bottom:4px">✨</div><div style="font-size:12px;font-weight:600">Allt klart!</div><div style="font-size:10px;color:var(--fg2)">Lägg till uppgifter i "Att göra"</div></div>'))+
   '</div></div>'+
+  // Lunch (framhävd vid lunchtid), middag, träning — fortsättning av dygnsflödet
+  (function(){var cs=currentSlot();
+    return renderMealCard("l",cs==="l")+renderDinnerCard()+renderWorkoutCard();
+  })()+
 
-  // === VECKANS MAT (compact summary) ===
   (recipes.length&&weekMeals.length?'<div class="card anim-in anim-d3"><div class="card-b"><div class="flex aic jcb"><span style="font-size:11px;font-weight:600">🍽️ Veckans mat</span><span style="font-size:10px;color:var(--fg2)">'+weekMeals.length+' rätter</span></div>'+
   '<div style="font-size:10px;margin-top:4px;color:var(--fg2)">'+weekMeals.map(function(mn){var rec=recipes.find(function(r){return r.name===mn});return rec?(rec.emoji||"🍽️")+" "+rec.name:mn}).join(" · ")+'</div></div></div>':'')+
 
@@ -2639,6 +2640,50 @@ function dietTips(){
   return cands.slice(0,n);
 }
 function FOCUS_IDX_REV(){return 0}// platshållare, ej använd
+// === MÅLTIDSLOGG (fritext-komponenter, snabbval, poängsättning) ===
+// mealLog struktur: { "YYYY-MM-DD:slot:user": {comps:["kaffe","flingor med mjölk"], t:ts} }
+// Komponent-historik byggs av alla loggade komponenter → snabbval + populäritet.
+function dateKey(d){d=d||new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function mealLogKey(dk,slot){return dk+":"+slot+":"+(ME||"x")}
+function getMealLog(dk,slot){if(!LISTS.mealLog)return null;return LISTS.mealLog[mealLogKey(dk,slot)]||null}
+function logMeal(dk,slot,comps){
+  if(!LISTS.mealLog)LISTS.mealLog={};
+  comps=comps.filter(function(c){return c&&c.trim()}).map(function(c){return c.trim()});
+  if(!comps.length){delete LISTS.mealLog[mealLogKey(dk,slot)];}
+  else LISTS.mealLog[mealLogKey(dk,slot)]={comps:comps,t:Date.now()};
+  // Poängsätt och logga till HEALTH_LOG för effektmodellen
+  if(comps.length){var sc=mealCompScore(comps);logHealth("eaten","("+slot+") "+comps.join(", "),sc.scores,sc.total,slot);}
+  listsSync();
+}
+// Poängsätt en lista fritext-komponenter mot DIET_DB (medelvärde per komponent som har match)
+function mealCompScore(comps){
+  var s=[0,0,0,0],hits=0;
+  comps.forEach(function(c){var d=dietScore(c);if(d){for(var i=0;i<4;i++)s[i]+=d.scores[i];hits++}});
+  return{scores:s,total:s.reduce(function(a,b){return a+b},0),hits:hits,unknown:comps.length-hits};
+}
+// Populära komponenter för en slot (frekvens över historik) — för snabbval
+function popularComps(slot,limit){
+  var freq={};
+  if(LISTS.mealLog)Object.keys(LISTS.mealLog).forEach(function(k){
+    var parts=k.split(":");if(parts[1]!==slot)return;
+    var e=LISTS.mealLog[k];if(e&&e.comps)e.comps.forEach(function(c){var key=c.toLowerCase();freq[key]=(freq[key]||0)+1});
+  });
+  return Object.keys(freq).sort(function(a,b){return freq[b]-freq[a]}).slice(0,limit||8);
+}
+// Föregående dagars middagar (för "rester till lunch")-snabbval
+function recentDinners(limit){
+  var out=[];var seen={};
+  // Från veckoplan (ätna middagar) senaste dagarna
+  for(var back=1;back<=4;back++){
+    var d=new Date();d.setDate(d.getDate()-back);var dk=WEEKDAYS[(d.getDay()+6)%7].k;
+    var m=getDayMeals(dk);if(m.d&&!seen[m.d]){seen[m.d]=1;out.push(m.d)}
+  }
+  // Från health-logg (loggade middagar)
+  (HEALTH_LOG||[]).slice().reverse().forEach(function(e){if(out.length>=(limit||5))return;if(e.action==="eaten"&&e.slot==="d"&&e.item&&!seen[e.item]&&e.item.indexOf("(")!==0){seen[e.item]=1;out.push(e.item)}});
+  return out.slice(0,limit||5);
+}
+// Aktuell måltidsslot utifrån tid på dygnet
+function currentSlot(){var h=new Date().getHours();if(h<10)return "b";if(h<15)return "l";return "d";}
 // Förklaring för ett tips, anpassad efter admin/vanlig
 function tipLabel(name,reason){
   var why=TIP_WHY[name]||"nyttig";
@@ -2677,13 +2722,13 @@ function dietMealScore(items,cat){
 // drivW = NÄRA-EFFEKT (driv snabb latens → toppa nära kvällen: ons, fre, lör)
 // focus = dagens primära fokus i UI. Lör har nu DRIV-fokus (snabb effekt toppar samma kväll).
 var WEEKDAYS=[
-  {k:"mon",n:"Mån",focus:"bas",smakW:0.4,drivW:0.4},
-  {k:"tue",n:"Tis",focus:"bas",smakW:0.7,drivW:0.5},
-  {k:"wed",n:"Ons",focus:"driv",smakW:1.0,drivW:1.0},
-  {k:"thu",n:"Tors",focus:"smak",smakW:1.1,drivW:0.6},
-  {k:"fri",n:"Fre",focus:"smak",smakW:1.3,drivW:1.2},
-  {k:"sat",n:"Lör",focus:"driv",smakW:0.9,drivW:1.3},
-  {k:"sun",n:"Sön",focus:"kansla",smakW:0.5,drivW:0.8}
+  {k:"mon",n:"Mån",focus:"bas",smakW:0.4,drivW:0.4,balansW:0.6,basW:1.2},
+  {k:"tue",n:"Tis",focus:"bas",smakW:0.7,drivW:0.5,balansW:0.7,basW:1.0},
+  {k:"wed",n:"Ons",focus:"driv",smakW:1.0,drivW:1.0,balansW:0.9,basW:0.8},
+  {k:"thu",n:"Tors",focus:"smak",smakW:1.1,drivW:0.6,balansW:0.9,basW:0.7},
+  {k:"fri",n:"Fre",focus:"smak",smakW:1.3,drivW:1.2,balansW:1.1,basW:0.6},
+  {k:"sat",n:"Lör",focus:"driv",smakW:0.9,drivW:1.3,balansW:1.2,basW:0.6},
+  {k:"sun",n:"Sön",focus:"kansla",smakW:0.5,drivW:0.8,balansW:1.0,basW:1.1}
 ];
 var FOCUS_LABEL={driv:"Energi",bas:"Återhämtning",smak:"Vitalitet",kansla:"Balans"};
 var FOCUS_LABEL_REAL={driv:"Driv",bas:"Bas",smak:"Smak",kansla:"Känsla"};
@@ -2838,9 +2883,16 @@ function recipeFocusScore(recipe,day){
   var smakScore=ms.scores[0]*smakW*1.5;
   // Driv (idx 2) premieras efter nära-effekt-vikt (snabb latens → toppa nära kvällen)
   var drivScore=ms.scores[2]*drivW*1.3;
+  // Balans (idx 1) + Återhämtning (idx 3) — egna kurvor (medel resp. vila-rytm)
+  var balansW=typeof day==="object"?(day.balansW||0):0;
+  var basW=typeof day==="object"?(day.basW||0):0;
+  var balansScore=ms.scores[1]*balansW*1.2;
+  var basScore=ms.scores[3]*basW*1.2;
   var tagBonus=(recipe.focus===focus)?8:0;
   if(recipe.focus==="smak"&&smakW>0)tagBonus+=smakW*4;
   if(recipe.focus==="driv"&&drivW>0)tagBonus+=drivW*4;
+  if(recipe.focus==="kansla"&&balansW>0)tagBonus+=balansW*4;
+  if(recipe.focus==="bas"&&basW>0)tagBonus+=basW*4;
   if(recipe.power)tagBonus+=5;// power foods lyfts fram
   // Treats straffas hårdare ju högre laddningsdag → hamnar tidigt i veckan
   if(recipe.treat)tagBonus-=smakW*12;
@@ -2858,7 +2910,7 @@ function recipeFocusScore(recipe,day){
   }else if(rscore<0){
     tagBonus+=rscore*5;// 👎 nedprioriteras tydligt (men kan väljas)
   }
-  return focusScore+smakScore+drivScore+total*0.2+tagBonus;
+  return focusScore+smakScore+drivScore+balansScore+basScore+total*0.2+tagBonus;
 }
 // Mitt (denna användares) betyg på en rätt
 function myRating(recipe){if(!recipe.ratings)return recipe.rating||0;return recipe.ratings[ME||"jag"]||0;}
@@ -2971,6 +3023,102 @@ function dayFocusToday(){
   return{foci:["smak","kansla"]};
 }
 // Lättsam lunch- och livsstilstips (synlig för alla, mjuk ton)
+// Sheet för att ändra/ta bort komponenter i en loggad måltid
+function openMealLogSheet(slot){
+  var dk=dateKey();var logged=getMealLog(dk,slot);var comps=(logged&&logged.comps)?logged.comps.slice():[];
+  var slotName=slot==="b"?"Frukost":slot==="l"?"Lunch":"Middag";
+  var pop=popularComps(slot,8).filter(function(c){return comps.map(function(x){return x.toLowerCase()}).indexOf(c)<0});
+  var quick=slot==="l"?recentDinners(4):[];
+  var body='<div style="font-size:10px;color:var(--fg2);margin-bottom:4px">Dina komponenter</div>'+
+    '<div id="mlComps" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">'+
+    (comps.length?comps.map(function(c,i){return '<span style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:13px;background:var(--bg2);font-size:12px">'+c+' <button class="ml-del" data-i="'+i+'" style="border:none;background:none;color:var(--rose);cursor:pointer;font-size:13px">×</button></span>'}).join(''):'<span style="font-size:11px;color:var(--fg3)">Inget loggat än</span>')+'</div>'+
+    (quick.length?'<div style="font-size:9px;color:var(--fg3);margin-bottom:3px">🍲 Rester</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">'+quick.map(function(n){return '<button class="ml-add" data-comp="'+encodeURIComponent(n)+'" style="padding:5px 9px;border-radius:13px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer">'+n+'</button>'}).join('')+'</div>':'')+
+    (pop.length?'<div style="font-size:9px;color:var(--fg3);margin-bottom:3px">⭐ Brukar du ta</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">'+pop.map(function(c){return '<button class="ml-add" data-comp="'+encodeURIComponent(c)+'" style="padding:5px 9px;border-radius:13px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer;text-transform:capitalize">'+c+'</button>'}).join('')+'</div>':'')+
+    '<div style="display:flex;gap:6px;margin-top:6px"><input id="mlInput" placeholder="Lägg till (komma mellan delar)" style="flex:1;padding:9px;border:1px solid var(--border);border-radius:9px;box-sizing:border-box;background:var(--bg2);color:var(--fg)"><button class="btn btn-p btn-sm" id="mlAdd">+</button></div>';
+  openInfoSheet("✏️ "+slotName+" idag","Logga vad du åt — sparas som snabbval",body);
+  function save(c){logMeal(dk,slot,c);}
+  setTimeout(function(){
+    document.querySelectorAll(".ml-del").forEach(function(b){b.addEventListener("click",function(){comps.splice(N(b.dataset.i),1);save(comps);closeSheet();openMealLogSheet(slot)})});
+    document.querySelectorAll(".ml-add").forEach(function(b){b.addEventListener("click",function(){comps.push(decodeURIComponent(b.dataset.comp));save(comps);closeSheet();openMealLogSheet(slot)})});
+    var ad=document.getElementById("mlAdd");if(ad)ad.addEventListener("click",function(){var v=(document.getElementById("mlInput")||{}).value||"";var add=v.split(",").map(function(x){return x.trim()}).filter(Boolean);if(!add.length)return;comps=comps.concat(add);save(comps);closeSheet();openMealLogSheet(slot)});
+  },60);
+}
+// Dashboard: måltidskort för frukost/lunch (plan, loggad fritext, eller logga-UI). highlight=stor vy.
+function renderMealCard(slot,highlight){
+  var dk=dateKey();var tk=todayKey();
+  var slotName=slot==="b"?"Frukost":slot==="l"?"Lunch":"Middag";
+  var slotIco=slot==="b"?"🍳":slot==="l"?"🥗":"🍽️";
+  var slotCol=slot==="b"?"#c87a3a":slot==="l"?"#3a8ac8":"#8a3ac8";
+  var planned=getDayMeals(tk)[slot];
+  var logged=getMealLog(dk,slot);
+  var pad=highlight?"13px":"9px 12px";
+  var head='<div style="font-size:10px;color:var(--fg2);margin-bottom:'+(highlight?"8px":"5px")+'">'+slotIco+' '+slotName+(highlight?" · idag":"")+'</div>';
+  if(planned){
+    var r=(LISTS.recipes||[]).find(function(x){return x.name===planned});var emoji=r?(r.emoji||mealEmoji(r.name)):slotIco;
+    return '<div class="card anim-in" style="margin:8px 0"><div class="card-b" style="padding:'+pad+'">'+head+
+      '<div class="dinner-open" data-recipe="'+encodeURIComponent(planned)+'" style="display:flex;align-items:center;gap:9px;cursor:pointer"><span style="font-size:'+(highlight?"24px":"18px")+'">'+emoji+'</span><div style="flex:1;font-size:'+(highlight?"15px":"13px")+';font-weight:600">'+planned+'</div><span style="color:var(--fg3)">›</span></div></div></div>';
+  }
+  if(logged&&logged.comps&&logged.comps.length){
+    return '<div class="card anim-in" style="margin:8px 0"><div class="card-b" style="padding:'+pad+'">'+head+
+      '<div class="meal-log-edit" data-slot="'+slot+'" style="display:flex;align-items:center;gap:9px;cursor:pointer"><span style="font-size:'+(highlight?"22px":"18px")+'">✓</span><div style="flex:1;font-size:'+(highlight?"14px":"12px")+'">'+logged.comps.join(" · ")+'</div><span style="font-size:10px;color:var(--teal)">ändra</span></div></div></div>';
+  }
+  if(!highlight){
+    return '<div class="card anim-in" style="margin:8px 0"><div class="card-b" style="padding:'+pad+'">'+
+      '<div class="meal-log-edit" data-slot="'+slot+'" style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--fg3)"><span style="font-size:16px">'+slotIco+'</span><span style="flex:1;font-size:11px">+ Logga '+slotName.toLowerCase()+'</span></div></div></div>';
+  }
+  var pop=popularComps(slot,6);
+  var quick=slot==="l"?recentDinners(3):[];
+  var chips="";
+  if(quick.length)chips+='<div style="font-size:9px;color:var(--fg3);margin:6px 0 3px">🍲 Rester från tidigare</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">'+quick.map(function(n){return '<button class="meal-quick" data-slot="'+slot+'" data-comp="'+encodeURIComponent(n)+'" style="padding:5px 9px;border-radius:13px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer">'+n+'</button>'}).join('')+'</div>';
+  if(pop.length)chips+='<div style="font-size:9px;color:var(--fg3);margin:6px 0 3px">⭐ Brukar du ta</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">'+pop.map(function(c){return '<button class="meal-quick" data-slot="'+slot+'" data-comp="'+encodeURIComponent(c)+'" style="padding:5px 9px;border-radius:13px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer;text-transform:capitalize">'+c+'</button>'}).join('')+'</div>';
+  return '<div class="card anim-in" style="margin:8px 0;border:1px solid '+slotCol+'33"><div class="card-b" style="padding:'+pad+'">'+head+
+    chips+
+    '<div style="display:flex;gap:6px;margin-top:4px"><input id="mealInput_'+slot+'" placeholder="Skriv vad du åt (t.ex. kaffe, fil med müsli)" style="flex:1;padding:9px;border:1px solid var(--border);border-radius:9px;box-sizing:border-box;background:var(--bg2);color:var(--fg)"><button class="meal-log-save btn btn-p btn-sm" data-slot="'+slot+'">+</button></div>'+
+    (slot==="b"?'<div style="font-size:9px;color:var(--fg3);margin-top:5px">💡 Separera delar med komma: kaffe, flingor med mjölk, juice</div>':'')+
+    '</div></div>';
+}
+// Dashboard: dagens middag — visar planerad rätt, eller 3 lockande förslag att snabb-boka
+function renderDinnerCard(){
+  var tk=todayKey();var dayObj=WEEKDAYS[todayIdx()];
+  var planned=getDayMeals(tk)["d"];
+  var recipes=LISTS.recipes||[];
+  if(planned){
+    var r=recipes.find(function(x){return x.name===planned});
+    var eaten=isMealEaten(tk,"d");
+    var emoji=r?(r.emoji||mealEmoji(r.name)):"🍽️";
+    var ms=r?dietMealScore(r.items,r.cat):null;
+    return '<div class="card anim-in anim-d1" style="margin:8px 0"><div class="card-b" style="padding:12px">'+
+      '<div style="font-size:10px;color:var(--fg2);margin-bottom:6px">🍽️ Middag ikväll</div>'+
+      '<div class="dinner-open" data-recipe="'+encodeURIComponent(planned)+'" style="display:flex;align-items:center;gap:10px;cursor:pointer">'+
+        '<span style="font-size:26px">'+emoji+'</span>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600'+(eaten?";text-decoration:line-through;opacity:.6":"")+'">'+planned+'</div>'+
+        (ms?'<div style="font-size:10px;color:var(--fg3)">'+(eaten?"✓ Ätet":"Planerat")+(isOwner()?' · '+(ms.total>=0?"+":"")+ms.total:'')+'</div>':'')+'</div>'+
+        '<span style="color:var(--fg3);font-size:18px">›</span>'+
+      '</div></div></div>';
+  }
+  // Ingen plan → 3 varierade, optimerade förslag (undviker nyligen ätna)
+  var pool=recipes.filter(function(r){return r.meal!=="frukost"});
+  if(!pool.length)return '';
+  var ranked=pool.map(function(r){return{r:r,score:recipeFocusScore(r,dayObj)-recencyPenalty(r.name)+Math.random()*4}}).sort(function(a,b){return b.score-a.score});
+  // Variera kategorier + huvudprotein bland topp 3 för verklig variation
+  var picks=[],usedCat={},usedKey={};
+  function mainKey(r){var t=(r.items||[]).slice(0,2).join(" ").toLowerCase();if(t.indexOf("lax")>=0||t.indexOf("fisk")>=0||t.indexOf("torsk")>=0||t.indexOf("räk")>=0)return "fisk";if(t.indexOf("kyckling")>=0)return "kyckling";if(t.indexOf("nöt")>=0||t.indexOf("oxfilé")>=0||t.indexOf("färs")>=0)return "kott";if(t.indexOf("lins")>=0||t.indexOf("kikärt")>=0||t.indexOf("bön")>=0||t.indexOf("tofu")>=0)return "veg";return r.cat||"x"}
+  for(var i=0;i<ranked.length&&picks.length<3;i++){var rc=ranked[i].r;var c=rc.cat||"x";var mk=mainKey(rc);if((usedCat[c]||usedKey[mk]))continue;usedCat[c]=1;usedKey[mk]=1;picks.push(rc)}
+  if(picks.length<3){for(var j=0;j<ranked.length&&picks.length<3;j++){if(picks.indexOf(ranked[j].r)<0)picks.push(ranked[j].r)}}
+  return '<div class="card anim-in anim-d1" style="margin:8px 0"><div class="card-b" style="padding:12px">'+
+    '<div style="font-size:10px;color:var(--fg2);margin-bottom:8px">🍽️ Ingen middag planerad — förslag för ikväll</div>'+
+    picks.map(function(r){
+      var emoji=r.emoji||mealEmoji(r.name);var ms=dietMealScore(r.items,r.cat);
+      var rs=ratingScore(r);var fav=rs>=4?" ⭐":rs>=1?" 👍":"";
+      return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bg2)">'+
+        '<span class="dinner-open" data-recipe="'+encodeURIComponent(r.name)+'" style="font-size:20px;cursor:pointer">'+emoji+'</span>'+
+        '<div class="dinner-open" data-recipe="'+encodeURIComponent(r.name)+'" style="flex:1;min-width:0;cursor:pointer"><div style="font-size:13px;font-weight:500">'+r.name+fav+'</div><div style="font-size:9px;color:var(--fg3)">'+(r.cat||"")+(isOwner()?' · '+(ms.total>=0?"+":"")+ms.total:'')+'</div></div>'+
+        '<button class="dinner-book btn btn-p btn-sm" data-recipe="'+encodeURIComponent(r.name)+'" style="flex-shrink:0">Boka</button>'+
+      '</div>';
+    }).join('')+
+    '<div style="font-size:9px;color:var(--fg3);text-align:center;margin-top:8px">Tryck Boka för att lägga in som ikvällens middag</div>'+
+    '</div></div>';
+}
 function renderLunchTip(){
   var df=dayFocusToday();var f=df.foci[0];
   var lunchIdeas={
@@ -3502,6 +3650,34 @@ function bindAll(f,c){
   // Health detail (owner only)
   var dwd=document.getElementById("dashWorkoutDone");if(dwd)dwd.addEventListener("click",function(){var now=isWorkoutDone(todayKey());setWorkoutDone(todayKey(),!now);listsSync();toast(now?"Avbockad":"💪 Tränat — snyggt!");render()});
   var dwe=document.getElementById("dashWorkoutEdit");if(dwe)dwe.addEventListener("click",function(){openWorkoutEditor(WEEKDAYS[todayIdx()])});
+  // Måltidslogg: spara fritext
+  document.querySelectorAll(".meal-log-save").forEach(function(b){b.addEventListener("click",function(){
+    var slot=b.dataset.slot;var inp=document.getElementById("mealInput_"+slot);if(!inp)return;
+    var comps=inp.value.split(",").map(function(x){return x.trim()}).filter(Boolean);
+    if(!comps.length){toast("Skriv vad du åt");return}
+    var existing=getMealLog(dateKey(),slot);var merged=existing&&existing.comps?existing.comps.concat(comps):comps;
+    logMeal(dateKey(),slot,merged);toast("✓ "+(slot==="b"?"Frukost":slot==="l"?"Lunch":"Måltid")+" loggad");render();
+  })});
+  // Måltidslogg: snabbval-chip
+  document.querySelectorAll(".meal-quick").forEach(function(b){b.addEventListener("click",function(){
+    var slot=b.dataset.slot;var comp=decodeURIComponent(b.dataset.comp);
+    var existing=getMealLog(dateKey(),slot);var merged=existing&&existing.comps?existing.comps.concat([comp]):[comp];
+    logMeal(dateKey(),slot,merged);toast("✓ "+comp);render();
+  })});
+  // Måltidslogg: ändra
+  document.querySelectorAll(".meal-log-edit").forEach(function(el){el.addEventListener("click",function(){
+    openMealLogSheet(el.dataset.slot);
+  })});
+  // Middags-kort: boka rätt som ikvällens middag
+  document.querySelectorAll(".dinner-book").forEach(function(b){b.addEventListener("click",function(e){
+    e.stopPropagation();var nm=decodeURIComponent(b.dataset.recipe);
+    setDayMeal(todayKey(),"d",nm);setMealEaten(todayKey(),"d",false);
+    listsSync();toast("🍽️ "+nm+" inbokad ikväll!");render();
+  })});
+  // Middags-kort: öppna recept
+  document.querySelectorAll(".dinner-open").forEach(function(el){el.addEventListener("click",function(e){
+    e.stopPropagation();var nm=decodeURIComponent(el.dataset.recipe);var r=(LISTS.recipes||[]).find(function(x){return x.name===nm});if(r)showRecipeSheet(r);
+  })});
   var dto=document.getElementById("dashTrainOpen");if(dto)dto.addEventListener("click",function(){S.tab="train";render()});
   var dtg=document.getElementById("dashTrainGoals");if(dtg)dtg.addEventListener("click",openTrainingGoals);
   var hd=document.getElementById("healthDetail");if(hd)hd.addEventListener("click",function(){
@@ -3792,8 +3968,8 @@ var SLOT_HOUR={b:7,l:12.5,d:18};
 var EFFECT_BASELINE=[0.5,0.5,0.5,1.0];// svagt positiv "normalkost" — icke-loggning ser ej ut som katastrof
 var EFFECT_REF=[38.7,31.7,26.2,29.3];// jämvikt vid bra kost — omkalibrerad efter expertlatenser
 var TARGET_CURVE={
-  mon:[0.55,0.70,0.65,1.05],tue:[0.65,0.75,1.05,0.85],wed:[0.75,0.80,1.15,0.75],
-  thu:[0.90,0.85,0.95,0.70],fri:[1.05,0.90,0.85,0.70],sat:[1.20,1.00,0.80,0.75],sun:[0.85,1.05,0.65,0.95]
+  mon:[0.90,0.93,0.82,1.03],tue:[0.90,0.92,0.83,1.01],wed:[0.94,0.95,0.97,0.96],
+  thu:[0.98,0.96,0.88,0.93],fri:[1.01,1.00,1.02,0.90],sat:[1.00,1.03,1.06,0.89],sun:[0.95,1.01,0.95,0.99]
 };
 // Ackumulera med två komponenter + mättnad. mealStream = [{scores,absHour}] (absHour=timmar sedan start)
 function accumulateMeals(mealStream){

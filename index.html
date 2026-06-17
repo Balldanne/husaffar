@@ -1499,7 +1499,7 @@ function renderWorkoutCard(){
   var title=areas.length?areas.map(function(a){return a.emoji+" "+a.name}).join(" + "):w.title;
   var desc=areas.length?(areas[0].desc?areas[0].desc:("Fokus: "+focusName(dayObj.focus)))+(optimal?" · "+INTENSITY[myIntensity()].label:""):w.desc;
   var bigEmoji=areas.length?areas[0].emoji:w.emoji;
-  return '<div class="card" style="margin-bottom:10px"><div class="flex aic jcb" style="margin-bottom:6px"><span style="font-size:12px;font-weight:700">💪 Dagens träning</span><span style="font-size:10px;color:var(--fg2)">'+FOCUS_EMOJI[dayObj.focus]+' '+focusName(dayObj.focus)+'</span></div>'+
+  return '<div class="card" style="margin-bottom:10px"><div class="flex aic jcb" style="margin-bottom:6px"><span style="font-size:12px;font-weight:700">💪 Dagens träning</span><span style="font-size:10px;color:var(--fg2)">'+focusEmoji(dayObj.focus)+' '+focusName(dayObj.focus)+'</span></div>'+
     '<div class="flex aic gap8" style="background:var(--bg2);border-radius:10px;padding:10px"><span style="font-size:26px">'+bigEmoji+'</span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600'+(wd?";text-decoration:line-through;opacity:.6":"")+'">'+title+'</div><div style="font-size:10px;color:var(--fg2)">'+desc+'</div></div>'+
     '<button class="ib" id="dashWorkoutDone" style="width:34px;height:34px;font-size:16px'+(wd?";color:#1a8a65":"")+'">'+(wd?"✓":"○")+'</button></div>'+
     '<div class="flex gap4 mt6"><button class="btn btn-s btn-sm" id="dashTrainOpen" style="flex:1">💪 Öppna träning</button><button class="btn btn-s btn-sm" id="dashWorkoutEdit" style="flex:1">✎ Program</button></div></div>';
@@ -1536,7 +1536,7 @@ function rTrain(){
     '<button class="btn btn-s btn-sm mt6" id="trainEditGoals" style="width:100%">✎ Ändra mål & fokus</button></div>';
   // Dagens rekommendation (från optimalt/eget upplägg)
   var recTitle=areas.length?areas.map(function(a){return a.emoji+" "+a.name}).join(" + "):"Vila / lugn dag";
-  h+='<div class="card" style="margin-bottom:10px"><div class="flex jcb aic" style="margin-bottom:6px"><span style="font-size:12px;font-weight:700">📅 Idag · '+dayObj.n+'</span><span style="font-size:10px;color:var(--fg2)">'+FOCUS_EMOJI[dayObj.focus]+' '+focusName(dayObj.focus)+'</span></div>'+
+  h+='<div class="card" style="margin-bottom:10px"><div class="flex jcb aic" style="margin-bottom:6px"><span style="font-size:12px;font-weight:700">📅 Idag · '+dayObj.n+'</span><span style="font-size:10px;color:var(--fg2)">'+focusEmoji(dayObj.focus)+' '+focusName(dayObj.focus)+'</span></div>'+
     '<div class="flex aic gap8" style="background:var(--bg2);border-radius:10px;padding:10px"><span style="font-size:24px">'+(areas.length?areas[0].emoji:"😌")+'</span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600'+(wd?";text-decoration:line-through;opacity:.6":"")+'">'+recTitle+'</div><div style="font-size:10px;color:var(--fg2)">Rekommenderat utifrån veckans rytm</div></div><button class="ib" id="trainDoneToday" style="width:34px;height:34px;font-size:16px'+(wd?";color:#1a8a65":"")+'">'+(wd?"✓":"○")+'</button></div></div>';
   // Snabb-logga pass
   h+='<div class="card" style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;margin-bottom:8px">➕ Logga pass</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
@@ -2733,6 +2733,9 @@ var WEEKDAYS=[
 var FOCUS_LABEL={driv:"Energi",bas:"Återhämtning",smak:"Vitalitet",kansla:"Balans"};
 var FOCUS_LABEL_REAL={driv:"Driv",bas:"Bas",smak:"Smak",kansla:"Känsla"};
 var FOCUS_EMOJI={driv:"🚀",bas:"🧘",smak:"🍑",kansla:"🌿"};
+// Neutrala emojis för vanlig user (🍑 + 🚀 byts ut så diet-syftet ej avslöjas)
+var FOCUS_EMOJI_SAFE={driv:"⚡",bas:"🧘",smak:"✨",kansla:"🌿"};
+function focusEmoji(f){return isOwner()?FOCUS_EMOJI[f]:FOCUS_EMOJI_SAFE[f]}
 var FOCUS_COLOR={driv:"#c87a3a",bas:"#3a8ac8",smak:"#c83a7a",kansla:"#8a3ac8"};
 var FOCUS_IDX={smak:0,kansla:1,driv:2,bas:3};
 // Ägare ser riktiga ord, vanlig user ser hälsobegrepp
@@ -3197,7 +3200,7 @@ function rTodo(){
         var slotCol=slot==="b"?"#c87a3a":slot==="l"?"#3a8ac8":"#8a3ac8";
         if(rec){var ms=dietMealScore(rec.items,rec.cat);var fi=FOCUS_IDX[day.focus];var fp=ms.scores[fi];
           var tag=rec.power?' <span style="font-size:9px" title="Power food">⚡</span>':rec.treat?' <span style="font-size:9px" title="Treat — bäst tidigt i veckan">🍔</span>':'';
-          var treatWarn=rec.treat&&day.smakW>=1.0?' <span style="color:#c87a3a;font-size:9px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
+          var treatWarn=(isOwner()&&rec.treat&&day.smakW>=1.0)?' <span style="color:#c87a3a;font-size:9px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
           return '<div class="meal-slot meal-filled" data-day="'+day.k+'" data-slot="'+slot+'" data-recipe="'+encodeURIComponent(rec.name)+'" style="display:flex;align-items:center;gap:5px;padding:5px 6px;cursor:pointer;font-size:10px;border-left:3px solid '+slotCol+';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:3px'+(eaten?';opacity:.6':'')+'"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span><span style="font-size:9px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600" title="'+focusName(day.focus)+'-poäng">'+fp+'</span><span style="font-size:9px;font-weight:700;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)" title="Totalpoäng">'+(ms.total>=0?"+":"")+ms.total+'</span><button class="ib meal-eaten" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:26px;height:26px;font-size:11px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" title="Visa recept & poäng" style="width:26px;height:26px;font-size:12px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" title="Ta bort" style="width:26px;height:26px;font-size:11px">×</button></div>';
         }
         return '<div class="meal-slot meal-empty" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
@@ -3220,13 +3223,13 @@ function rTodo(){
         return tipsHtml;
       })()+
       '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
-        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer;flex-wrap:wrap;gap:4px"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4"><button class="btn btn-s btn-sm" id="cookPantry" title="Vad kan jag laga?">🍳</button><button class="btn btn-s btn-sm" id="toggleWorkouts" title="Visa träning">'+(SHOW_WORKOUTS?"💪 På":"💪")+'</button><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div>')+'</div>'+
+        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer;flex-wrap:wrap;gap:4px"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4" style="position:relative"><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-p btn-sm" id="addMeal">+ Rätt</button><button class="btn btn-s btn-sm" id="planMore" title="Mer">⋯</button><div id="planMoreMenu" style="display:none;position:absolute;right:0;top:30px;z-index:30;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:5px;min-width:160px"><button class="btn btn-s btn-sm pm-item" id="autoWeek" style="width:100%;justify-content:flex-start;margin-bottom:3px">✨ Auto-fördela veckan</button><button class="btn btn-s btn-sm pm-item" id="cookPantry" style="width:100%;justify-content:flex-start">🍳 Vad kan jag laga?</button></div></div>')+'</div>'+
         (S.planCollapsed?'':
         (isOwner()?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Smak laddas mot helgen 🍑 · middag räcker, frukost/lunch valfritt</div>':'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Middag räcker — frukost & lunch är valfria</div>')+
         // Veckokalender
         '<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">'+
         WEEKDAYS.map(function(day){
-          var fc=FOCUS_COLOR[day.focus];var fl=focusName(day.focus);var fe=FOCUS_EMOJI[day.focus];
+          var fc=FOCUS_COLOR[day.focus];var fl=focusName(day.focus);var fe=focusEmoji(day.focus);
           var isToday=day.k===TK;
           // Smak-ramp indikator
           var smakBar=isOwner()?(day.smakW>=1.3?"🍑🍑":day.smakW>=0.7?"🍑":""):"";
@@ -3513,6 +3516,8 @@ function bindTodo(){
     render()});
   // Toggle alla måltider (frukost/lunch/middag)
   var tm=document.getElementById("toggleMeals");if(tm)tm.addEventListener("click",function(){SHOW_ALL_MEALS=!SHOW_ALL_MEALS;render()});
+  var pm=document.getElementById("planMore");if(pm)pm.addEventListener("click",function(e){e.stopPropagation();var m=document.getElementById("planMoreMenu");if(m)m.style.display=m.style.display==="none"?"block":"none"});
+  document.querySelectorAll(".pm-item").forEach(function(b){b.addEventListener("click",function(){var m=document.getElementById("planMoreMenu");if(m)m.style.display="none"})});
   var cp=document.getElementById("cookPantry");if(cp)cp.addEventListener("click",function(){S.cookPicks=null;openGlobalSearch("laga")});
   var tw=document.getElementById("toggleWorkouts");if(tw)tw.addEventListener("click",function(){SHOW_WORKOUTS=!SHOW_WORKOUTS;render()});
   // Markera tränat
@@ -3548,7 +3553,7 @@ function bindTodo(){
     var ranked=pool.map(function(r){return{r:r,score:recipeFocusScore(r,dayObj)-recencyPenalty(r.name)}}).sort(function(a,b){return b.score-a.score});
     var fi=FOCUS_IDX[dayObj.focus];var slotName=slot==="b"?"Frukost":slot==="l"?"Lunch":"Middag";
     var slotIco=slot==="b"?"🍳":slot==="l"?"🥗":"🍽️";
-    var fEmoji=FOCUS_EMOJI[dayObj.focus];
+    var fEmoji=focusEmoji(dayObj.focus);
     var CAT_LABELS={sallad:"🥗 Sallad",bowl:"🥣 Bowl",pasta:"🍝 Pasta",wok:"🥘 Wok",gryta:"🍲 Gryta",soppa:"🍲 Soppa",grill:"🔥 Grill",frukost:"🍳 Frukost"};
     var cards=ranked.slice(0,400).map(function(x){var ms=dietMealScore(x.r.items,x.r.cat);
       var tag=x.r.power?"⚡ Power":x.r.treat?"🍔 Treat":x.r.season==="grill"?"🔥 Grill":"";

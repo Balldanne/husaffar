@@ -65,7 +65,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .macro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}@media(max-width:640px){.macro{grid-template-columns:1fr 1fr}}
 .macro-c{background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center}.macro-c .val{font-size:16px;font-weight:600;font-family:var(--m)}.macro-c .lab{font-size:9px;color:var(--fg2);margin-top:2px}
 /* Lifecycle */
-.lc-bar{display:flex;height:20px;border-radius:6px;overflow:hidden;margin:6px 0}.lc-seg{display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#fff}
+.lc-bar{display:flex;height:20px;border-radius:6px;overflow:hidden;margin:6px 0}.lc-seg{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff}
 /* Nearby */
 .nb{font-size:10px;display:flex;align-items:center;gap:4px;padding:2px 0;color:var(--fg2)}.nb b{color:var(--fg);font-weight:500}.nb .dst{font-family:var(--m);color:var(--fg3);font-size:9px}
 /* Expandable sections */
@@ -125,6 +125,9 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .login h2{font-size:18px;font-weight:600}.login p{font-size:12px;color:var(--fg2);max-width:340px}
 .login input{width:100%;max-width:280px;height:38px;border-radius:10px;border:1px solid var(--border);padding:0 12px;font-size:13px;font-family:var(--m);text-align:center;background:var(--card);color:var(--fg)}
 .login input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(194,83,46,.15)}
+/* iOS-fix: alla textinmatningsfält minst 16px → Safari zoomar inte in vid fokus */
+input[type="text"],input[type="email"],input[type="password"],input[type="number"],input[type="search"],input:not([type]),textarea,select{font-size:16px !important}
+@media (min-width:560px){input[type="text"],input[type="email"],input[type="password"],input[type="number"],input[type="search"],input:not([type]),textarea,select{font-size:14px !important}}
 /* Compare table highlights */
 .cmp-best{background:var(--tealL) !important}
 /* Bottom nav on mobile, top tabs on desktop */
@@ -133,7 +136,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   .tab{flex-direction:column;gap:2px;padding:6px 0;font-size:9px;min-width:0;min-height:48px}
   .tab-icon{font-size:20px;line-height:1}
   .tab-label{font-size:9px;line-height:1;font-weight:500}
-  .tab-badge{top:-4px;right:-4px;min-width:16px;height:16px;font-size:9px}
+  .tab-badge{top:-4px;right:-4px;min-width:24px;height:24px;font-size:11px}
   .app{padding-bottom:80px !important}.toast{bottom:88px !important}.fg2{grid-template-columns:1fr}.fg3,.fg4{grid-template-columns:1fr 1fr}.macro{grid-template-columns:1fr 1fr}
   .hpills .pill:first-child{display:none}
 }
@@ -145,10 +148,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .fab-opt{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:var(--card);border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.1);cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;transition:transform .15s,opacity .15s;animation:fadeInUp .2s ease-out both}.fab-opt:hover{transform:translateY(-1px)}
 @media(min-width:641px){.fab{bottom:24px;right:24px}}
 /* Badge */
-.tab-badge{position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:7px;background:var(--rose);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.tab-badge{position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;border-radius:7px;background:var(--rose);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
 .tab{position:relative}
 /* Activity feed */
-.activity{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;color:var(--fg2)}.activity .av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}.activity .at{font-size:9px;color:var(--fg3);margin-left:auto;white-space:nowrap}
+.activity{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;color:var(--fg2)}.activity .av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}.activity .at{font-size:9px;color:var(--fg3);margin-left:auto;white-space:nowrap}
 /* Autoförslag under textfält */
 .todo-suggest{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:50;overflow:hidden;display:none}
 .todo-suggest.show{display:block}
@@ -254,6 +257,8 @@ function openInfoSheet(title,sub,htmlBody){
   ov.appendChild(sheet);document.body.appendChild(ov);
   ov.addEventListener("click",function(e){if(e.target===ov)closeSheet()});
   sheet.querySelector("#sheetClose").addEventListener("click",closeSheet);
+  // När ett fält fokuseras (tangentbord upp) → scrolla in det i vy så det ej döljs
+  sheet.addEventListener("focusin",function(e){if(e.target.matches("input,textarea")){setTimeout(function(){try{e.target.scrollIntoView({block:"center",behavior:"smooth"})}catch(_){}},300)}});
 }
 // Expand/collapse state
 var EXP=JSON.parse(localStorage.getItem("exp")||"{}");
@@ -1671,7 +1676,28 @@ function guessArea(text){
   // Default to active area
   return{area:LISTS.activeArea||"mat",cat:""};
 }
-function listsSync(){if(!LISTS_LOADED){console.warn("listsSync blocked — data not loaded");return}var r=shopRef?shopRef.parent.child("lists"):null;if(r&&!skipSync)r.set(LISTS)}
+var _syncTimer=null,_syncPending=false;
+function listsSync(){
+  if(!LISTS_LOADED){console.warn("listsSync blocked — data not loaded");return}
+  if(skipSync)return;// håller på att läsa in från Firebase → skriv inte
+  var r=shopRef?shopRef.parent.child("lists"):null;if(!r)return;
+  // Debounce: samla snabba ändringar, skriv en gång
+  _syncPending=true;
+  if(_syncTimer)clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(function(){
+    _syncTimer=null;_syncPending=false;
+    _writingOwn=true;// markera att nästa on('value') är vår egen skrivning
+    r.set(LISTS,function(err){_writingOwn=false;if(err){console.error("Sync-fel:",err);toast("⚠ Kunde inte spara — kontrollera nätet")}});
+  },350);
+}
+var _writingOwn=false;
+// Tvinga skrivning av väntande ändringar om sidan stängs/laddas om (skyddar mot dataförlust)
+window.addEventListener("beforeunload",function(){
+  if(_syncPending&&_syncTimer&&LISTS_LOADED&&!skipSync){
+    clearTimeout(_syncTimer);_syncTimer=null;_syncPending=false;
+    var r=shopRef?shopRef.parent.child("lists"):null;if(r)r.set(LISTS);
+  }
+});
 // Activity feed
 var ACTIVITY=[];
 function addActivity(who,action){ACTIVITY.unshift({who:who,action:action,time:Date.now()});if(ACTIVITY.length>20)ACTIVITY.length=20;
@@ -1743,7 +1769,7 @@ function renderHealthKPI(){
     cats.map(function(c,i){var v=tw.scores[i];var pct=Math.max(2,Math.round(v/maxC*100));var col=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"][i];
       return '<div class="flex aic gap6"><span style="width:74px;font-size:9px;color:var(--fg2)">'+c+'</span><div style="flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+col+'"></div></div><span style="width:24px;text-align:right;font-size:9px;font-family:var(--m);color:var(--fg2)">'+v+'</span></div>'
     }).join('')+'</div>'+
-    '<div style="margin-top:10px"><div style="font-size:9px;color:var(--fg2);margin-bottom:4px">📈 Effektnivå 14 dagar — % av tröskel (100%=mål). Heldraget=ätet, streckat=planerat</div><div style="height:150px"><canvas id="focusTrend"></canvas></div></div>'+
+    '<div style="margin-top:10px"><div style="font-size:9px;color:var(--fg2);margin-bottom:4px">📈 Effektnivå mot dagens mål (🎯=100%) <span id="trendInfo" style="cursor:pointer;color:var(--fg3)" title="Om modellen">ⓘ</span> — varje parameter peakar olika dag</div><div style="height:150px"><canvas id="focusTrend"></canvas></div></div>'+
     '<button class="btn btn-s btn-sm mt8" id="healthDetail" style="width:100%">📊 Detaljer & historik</button>'+
     '</div></div>'
 }
@@ -1755,7 +1781,7 @@ function renderAchievements(){
       return '<div style="min-width:110px;padding:8px;border-radius:10px;background:var(--bg2);text-align:center;flex-shrink:0">'+
         '<div style="font-size:24px;margin-bottom:2px">'+a.icon+'</div>'+
         '<div style="font-size:10px;font-weight:600;color:'+tierCol[a.tier]+'">'+a.title+'</div>'+
-        '<div style="font-size:8px;color:var(--fg3);margin-top:1px">'+a.sub+'</div></div>'
+        '<div style="font-size:9px;color:var(--fg3);margin-top:1px">'+a.sub+'</div></div>'
     }).join('')+'</div></div></div>'
 }
 var ME=localStorage.getItem("fc_me")||"";
@@ -1878,23 +1904,25 @@ function connect(id){
   actRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){ACTIVITY=d}});
   var healthRef=shopRef.parent.child("healthLog");
   healthRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){HEALTH_LOG=d;if(S.tab==="dash"&&isOwner())render()}});
-  listsRef.on("value",function(snap){var d=snap.val();skipSync=true;
+  listsRef.on("value",function(snap){var d=snap.val();
+    // Om vi har en väntande lokal skrivning (debounce pågår), ignorera inkommande eko så vi inte tappar ändringar
+    if(_syncPending||_writingOwn){return}
+    skipSync=true;
     if(d){
       LISTS.items=d.items||[];LISTS.history=d.history||{};LISTS.projects=d.projects||[];
       LISTS.activeArea=d.activeArea||"mat";LISTS.activeStores=d.activeStores||{};
       LISTS.recipes=d.recipes||[];LISTS.weekMeals=d.weekMeals||[];LISTS.weekPlan=d.weekPlan||{};
       LISTS.staples=d.staples||{};LISTS.mealEaten=d.mealEaten||{};LISTS.workouts=d.workouts||{};LISTS.workoutDone=d.workoutDone||{};LISTS.trainPlan=d.trainPlan||{};LISTS.trainLog=d.trainLog||[];LISTS.runLog=d.runLog||[];LISTS.trainGoals=d.trainGoals||{};
     }else{
-      // First time — init with empty but don't overwrite
       LISTS.items=LISTS.items||[];LISTS.history=LISTS.history||{};LISTS.projects=LISTS.projects||[];
       LISTS.recipes=LISTS.recipes||[];LISTS.weekMeals=LISTS.weekMeals||[];LISTS.weekPlan=LISTS.weekPlan||{};
       LISTS.staples=LISTS.staples||{};LISTS.mealEaten=LISTS.mealEaten||{};LISTS.workouts=LISTS.workouts||{};LISTS.workoutDone=LISTS.workoutDone||{};LISTS.trainPlan=LISTS.trainPlan||{};LISTS.trainLog=LISTS.trainLog||[];LISTS.runLog=LISTS.runLog||[];LISTS.trainGoals=LISTS.trainGoals||{};
     }
-    LISTS_LOADED=true;
-    validateLists();// sanera data → förhindrar buggar
-    // Seed default recipes if none exist
-    if(!LISTS.recipes||!LISTS.recipes.length){LISTS.recipes=dc(DEFAULT_RECIPES);listsSync()}
-    if(S.tab==="todo"||S.tab==="dash"){render()};skipSync=false});
+    var firstLoad=!LISTS_LOADED;LISTS_LOADED=true;
+    validateLists();
+    // Seed default recipes bara vid allra första laddning om databasen är tom
+    if(firstLoad&&(!LISTS.recipes||!LISTS.recipes.length)){LISTS.recipes=dc(DEFAULT_RECIPES);skipSync=false;listsSync();skipSync=true}
+    render();skipSync=false});
   dbRef.on("value",function(snap){var d=snap.val();if(!d)return;skipSync=true;
     if(d.family){var fam=dc(FDEF);for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]};if(d.family.persons)fam.persons=d.family.persons;if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
     if(d.family.budget&&!d.family.budget_shared){var items=[];for(var bk in d.family.budget)items.push({name:bk,amount:N(d.family.budget[bk])});fam.budget_shared=items}
@@ -2169,7 +2197,7 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
   var grade=score>=8?"A":score>=6?"B":score>=4?"C":"D";
   var gCol=grade==="A"?"var(--teal)":grade==="B"?"var(--blue)":grade==="C"?"var(--amber)":"var(--rose)";
   // Helper for check-item rendering
-  function ckHtml(c,label){return '<label style="font-size:10px;display:flex;align-items:center;gap:3px;'+(c.auto?'color:var(--teal)':'')+'">'+(c.auto?'<span style="color:var(--teal)">✓</span>':'<input type="checkbox" '+(c.checked?"checked":"")+' data-ck="'+c.key+'" class="ckb" style="accent-color:var(--teal)">')+label+(c.auto?' <span style="font-size:8px;color:var(--fg3)">(auto)</span>':'')+'</label>'}
+  function ckHtml(c,label){return '<label style="font-size:10px;display:flex;align-items:center;gap:3px;'+(c.auto?'color:var(--teal)':'')+'">'+(c.auto?'<span style="color:var(--teal)">✓</span>':'<input type="checkbox" '+(c.checked?"checked":"")+' data-ck="'+c.key+'" class="ckb" style="accent-color:var(--teal)">')+label+(c.auto?' <span style="font-size:9px;color:var(--fg3)">(auto)</span>':'')+'</label>'}
   function vB(l,rng,pr){if(!rng)return '';var mn=rng.low,mx=rng.high,md=rng.mid,pp=pr>0?Math.min(100,Math.round((pr-mn)/(mx-mn+1)*100)):50;return '<div style="margin:3px 0"><div class="flex aic jcb" style="font-size:10px"><span style="color:var(--fg2)">'+l+'</span><span style="font-family:var(--m)">'+fSEK(md)+'</span></div><div style="position:relative;height:5px;background:var(--border);border-radius:3px;margin:2px 0"><div style="position:absolute;height:100%;width:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--amber),var(--rose))"></div>'+(pr>0?'<div style="position:absolute;left:'+pp+'%;top:-2px;width:3px;height:9px;background:var(--fg);border-radius:2px"></div>':'')+'</div></div>'}
 
   // ===== SUMMARY =====
@@ -2214,9 +2242,9 @@ function rPD(f,c){var i=S.viewIdx,p=S.prospects[i];if(!p)return "";var r=calcP(f
     // Individual methods
     val.methods.map(function(m){
       var pp=N(p.price)>0?Math.min(100,Math.max(0,Math.round((N(p.price)-m.low)/(m.high-m.low)*100))):50;
-      return '<div style="margin:4px 0"><div class="flex aic jcb" style="font-size:10px"><span style="color:var(--fg2)">'+m.name+' <span style="font-size:8px;color:var(--fg3)">konf. '+m.conf+'%</span></span><span style="font-family:var(--m)">'+fSEK(m.mid)+'</span></div>'+
+      return '<div style="margin:4px 0"><div class="flex aic jcb" style="font-size:10px"><span style="color:var(--fg2)">'+m.name+' <span style="font-size:9px;color:var(--fg3)">konf. '+m.conf+'%</span></span><span style="font-family:var(--m)">'+fSEK(m.mid)+'</span></div>'+
       '<div style="position:relative;height:5px;background:var(--border);border-radius:3px;margin:2px 0"><div style="position:absolute;height:100%;width:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--amber),var(--rose))"></div>'+(N(p.price)>0?'<div style="position:absolute;left:'+pp+'%;top:-2px;width:3px;height:9px;background:var(--fg);border-radius:2px"></div>':'')+'</div>'+
-      (m.factors.length?'<div style="font-size:8px;color:var(--fg3)">'+m.factors.join(" · ")+'</div>':'')+'</div>'
+      (m.factors.length?'<div style="font-size:9px;color:var(--fg3)">'+m.factors.join(" · ")+'</div>':'')+'</div>'
     }).join('')+
     // Jämförelseobjekt input
     '<div style="font-size:10px;font-weight:500;margin:8px 0 4px">Jämförelseobjekt (sålda)</div>'+
@@ -2757,9 +2785,9 @@ function suggestWeekMeals(){
 function mealEmoji(name){var n=name.toLowerCase();for(var k in MEAL_EMOJI){if(n.indexOf(k)>=0)return MEAL_EMOJI[k]}return"🍽️"}
 // === HEALTH TRACKING (privat, ME-gated) ===
 var HEALTH_LOG=null;
-function logHealth(action,item,scores,total){
+function logHealth(action,item,scores,total,slot){
   if(!HEALTH_LOG)HEALTH_LOG=[];
-  HEALTH_LOG.push({t:Date.now(),action:action,item:item,scores:scores,total:total,who:ME||"?"});
+  HEALTH_LOG.push({t:Date.now(),action:action,item:item,scores:scores,total:total,who:ME||"?",slot:slot||null});
   // Keep last 500 entries
   if(HEALTH_LOG.length>500)HEALTH_LOG=HEALTH_LOG.slice(-500);
   if(shopRef){var r=shopRef.parent.child("healthLog");r.set(HEALTH_LOG)}
@@ -2858,14 +2886,14 @@ function rTodo(){
         var eaten=isMealEaten(day.k,slot);
         var slotCol=slot==="b"?"#c87a3a":slot==="l"?"#3a8ac8":"#8a3ac8";
         if(rec){var ms=dietMealScore(rec.items,rec.cat);var fi=FOCUS_IDX[day.focus];var fp=ms.scores[fi];
-          var tag=rec.power?' <span style="font-size:8px" title="Power food">⚡</span>':rec.treat?' <span style="font-size:8px" title="Treat — bäst tidigt i veckan">🍔</span>':'';
-          var treatWarn=rec.treat&&day.smakW>=1.0?' <span style="color:#c87a3a;font-size:8px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
-          return '<div class="meal-slot meal-filled" data-day="'+day.k+'" data-slot="'+slot+'" data-recipe="'+encodeURIComponent(rec.name)+'" style="display:flex;align-items:center;gap:5px;padding:5px 6px;cursor:pointer;font-size:10px;border-left:3px solid '+slotCol+';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:3px'+(eaten?';opacity:.6':'')+'"><span style="font-size:8px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span><span style="font-size:8px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600" title="'+focusName(day.focus)+'-poäng">'+fp+'</span><span style="font-size:9px;font-weight:700;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)" title="Totalpoäng">'+(ms.total>=0?"+":"")+ms.total+'</span><button class="ib meal-eaten" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:18px;height:18px;font-size:9px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" title="Visa recept & poäng" style="width:18px;height:18px;font-size:10px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" title="Ta bort" style="width:18px;height:18px;font-size:9px">×</button></div>';
+          var tag=rec.power?' <span style="font-size:9px" title="Power food">⚡</span>':rec.treat?' <span style="font-size:9px" title="Treat — bäst tidigt i veckan">🍔</span>':'';
+          var treatWarn=rec.treat&&day.smakW>=1.0?' <span style="color:#c87a3a;font-size:9px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
+          return '<div class="meal-slot meal-filled" data-day="'+day.k+'" data-slot="'+slot+'" data-recipe="'+encodeURIComponent(rec.name)+'" style="display:flex;align-items:center;gap:5px;padding:5px 6px;cursor:pointer;font-size:10px;border-left:3px solid '+slotCol+';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:3px'+(eaten?';opacity:.6':'')+'"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span><span style="font-size:9px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600" title="'+focusName(day.focus)+'-poäng">'+fp+'</span><span style="font-size:9px;font-weight:700;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)" title="Totalpoäng">'+(ms.total>=0?"+":"")+ms.total+'</span><button class="ib meal-eaten" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:26px;height:26px;font-size:11px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" title="Visa recept & poäng" style="width:26px;height:26px;font-size:12px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" title="Ta bort" style="width:26px;height:26px;font-size:11px">×</button></div>';
         }
-        return '<div class="meal-slot meal-empty" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:8px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
+        return '<div class="meal-slot meal-empty" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
       }
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
-        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4"><button class="btn btn-s btn-sm" id="cookPantry" title="Vad kan jag laga?">🍳</button><button class="btn btn-s btn-sm" id="toggleWorkouts" title="Visa träning">'+(SHOW_WORKOUTS?"💪 På":"💪")+'</button><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div>')+'</div>'+
+        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer;flex-wrap:wrap;gap:4px"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4"><button class="btn btn-s btn-sm" id="cookPantry" title="Vad kan jag laga?">🍳</button><button class="btn btn-s btn-sm" id="toggleWorkouts" title="Visa träning">'+(SHOW_WORKOUTS?"💪 På":"💪")+'</button><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div>')+'</div>'+
         (S.planCollapsed?'':
         (isOwner()?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Smak laddas mot helgen 🍑 · middag räcker, frukost/lunch valfritt</div>':'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Middag räcker — frukost & lunch är valfria</div>')+
         // Veckokalender
@@ -2884,16 +2912,16 @@ function rTodo(){
               (SHOW_WORKOUTS?(function(){var w=workoutFor(day);var wd=isWorkoutDone(day.k);
                 var areas=trainForDay(day.k);
                 var areaTxt=areas.length?areas.map(function(a){return a.emoji+" "+a.name}).join(", "):w.title;
-                return '<div class="workout-row" data-day="'+day.k+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px'+(wd?";opacity:.6":"")+'"><span style="width:16px;opacity:.6">'+(areas.length?areas[0].emoji:w.emoji)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(wd?";text-decoration:line-through":"")+'">'+areaTxt+'</span><button class="ib workout-done" data-day="'+day.k+'" title="'+(wd?"Tränat":"Markera tränat")+'" style="width:16px;height:16px;font-size:9px'+(wd?";color:#1a8a65":"")+'">'+(wd?"✓":"○")+'</button></div>';
+                return '<div class="workout-row" data-day="'+day.k+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px'+(wd?";opacity:.6":"")+'"><span style="width:16px;opacity:.6">'+(areas.length?areas[0].emoji:w.emoji)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(wd?";text-decoration:line-through":"")+'">'+areaTxt+'</span><button class="ib workout-done" data-day="'+day.k+'" title="'+(wd?"Tränat":"Markera tränat")+'" style="width:24px;height:24px;font-size:11px'+(wd?";color:#1a8a65":"")+'">'+(wd?"✓":"○")+'</button></div>';
               })():'')+
             '</div>'+
-            (smakBar?'<div style="display:flex;align-items:center;font-size:8px" title="Fokusdag">'+smakBar+'</div>':'')+
+            (smakBar?'<div style="display:flex;align-items:center;font-size:9px" title="Fokusdag">'+smakBar+'</div>':'')+
           '</div>'
         }).join('')+'</div>'+
         // Veckopoäng + balans
         (allNames.length?(function(){
           var sc=wpScore.scores;var maxS=Math.max.apply(null,sc.concat([1]));
-          var cats=isOwner()?["🍑 Smak","🌿 Känsla","🚀 Driv","🧘 Bas"]:["🍑 Vitalitet","🌿 Balans","🚀 Energi","🧘 Återhämtning"];
+          var cats=isOwner()?["🍑 Smak","🌿 Känsla","🚀 Driv","🧘 Bas"]:["✨ Vitalitet","🌿 Balans","⚡ Energi","🧘 Återhämtning"];
           var catShort=isOwner()?["Smak","Känsla","Driv","Bas"]:["Vitalitet","Balans","Energi","Återhämtning"];
           var colors=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"];
           var minIdx=sc.indexOf(Math.min.apply(null,sc));
@@ -2965,9 +2993,30 @@ function rTodo(){
       done.slice(0,5).map(function(it){return rItem(it,items.indexOf(it),isShop)}).join('')+'</div>'):'')
 }
 
+function itemEmoji(it){
+  // Välj passande emoji utifrån kategori/typ
+  var t=(it.text||"").toLowerCase();
+  var MAP={"mjölk":"🥛","ägg":"🥚","ost":"🧀","bröd":"🍞","lax":"🐟","fisk":"🐟","torsk":"🐟","räk":"🦐","kyckling":"🍗","kött":"🥩","färs":"🥩","banan":"🍌","äpple":"🍎","citron":"🍋","lime":"🍋","tomat":"🍅","gurka":"🥒","sallad":"🥬","spenat":"🥬","morot":"🥕","lök":"🧅","vitlök":"🧄","potatis":"🥔","ris":"🍚","pasta":"🍝","ananas":"🍍","avokado":"🥑","yoghurt":"🥛","kaffe":"☕","te":"🍵","öl":"🍺","vin":"🍷","choklad":"🍫","ost":"🧀","granatäpple":"🔴","rödbet":"🟣","paprika":"🫑","broccoli":"🥦","ingefära":"🫚","honung":"🍯","nöt":"🥜","frön":"🌰"};
+  for(var k in MAP){if(t.indexOf(k)>=0)return MAP[k]}
+  // fallback per kategori
+  var CAT={frukt:"🍎",gront:"🥬",mejeri:"🥛",kott:"🥩",fisk:"🐟",skafferi:"🥫",dryck:"🥤",fryst:"🧊",brod:"🍞"};
+  return CAT[it.cat]||"";
+}
 function rItem(it,idx,isShop){
+  var em=isShop?itemEmoji(it):"";
+  // Kommande-rätt-markör: visa om varan hör till planerad(e) rätt(er)
+  var mealTag="";
+  if(isShop&&it.fromMeals&&it.fromMeals.length){
+    var planned=(typeof allPlannedMeals==="function")?allPlannedMeals():[];
+    var active=it.fromMeals.filter(function(m){return planned.indexOf(m)>=0});
+    if(active.length){var label=active.length===1?active[0]:active.length+" rätter";
+      mealTag='<span class="meal-tag" title="'+active.join(", ")+'" style="font-size:9px;color:var(--teal);background:var(--tealL);border-radius:8px;padding:1px 6px;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis">🍽️ '+label+'</span>';
+    }
+  }
   return '<div class="shop-item'+(it.done?" done":"")+'"><div class="chk" data-chk="'+idx+'">'+(it.done?"✓":"")+'</div>'+
+    (em?'<span style="font-size:14px;flex-shrink:0">'+em+'</span>':'')+
     '<span class="name">'+it.text+'</span>'+
+    mealTag+
     (isShop&&it.cat?'<span class="cat-tag" style="cursor:pointer" data-setcat="'+idx+'" title="Byt kategori">'+(CAT_ICONS[it.cat]||"")+'</span>':'')+
     (isShop&&!it.cat?'<span class="cat-tag" style="cursor:pointer;color:var(--fg3)" data-setcat="'+idx+'">kategori?</span>':'')+
     (isShop&&getArea(it.area)&&it.area==="mat"?dietBadge(it.text):'')+
@@ -3070,6 +3119,9 @@ function bindTodo(){
   var ss2=document.getElementById("storeSelect");if(ss2)ss2.addEventListener("change",function(e){if(!LISTS.activeStores)LISTS.activeStores={};LISTS.activeStores[LISTS.activeArea]=e.target.value;listsSync();render()});
   // Set category (click cat tag → cycle/pick → learn)
   // Diet info button
+  var trendI=document.getElementById("trendInfo");if(trendI)trendI.addEventListener("click",function(){
+    alert("Om effektgrafen\n\nVarje linje visar en uppskattad nivå (Vitalitet, Balans, Energi, Återhämtning) som byggs upp av maten och klingar av över tid — snabba effekter (lukt, cirkulation) på timmar-dygn, långsamma (hormonbas, tarmflora) på veckor.\n\n🎯-linjen = dagens mål. Varje parameter peakar olika dag enligt veckorytmen.\n\nViktigt: detta är en modell baserad på allmänna kostsamband — en riktningsvisare, inte en mätning. Ologgade måltider antas som vanlig kost. Sikta på trenden snarare än exakta procent.");
+  });
   var dietI=document.getElementById("dietInfo");if(dietI)dietI.addEventListener("click",function(){
     alert("Hälsoscore för råvaror (per 100g)\n\nFyra dimensioner:\n• Vitalitet — fräschhet & lyster\n• Balans — cirkulation & flöde\n• Energi — vitalitet & ork\n• Återhämtning — vätska & stabilitet\n\nGröna siffror = bra. Röda = minimera.\n\nTopp: ananas, vattenmelon, rödbetor, lax, ingefära, avokado.\nMinimera: vitlök, lök, alkohol.\n\nMån–Ons: fokus Energi+Återhämtning\nTors–Sön: fokus Vitalitet+Balans\n\nKlicka på en siffra för detaljscore.");
   });
@@ -3188,7 +3240,7 @@ function bindTodo(){
   // Markera måltid ätet
   document.querySelectorAll(".meal-eaten").forEach(function(el){el.addEventListener("click",function(e){
     e.stopPropagation();var d=el.dataset.day,s=el.dataset.slot;var now=isMealEaten(d,s);setMealEaten(d,s,!now);
-    if(!now){var m=getDayMeals(d)[s];var r=(LISTS.recipes||[]).find(function(x){return x.name===m});if(r){var ms=dietMealScore(r.items,r.cat);logHealth("eaten",r.name,ms.scores,ms.total)}toast("✓ Ätet — räknas i 'faktiskt ätet'")}
+    if(!now){var m=getDayMeals(d)[s];var r=(LISTS.recipes||[]).find(function(x){return x.name===m});if(r){var ms=dietMealScore(r.items,r.cat);logHealth("eaten",r.name,ms.scores,ms.total,s)}toast("✓ Ätet — räknas i 'faktiskt ätet'")}
     listsSync();render()})});
   // Show recipe (gör såhär)
   document.querySelectorAll(".recipe-show").forEach(function(el){el.addEventListener("click",function(e){
@@ -3513,45 +3565,77 @@ function bindAll(f,c){
 }
 
 // === CHARTS ===
-// === EFFEKTNIVÅ-MODELL (ackumulering + avklingning per fokus) ===
-// Varje fokus har egen dynamik: uptake (hur mkt av dagens intag som tas upp) + decay (kvar till nästa dag)
+// === EFFEKTNIVÅ-MODELL v3 (tvåkomponents-tidsskalor, mättnad, schablontider) ===
 // Ordning: [Smak/Vitalitet, Känsla/Balans, Driv/Energi, Bas/Återhämtning]
-var EFFECT_DYN=[
-  {uptake:0.35,decay:0.82},// Vitalitet: långsam uppbyggnad, långsam avklingning (ackumuleras över dagar)
-  {uptake:0.50,decay:0.72},// Balans: medel
-  {uptake:0.75,decay:0.55},// Energi/Driv: snabb upp, snabb ned (kort latens)
-  {uptake:0.65,decay:0.68} // Återhämtning: snabb upp, medel ned
+// Varje parameter delas i SNABB komponent (lukt/cirkulation/vätska — timmar-dygn) och
+// LÅNGSAM komponent (hormonbas/omega-3/tarmflora — veckor). Nivån = snabb + långsam.
+// Decay uttrycks som halveringstid i TIMMAR → omräknas mot faktisk tid mellan måltider (schablon).
+var EFFECT_FAST=[ // snabb komponent: andel av intaget + halveringstid (h)
+  {share:0.65,halfH:20},// Vitalitet: lukt/fräschör vädras ut ~1 dygn
+  {share:0.55,halfH:16},// Balans: cirkulation/humör, timmar
+  {share:0.70,halfH:10},// Energi: snabb, koffein/nitrat-likt
+  {share:0.50,halfH:14} // Återhämtning: vätska/elektrolyter snabbt
 ];
-// FASTA absoluta referensnivåer härledda ur jämvikt (steady state = dagligt_intag*uptake/(1-decay))
-// THRESHOLD = "tillräckligt bra" jämviktsnivå (linjen man inte vill under). CEILING = "mycket bra".
-// Dessa är konstanta → en given poängnivå betyder alltid samma sak över tid.
-var EFFECT_THRESHOLD=[9.7,7.1,8.3,8.1];// jämvikt vid hyfsad daglig kost per fokus
-var EFFECT_CEILING=[17.5,14.3,15.0,14.2];// jämvikt vid stark daglig kost per fokus
-// Bygg ackumulerade ABSOLUTA nivåer från dagspoäng
-function accumulateLevels(dailyScores){
-  var lvl=[0,0,0,0];var out=[];
-  dailyScores.forEach(function(day){
+var EFFECT_SLOW=[ // långsam komponent: andel + halveringstid (h) ~ dagar-veckor
+  {share:0.35,halfH:240},// Vitalitet: tarmflora/hudkvalitet ~10 dygn
+  {share:0.45,halfH:160},// Balans: ~7 dygn
+  {share:0.30,halfH:120},// Energi: ~5 dygn
+  {share:0.50,halfH:200} // Återhämtning/hormonbas: ~8 dygn
+];
+// Mättnad: mjukt tak per komponent (diminishing returns). Tanh-liknande komprimering.
+var EFFECT_SAT=[22,20,18,20];// nivå där komponenten börjar plana ut tydligt
+function saturate(x,cap){if(x<=0)return x;return cap*Math.tanh(x/cap)}// mjukt tak, ~linjär för små x
+// Schablontider per slot (timme på dygnet) — du matar inte in tid
+var SLOT_HOUR={b:7,l:12.5,d:18};
+// Mildare baslinje: ologgad måltid antas svagt under en normalkost-nivå (ej botten)
+var EFFECT_BASELINE=[0.5,0.5,0.5,1.0];// svagt positiv "normalkost" — icke-loggning ser ej ut som katastrof
+var EFFECT_REF=[36.4,30.9,27.4,29.3];// jämvikt vid bra kost (6 p/måltid) i nya tvåkomponents-modellen
+var TARGET_CURVE={
+  mon:[0.55,0.70,0.65,1.05],tue:[0.65,0.75,1.05,0.85],wed:[0.75,0.80,1.15,0.75],
+  thu:[0.90,0.85,0.95,0.70],fri:[1.05,0.90,0.85,0.70],sat:[1.20,1.00,0.80,0.75],sun:[0.85,1.05,0.65,0.95]
+};
+// Ackumulera med två komponenter + mättnad. mealStream = [{scores,absHour}] (absHour=timmar sedan start)
+function accumulateMeals(mealStream){
+  var fast=[0,0,0,0],slow=[0,0,0,0];var out=[];var prevH=null;
+  mealStream.forEach(function(m){
+    var dtH=prevH===null?0:Math.max(0,m.absHour-prevH);prevH=m.absHour;
     var row=[];
     for(var f=0;f<4;f++){
-      lvl[f]=lvl[f]*EFFECT_DYN[f].decay+(day[f]||0)*EFFECT_DYN[f].uptake;
-      row.push(lvl[f]);
+      // Decay båda komponenter mot faktisk tid sedan förra måltiden (schablontid)
+      if(dtH>0){fast[f]*=Math.pow(0.5,dtH/EFFECT_FAST[f].halfH);slow[f]*=Math.pow(0.5,dtH/EFFECT_SLOW[f].halfH)}
+      // Tillför intag, uppdelat på komponenter
+      var v=m.scores[f]||0;
+      fast[f]+=v*EFFECT_FAST[f].share;
+      slow[f]+=v*EFFECT_SLOW[f].share;
+      // Mättnad på summan
+      var lvl=saturate(fast[f],EFFECT_SAT[f])+saturate(slow[f],EFFECT_SAT[f]);
+      row.push(lvl);
     }
-    out.push(row.slice());
+    out.push({absHour:m.absHour,levels:row.slice(),dayKey:m.dayKey,planned:m.planned});
   });
   return out;
 }
-// Hämta dagspoäng (faktiskt ätet) för ett datum från HEALTH_LOG
-function dayScoresFromLog(dayStart){
-  var s=[0,0,0,0];
-  (HEALTH_LOG||[]).forEach(function(e){if(e.action!=="eaten"||!e.scores)return;var d=new Date(e.t);d.setHours(0,0,0,0);if(d.getTime()===dayStart)for(var f=0;f<4;f++)s[f]+=e.scores[f]});
-  return s;
-}
-// Prognos: planerade måltider i veckoplanen för en given veckodag
-function dayScoresFromPlan(dayKey){
-  var s=[0,0,0,0];var wp=LISTS.weekPlan&&LISTS.weekPlan[dayKey];if(!wp)return s;
-  var slots=typeof wp==="string"?{d:wp}:wp;
-  ["b","l","d"].forEach(function(sl){var nm=slots[sl];if(!nm)return;var r=(LISTS.recipes||[]).find(function(x){return x.name===nm});if(!r)return;var ms=dietMealScore(r.items,r.cat);for(var f=0;f<4;f++)s[f]+=ms.scores[f]});
-  return s;
+// Bygg måltidsström 14 dagar × 3 slots, med schablontid (absHour). Loggat→faktisk, ologgat→baslinje.
+function buildMealStream(){
+  var now=new Date();now.setHours(0,0,0,0);
+  var WKEY=["sun","mon","tue","wed","thu","fri","sat"];
+  var stream=[];var dayMarks=[];
+  for(var di=-7;di<=6;di++){
+    var dt=new Date(now);dt.setDate(now.getDate()+di);dt.setHours(0,0,0,0);
+    var dayStart=dt.getTime();var dk=WKEY[dt.getDay()];var isPast=di<=0;
+    var baseHour=(di+7)*24;// timmar från fönstrets start
+    var logged={};
+    if(isPast){(HEALTH_LOG||[]).forEach(function(e){if(e.action!=="eaten"||!e.scores)return;var d=new Date(e.t);d.setHours(0,0,0,0);if(d.getTime()===dayStart){var slot=e.slot||"d";logged[slot]=logged[slot]||[0,0,0,0];for(var f=0;f<4;f++)logged[slot][f]+=e.scores[f]}})}
+    var wp=LISTS.weekPlan&&LISTS.weekPlan[dk];var slots=typeof wp==="string"?{d:wp}:(wp||{});
+    ["b","l","d"].forEach(function(sl){
+      var sc;
+      if(isPast){sc=logged[sl]?logged[sl]:EFFECT_BASELINE.slice()}
+      else{var nm=slots[sl];var r=nm?(LISTS.recipes||[]).find(function(x){return x.name===nm}):null;sc=r?dietMealScore(r.items,r.cat).scores.slice():EFFECT_BASELINE.slice()}
+      stream.push({scores:sc,absHour:baseHour+SLOT_HOUR[sl],dayKey:dk,planned:!isPast});
+    });
+    dayMarks.push({dayKey:dk,dayStart:dayStart,isPast:isPast,label:["Sön","Mån","Tis","Ons","Tor","Fre","Lör"][dt.getDay()],di:di});
+  }
+  return {stream:stream,dayMarks:dayMarks};
 }
 function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e){}}S.charts={};
   var tc=S.dark?"#9C9588":"#6B6358",gc=S.dark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)",C={coral:"#C2532E",amber:"#D4890F",teal:"#1A8A65",purple:"#6B4DAA",blue:"#2E78B7"};
@@ -3591,48 +3675,46 @@ function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e
   // Dashboard: fokus-trendgraf (admin/ägare)
   var ftEl=document.getElementById("focusTrend");
   if(ftEl&&isOwner()){
-    var nowD=new Date();nowD.setHours(0,0,0,0);
-    var WK=["Sön","Mån","Tis","Ons","Tor","Fre","Lör"];var WKEY=["sun","mon","tue","wed","thu","fri","sat"];
-    // 14 dagar: 7 bakåt (historik, faktiskt ätet) + idag + 6 framåt (prognos från veckoplan)
-    var dailyScores=[],dayLabels=[],splitIdx=7;// index 0-6 historik, 7=idag, 8-13 prognos
-    for(var di=-7;di<=6;di++){
-      var dt=new Date(nowD);dt.setDate(nowD.getDate()+di);dt.setHours(0,0,0,0);
-      dayLabels.push(WK[dt.getDay()]);
-      if(di<=0)dailyScores.push(dayScoresFromLog(dt.getTime()));
-      else dailyScores.push(dayScoresFromPlan(WKEY[dt.getDay()]));
-    }
-    var levels=accumulateLevels(dailyScores);// [14][4] ABSOLUTA nivåer
-    // Skala varje fokus mot SIN fasta tröskel: tröskel=100 (gemensam linje), absolut & jämförbart över tid
-    var series=[[],[],[],[]];var ceilPct=[];
-    for(var f=0;f<4;f++)ceilPct.push(Math.round(EFFECT_CEILING[f]/EFFECT_THRESHOLD[f]*100));
-    levels.forEach(function(r){for(var f=0;f<4;f++)series[f].push(Math.round(r[f]/EFFECT_THRESHOLD[f]*100))});
-    // Y-max = högsta takvärdet + lite luft (så alla taklinjer ryms)
-    var yMax=Math.max.apply(null,ceilPct)+15;
-    var emj=["🍑","🌿","🚀","🧘"];var labs=isOwner()?["Smak","Känsla","Driv","Bas"]:["Vitalitet","Balans","Energi","Återhämtning"];
+    var built=buildMealStream();
+    var acc=accumulateMeals(built.stream);// per måltid
+    // Ta sista måltidens nivå per dag = dagens slutnivå
+    var dayLevels=[];var dayLabels=[];var dayKeys=[];var splitIdx=7;
+    built.dayMarks.forEach(function(dm,di){
+      // sista måltiden för denna dag i acc (3 per dag, index di*3+2)
+      var lastMealIdx=di*3+2;var lv=acc[lastMealIdx]?acc[lastMealIdx].levels:[0,0,0,0];
+      dayLevels.push(lv);dayLabels.push(dm.label);dayKeys.push(dm.dayKey);
+    });
+    // Normalisera mot dagens MÅLKURVA: 100% = på mål den dagen. nivå/(ref*targetfactor)*100
+    var series=[[],[],[],[]];var targetSeries=[];
+    dayLevels.forEach(function(lv,di){
+      var tc2=TARGET_CURVE[dayKeys[di]]||[1,1,1,1];
+      for(var f=0;f<4;f++){
+        var target=EFFECT_REF[f]*tc2[f];
+        var pct=target>0?Math.round(lv[f]/target*100):0;
+        // Mjuk logaritmisk komprimering ovanför 100 så höga värden inte skenar men syns
+        if(pct>100)pct=Math.round(100+ (Math.log10(pct/100))*100);
+        series[f].push(Math.max(0,pct));
+      }
+      targetSeries.push(100);// mål = alltid 100% (kurvan ligger inbakad i normaliseringen)
+    });
+    var emj=isOwner()?["🍑","🌿","🚀","🧘"]:["✨","🌿","⚡","🧘"];var labs=isOwner()?["Smak","Känsla","Driv","Bas"]:["Vitalitet","Balans","Energi","Återhämtning"];
     var cols=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"];
-    var ctx=ftEl.getContext("2d");
-    // Gradient botten(svag)→topp(stark) som bakgrundsskugga
-    var grad=ctx.createLinearGradient(0,0,0,ftEl.height||150);
-    grad.addColorStop(0,"rgba(26,138,101,.10)");grad.addColorStop(0.5,"rgba(200,200,80,.04)");grad.addColorStop(1,"rgba(200,80,80,.08)");
-    // Datasets: varje fokus, historik heldragen + prognos streckad (split vid idag)
     var datasets=[];
     series.forEach(function(s,i){
-      datasets.push({label:emj[i]+" "+labs[i],data:s,borderColor:cols[i],backgroundColor:"transparent",tension:.4,borderWidth:2,pointRadius:function(c){return c.dataIndex===splitIdx?3:0},pointBackgroundColor:cols[i],
+      datasets.push({label:emj[i]+" "+labs[i],data:s,borderColor:cols[i],backgroundColor:"transparent",tension:.4,borderWidth:2,pointRadius:function(c){return c.dataIndex===splitIdx?3.5:0},pointBackgroundColor:cols[i],
         segment:{borderDash:function(c){return c.p0DataIndex>=splitIdx?[4,3]:undefined}}});
     });
-    // Tröskellinje vid 100% = jämvikt vid hyfsad kost (samma linje för alla fokus, "vill ej under")
-    var midline={label:"Mål-tröskel",data:series[0].map(function(){return 100}),borderColor:"rgba(120,120,120,.6)",borderWidth:1.5,borderDash:[5,3],pointRadius:0,fill:false,tension:0};
-    datasets.push(midline);
+    // Målkurva = 100%-linje (efter normalisering): det man vill nå/peaka mot varje dag
+    datasets.push({label:"Mål",data:targetSeries,borderColor:"rgba(120,120,120,.55)",borderWidth:1.5,borderDash:[5,3],pointRadius:0,fill:false,tension:0});
+    var yMax=170;// 100=mål, 170≈ rejält över (log-komprimerat). Inget åker off-chart.
     S.charts.focusTrend=new Chart(ftEl,{type:"line",data:{labels:dayLabels,datasets:datasets},
       options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:"index"},
-        plugins:{legend:{labels:{font:{size:8},color:tc,boxWidth:8,padding:5,filter:function(l){return l.text!=="Mål-tröskel"}}},
-          tooltip:{callbacks:{title:function(items){var idx=items[0].dataIndex;return dayLabels[idx]+(idx<splitIdx?" (ätet)":idx===splitIdx?" (idag)":" (planerat)")},
-            label:function(c){if(c.dataset.label==="Mål-tröskel")return null;return c.dataset.label+": "+c.parsed.y+"% av tröskel"}}}},
+        plugins:{legend:{labels:{font:{size:8},color:tc,boxWidth:8,padding:5,filter:function(l){return l.text!=="Mål"}}},
+          tooltip:{callbacks:{title:function(items){var idx=items[0].dataIndex;return dayLabels[idx]+(idx<splitIdx?" (historik)":idx===splitIdx?" (idag)":" (planerat)")},
+            label:function(c){if(c.dataset.label==="Mål")return null;var v=c.parsed.y;var st=v>=100?"på/över mål ✓":v>=75?"nära mål":"under mål";return c.dataset.label+": "+v+"% — "+st}}}},
         scales:{x:{grid:{display:false},ticks:{font:{size:8},color:tc,maxRotation:0,autoSkip:false,callback:function(v,i){return i%2===0?dayLabels[i]:""}}},
-          y:{min:0,max:yMax,grid:{color:gc},ticks:{font:{size:8},color:tc,stepSize:50,callback:function(v){return v===100?"tröskel":v+"%"}},border:{display:false}}},
+          y:{min:0,max:yMax,grid:{color:gc},ticks:{font:{size:8},color:tc,stepSize:50,callback:function(v){return v===100?"🎯mål":v+"%"}},border:{display:false}}},
         elements:{line:{fill:false}}}});
-    // Lägg en bakgrunds-annotation för "idag"-linjen via fyllning
-    var todayBand={id:"todayBand",beforeDraw:function(chart){var xa=chart.scales.x,ya=chart.scales.y;var x=xa.getPixelForValue(splitIdx);var c=chart.ctx;c.save();c.strokeStyle="rgba(120,120,120,.35)";c.setLineDash([3,3]);c.beginPath();c.moveTo(x,ya.top);c.lineTo(x,ya.bottom);c.stroke();c.restore()}};
   }
   // Dashboard charts removed in v16 (feed-focused design)
 }

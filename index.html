@@ -1079,7 +1079,8 @@ var DEFAULT_RECIPES=[
   {name:"Ärtsoppa med fläsk",emoji:"🍲",focus:"bas",cat:"soppa",howto:"Koka gula ärtor mjuka med morot och fläsk. Smaka av med timjan. Servera varm.",items:["ärtor","morot","fläsk","timjan"]},
   {name:"Grillad entrecôte med örtsmör",emoji:"🥩",focus:"driv",cat:"grill",howto:"Grilla entrecôte 3-4 min/sida. Vila. Toppa med örtsmör och servera med grillade grönsaker.",items:["nötkött","smör","persilja","zucchini"]},
   {name:"Lammracks med rosmarin",emoji:"🍖",focus:"driv",cat:"grill",howto:"Bryn lammracks, ugnsstek 12 min med rosmarin. Vila. Servera med rotsaker och citron.",items:["lamm","morot","citron","olivolja"]},
-  {name:"Kyckling med citron & rosmarin",emoji:"🍗",focus:"driv",cat:"grill",howto:"Ugnsbaka hel kycklingfilé med citron och rosmarin 25 min. Strö persilja.",items:["kyckling","citron","persilja"]}
+  {name:"Kyckling med citron & rosmarin",emoji:"🍗",focus:"driv",cat:"grill",howto:"Ugnsbaka hel kycklingfilé med citron och rosmarin 25 min. Strö persilja.",items:["kyckling","citron","persilja"]},
+  {name:"Kycklingfärsbiffar med rödbeta & persiljeyoghurt",emoji:"🍢",focus:"driv",cat:"gryta",gf:true,howto:"Riv rödbetor grovt och strängskär selleri fint. Blanda kycklingfärs med ägg, hackad persilja, salt och peppar, forma biffar. Stek gyllene och genomstekta ca 4-5 min/sida. Fräs rödbeta och selleri hastigt i samma panna. Rör ihop grekisk yoghurt med citron och resten av persiljan. Servera biffarna med grönsaker och persiljeyoghurt.",items:["kycklingfärs","rödbetor","selleri","ägg","bladpersilja","grekisk yoghurt","citron","olivolja"]}
 ];
 var CAT_ICONS={"Frukt & grönt":"🥦","Bröd":"🍞","Mejeri":"🥛","Kött & fisk":"🥩","Frys":"🧊","Torrvaror":"🥫","Dryck":"🥤","Snacks":"🍿","Hygien":"🧴","Övrigt":"📦","Rött vin":"🍷","Vitt vin":"🥂","Rosévin":"🌸","Öl":"🍺","Sprit":"🥃","Cider":"🍏","Alkoholfritt":"🚫"};
 function getArea(id){return AREAS.find(function(a){return a.id===id})||LISTS.projects.find(function(p){return p.id===id})}
@@ -2855,12 +2856,13 @@ function rTodo(){
         var rec=name?recipes.find(function(r){return r.name===name}):null;
         var emoji=rec?(rec.emoji||mealEmoji(rec.name)):"";
         var eaten=isMealEaten(day.k,slot);
+        var slotCol=slot==="b"?"#c87a3a":slot==="l"?"#3a8ac8":"#8a3ac8";
         if(rec){var ms=dietMealScore(rec.items,rec.cat);var fi=FOCUS_IDX[day.focus];var fp=ms.scores[fi];
           var tag=rec.power?' <span style="font-size:8px" title="Power food">⚡</span>':rec.treat?' <span style="font-size:8px" title="Treat — bäst tidigt i veckan">🍔</span>':'';
           var treatWarn=rec.treat&&day.smakW>=1.0?' <span style="color:#c87a3a;font-size:8px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
-          return '<div class="meal-slot" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px'+(eaten?';opacity:.6':'')+'"><span style="width:16px;opacity:.6">'+slotEmoji+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span><span style="font-size:8px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600">'+fp+'</span><span style="font-size:8px;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)">'+(ms.total>=0?"+":"")+ms.total+'</span><button class="ib meal-eaten" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:16px;height:16px;font-size:9px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" style="width:16px;height:16px;font-size:9px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" style="width:16px;height:16px;font-size:9px">×</button></div>';
+          return '<div class="meal-slot meal-filled" data-day="'+day.k+'" data-slot="'+slot+'" data-recipe="'+encodeURIComponent(rec.name)+'" style="display:flex;align-items:center;gap:5px;padding:5px 6px;cursor:pointer;font-size:10px;border-left:3px solid '+slotCol+';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:3px'+(eaten?';opacity:.6':'')+'"><span style="font-size:8px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span><span style="font-size:8px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600" title="'+focusName(day.focus)+'-poäng">'+fp+'</span><span style="font-size:9px;font-weight:700;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)" title="Totalpoäng">'+(ms.total>=0?"+":"")+ms.total+'</span><button class="ib meal-eaten" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:18px;height:18px;font-size:9px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" title="Visa recept & poäng" style="width:18px;height:18px;font-size:10px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" title="Ta bort" style="width:18px;height:18px;font-size:9px">×</button></div>';
         }
-        return '<div class="meal-slot" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px;color:var(--fg3)"><span style="width:16px;opacity:.6">'+slotEmoji+'</span><span style="flex:1">+ '+slotLabel+'</span></div>';
+        return '<div class="meal-slot meal-empty" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:8px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
       }
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
         '<div class="flex aic jcb" id="planToggle" style="cursor:pointer"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4"><button class="btn btn-s btn-sm" id="cookPantry" title="Vad kan jag laga?">🍳</button><button class="btn btn-s btn-sm" id="toggleWorkouts" title="Visa träning">'+(SHOW_WORKOUTS?"💪 På":"💪")+'</button><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla":"🍽️")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div>')+'</div>'+
@@ -3137,15 +3139,20 @@ function bindTodo(){
     if(willReplace>0&&!confirm("Auto fyller tomma dagar och föreslår nya middagar framåt.\n\n"+willReplace+" redan planerade middagar (framåt) byts ut. Ätna måltider och tidigare dagar rörs INTE.\n\nFortsätt?"))return;
     var plan=suggestWeekMeals();
     LISTS.weekPlan=plan;addActivity(ME||"Okänd","auto-fyllde veckomenyn");listsSync();toast("✨ Veckomeny uppdaterad — ätet & tidigare dagar bevarat");render()});
-  // Click meal-slot → pick recipe (bottom-sheet med tappbara kort)
+  // Click meal-slot → ifylld rad visar receptet, tom rad öppnar väljaren
   document.querySelectorAll(".meal-slot").forEach(function(el){el.addEventListener("click",function(e){
-    if(e.target.classList.contains("clear-slot")||e.target.classList.contains("recipe-show"))return;
+    if(e.target.classList.contains("clear-slot")||e.target.classList.contains("recipe-show")||e.target.classList.contains("meal-eaten"))return;
+    // Ifylld rad → öppna receptet direkt (tydligt: se recept + score)
+    if(el.classList.contains("meal-filled")&&el.dataset.recipe){
+      var rn=decodeURIComponent(el.dataset.recipe);var r=(LISTS.recipes||[]).find(function(x){return x.name===rn});if(r){showRecipeSheet(r);return}
+    }
     var day=el.dataset.day;var slot=el.dataset.slot;var dayObj=WEEKDAYS.find(function(d){return d.k===day});
     var recipes=LISTS.recipes||[];if(!recipes.length){toast("Skapa rätter först");return}
     var pool=recipes.filter(function(r){return slot==="b"?r.meal==="frukost":r.meal!=="frukost"});
     if(!pool.length)pool=recipes;
     var ranked=pool.map(function(r){return{r:r,score:recipeFocusScore(r,dayObj)}}).sort(function(a,b){return b.score-a.score});
     var fi=FOCUS_IDX[dayObj.focus];var slotName=slot==="b"?"Frukost":slot==="l"?"Lunch":"Middag";
+    var slotIco=slot==="b"?"🍳":slot==="l"?"🥗":"🍽️";
     var fEmoji=FOCUS_EMOJI[dayObj.focus];
     var CAT_LABELS={sallad:"🥗 Sallad",bowl:"🥣 Bowl",pasta:"🍝 Pasta",wok:"🥘 Wok",gryta:"🍲 Gryta",soppa:"🍲 Soppa",grill:"🔥 Grill",frukost:"🍳 Frukost"};
     var cards=ranked.slice(0,400).map(function(x){var ms=dietMealScore(x.r.items,x.r.cat);
@@ -3160,7 +3167,7 @@ function bindTodo(){
     var catsPresent={};cards.forEach(function(c){if(c.cat&&CAT_LABELS[c.cat])catsPresent[c.cat]=true});
     var catList=Object.keys(catsPresent).map(function(k){return{key:k,label:CAT_LABELS[k]}});
     var sub=dayObj.n+" · "+fEmoji+" "+focusName(dayObj.focus)+(isOwner()&&dayObj.smakW>=0.7?" · Smak-laddning 🍑":"");
-    openSheet("Välj "+slotName.toLowerCase(),sub,cards,function(name){
+    openSheet(slotIco+" Välj "+slotName.toLowerCase()+" · "+dayObj.n,sub,cards,function(name){
       var prev=getDayMeals(day)[slot];var prevEaten=isMealEaten(day,slot);
       // Om man byter ut en tidigare planerad (ej äten) rätt → rensa dess varor
       if(prev&&prev!==name&&!prevEaten)removeMealItems(prev);

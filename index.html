@@ -158,7 +158,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .todo-suggest .ts-new{color:var(--teal);font-weight:600}
 
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
-.sheet{background:var(--card);width:100%;max-width:560px;max-height:82vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;animation:slideUp .28s cubic-bezier(.2,.8,.2,1);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+.sheet{background:var(--card);width:100%;max-width:560px;max-height:82vh;max-height:82dvh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;animation:slideUp .28s cubic-bezier(.2,.8,.2,1);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
 .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:8px auto 4px}
 .sheet-head{padding:6px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .sheet-title{font-size:15px;font-weight:700}
@@ -202,7 +202,7 @@ function openSheet(title,sub,cards,onPick,cats){
   var activeCat="alla";var searchQ="";
   var ov=document.createElement("div");ov.className="sheet-overlay";ov.id="sheetOverlay";
   var sheet=document.createElement("div");sheet.className="sheet";
-  var searchBar='<div style="padding:8px 12px 4px;background:var(--card);flex-shrink:0"><input id="sheetSearch" placeholder="🔍 Sök rätt..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;box-sizing:border-box;background:var(--bg2);color:var(--fg)"></div>';
+  var searchBar='<div style="padding:8px 12px 4px;background:var(--card);flex-shrink:0;position:sticky;top:0;z-index:5"><input id="sheetSearch" placeholder="🔍 Sök rätt..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-size:16px;box-sizing:border-box;background:var(--bg2);color:var(--fg)"></div>';
   var chipBar=cats&&cats.length?'<div id="sheetChips" style="display:flex;gap:6px;overflow-x:auto;padding:6px 12px;-webkit-overflow-scrolling:touch;background:var(--card);position:relative;z-index:3;border-bottom:1px solid var(--border);flex-shrink:0"></div>':'';
   sheet.innerHTML='<div class="sheet-handle"></div>'+
     '<div class="sheet-head"><div><div class="sheet-title">'+title+'</div>'+(sub?'<div class="sheet-sub">'+sub+'</div>':'')+'</div><button class="sheet-close" id="sheetClose">✕</button></div>'+
@@ -2551,7 +2551,7 @@ var FOCUS_COLOR={driv:"#c87a3a",bas:"#3a8ac8",smak:"#c83a7a",kansla:"#8a3ac8"};
 var FOCUS_IDX={smak:0,kansla:1,driv:2,bas:3};
 // Ägare ser riktiga ord, vanlig user ser hälsobegrepp
 function focusName(f){return isOwner()?FOCUS_LABEL_REAL[f]:FOCUS_LABEL[f]}
-var SHOW_ALL_MEALS=false;
+var SHOW_ALL_MEALS=true;
 var SHOW_WORKOUTS=false;
 var GRILL_WEATHER=false;// sätts av väderfunktionen
 // Dagens veckodag-index (0=mån ... 6=sön)
@@ -2865,7 +2865,7 @@ function rTodo(){
         return '<div class="meal-slot meal-empty" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:8px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
       }
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
-        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4"><button class="btn btn-s btn-sm" id="cookPantry" title="Vad kan jag laga?">🍳</button><button class="btn btn-s btn-sm" id="toggleWorkouts" title="Visa träning">'+(SHOW_WORKOUTS?"💪 På":"💪")+'</button><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla":"🍽️")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div>')+'</div>'+
+        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4"><button class="btn btn-s btn-sm" id="cookPantry" title="Vad kan jag laga?">🍳</button><button class="btn btn-s btn-sm" id="toggleWorkouts" title="Visa träning">'+(SHOW_WORKOUTS?"💪 På":"💪")+'</button><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-s btn-sm" id="autoWeek" title="Auto-fördela">✨ Auto</button><button class="btn btn-s btn-sm" id="addMeal">+ Rätt</button></div>')+'</div>'+
         (S.planCollapsed?'':
         (isOwner()?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Smak laddas mot helgen 🍑 · middag räcker, frukost/lunch valfritt</div>':'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Middag räcker — frukost & lunch är valfria</div>')+
         // Veckokalender

@@ -188,6 +188,8 @@ input[type="text"],input[type="email"],input[type="password"],input[type="number
 firebase.initializeApp({apiKey:"AIzaSyDmQKsqqai1DKB2sJ4FOhIbX1EbknLNpA4",authDomain:"hus-och-budget.firebaseapp.com",databaseURL:"https://hus-och-budget-default-rtdb.europe-west1.firebasedatabase.app",projectId:"hus-och-budget",storageBucket:"hus-och-budget.firebasestorage.app",messagingSenderId:"1019610713349",appId:"1:1019610713349:web:26c9ec60dfd8009c1b3b6c"});
 var db=firebase.database();
 var auth=firebase.auth();
+// Behåll inloggning över sidomladdning/pull-to-refresh (annars tappas session → data verkar nollställas)
+try{auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)}catch(e){console.warn("auth persistence:",e)}
 
 // === UTILS ===
 function N(v){var n=Number(v);return isNaN(n)?0:n}
@@ -1008,7 +1010,7 @@ var DEFAULT_RECIPES=[
   {name:"Lätt coq au vin med örter",emoji:"🍲",focus:"driv",cat:"gryta",gf:true,howto:"Fräs kyckling och morot. Koka långsamt 25 min i buljong. Garnera persilja.",items:["kyckling","morot","persilja"]},
   {name:"Grönsaksgryta med kimchi",emoji:"🍲",focus:"bas",cat:"gryta",gf:true,howto:"Koka rotfrukter. Tillsätt kimchi och kokosmjölk. Garnera koriander.",items:["morot","kimchi","kokosmjölk","koriander"]},
   {name:"Tofugryta med lime & koriander",emoji:"🍲",focus:"kansla",cat:"gryta",gf:true,howto:"Fräs tofu. Tillsätt spenat och kokosmjölk, koka 10 min. Pressa lime, strö koriander.",items:["tofu","lime","koriander","spenat","kokosmjölk"]},
-  {name:"Vietnamesiska risrullar med örter",emoji:"🌯",focus:"kansla",cat:"sallad",gf:true,howto:"Blötlägg risris. Rulla med räkor, gurka, mynta och koriander. Servera med limesaft.",items:["räkor","mynta","koriander","lime","gurka"]},
+  {name:"Vietnamesiska risrullar med örter",emoji:"🌯",focus:"kansla",cat:"sallad",gf:true,howto:"Blötlägg rispapper hastigt i ljummet vatten tills mjukt. Rulla med räkor, gurka, mynta och koriander. Servera med limesaft.",items:["rispapper","räkor","mynta","koriander","lime","gurka"]},
   {name:"Ananas-kycklingwok med lime",emoji:"🥘",focus:"smak",cat:"wok",gf:true,howto:"Woka kyckling och ananas 8 min på hög värme. Pressa lime, strö sesam och koriander.",items:["kyckling","ananas","lime","koriander","sesamfrön"]},
   {name:"Japansk teriyaki med ananas",emoji:"🥘",focus:"driv",cat:"wok",gf:true,howto:"Stek lax eller kyckling. Tillsätt ananas och glutenfri soja, koka ihop 8 min. Pressa lime, strö sesam.",items:["lax","ananas","sojasås","lime","sesamfrön"]},
   {name:"Kokos- & limesoppa med koriander",emoji:"🍲",focus:"kansla",cat:"soppa",gf:true,howto:"Koka kokosmjölk med lime, tofu och spenat 10 min. Garnera koriander.",items:["kokosmjölk","lime","koriander","tofu","spenat"]},
@@ -1641,6 +1643,13 @@ function guessRecipeCat(name,items){
   if(/\bris\b|quinoa/.test(t))return"bowl";
   return"sallad";
 }
+// Äkta basvaror som antas finnas hemma — exkluderas från auto-inköp.
+// OBS: bara grundläggande kryddor/fetter/vätska. Huvudingredienser (t.ex. rispapper, mjöl) ska ALLTID med.
+var BASIC_STAPLES=["salt","peppar","svartpeppar","vitpeppar","olivolja","rapsolja","matolja","olja","vatten","smör för stekning","salt & peppar","salt och peppar"];
+function isBasicStaple(text){
+  var t=(text||"").toLowerCase().trim();
+  return BASIC_STAPLES.some(function(s){return t===s||t==="lite "+s||t==="en nypa "+s});
+}
 function guessArea(text){
   var t=text.toLowerCase();
   // Dryck/Systembolaget — alkohol
@@ -1676,28 +1685,31 @@ function guessArea(text){
   // Default to active area
   return{area:LISTS.activeArea||"mat",cat:""};
 }
-var _syncTimer=null,_syncPending=false;
+var _syncTimer=null,_syncPending=false,_writingOwn=false;
+function _doWrite(){
+  var r=shopRef?shopRef.parent.child("lists"):null;if(!r)return;
+  _syncTimer=null;_syncPending=false;_writingOwn=true;
+  r.set(LISTS,function(err){_writingOwn=false;if(err){console.error("Sync-fel:",err);toast("⚠ Kunde inte spara — kontrollera nätet")}});
+}
 function listsSync(){
   if(!LISTS_LOADED){console.warn("listsSync blocked — data not loaded");return}
-  if(skipSync)return;// håller på att läsa in från Firebase → skriv inte
-  var r=shopRef?shopRef.parent.child("lists"):null;if(!r)return;
-  // Debounce: samla snabba ändringar, skriv en gång
+  if(skipSync)return;
+  if(!shopRef)return;
   _syncPending=true;
   if(_syncTimer)clearTimeout(_syncTimer);
-  _syncTimer=setTimeout(function(){
-    _syncTimer=null;_syncPending=false;
-    _writingOwn=true;// markera att nästa on('value') är vår egen skrivning
-    r.set(LISTS,function(err){_writingOwn=false;if(err){console.error("Sync-fel:",err);toast("⚠ Kunde inte spara — kontrollera nätet")}});
-  },350);
+  _syncTimer=setTimeout(_doWrite,150);// kort debounce — sparar snabbt
 }
-var _writingOwn=false;
-// Tvinga skrivning av väntande ändringar om sidan stängs/laddas om (skyddar mot dataförlust)
-window.addEventListener("beforeunload",function(){
-  if(_syncPending&&_syncTimer&&LISTS_LOADED&&!skipSync){
-    clearTimeout(_syncTimer);_syncTimer=null;_syncPending=false;
-    var r=shopRef?shopRef.parent.child("lists"):null;if(r)r.set(LISTS);
+// Flush direkt (synkront-ish) vid alla situationer där sidan kan försvinna.
+// Mobil (iOS pull-to-refresh, app-byte) kör ofta INTE beforeunload → använd flera signaler.
+function flushSync(){
+  if(_syncPending&&LISTS_LOADED&&!skipSync&&shopRef){
+    if(_syncTimer){clearTimeout(_syncTimer);_syncTimer=null}
+    _doWrite();
   }
-});
+}
+window.addEventListener("beforeunload",flushSync);
+window.addEventListener("pagehide",flushSync);
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushSync()});
 // Activity feed
 var ACTIVITY=[];
 function addActivity(who,action){ACTIVITY.unshift({who:who,action:action,time:Date.now()});if(ACTIVITY.length>20)ACTIVITY.length=20;
@@ -1900,6 +1912,7 @@ function connect(id){
   shopRef=db.ref("households/"+id+"/shop");
   shopRef.on("value",function(snap){});// legacy — replaced by lists
   var listsRef=shopRef.parent.child("lists");
+  try{listsRef.keepSynced(true)}catch(e){}
   var actRef=shopRef.parent.child("activity");
   actRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){ACTIVITY=d}});
   var healthRef=shopRef.parent.child("healthLog");
@@ -2455,6 +2468,7 @@ var DIET_DB={
   "nudlar":[0,0.5,0.5,1],
   "bröd":[0,0.5,0.5,1],
   "tortillas":[0,0.5,0.5,1],
+  "rispapper":[0,0.5,0.5,1],
   "hamburgerbröd":[-0.5,0,0.5,0.5],
   "pizzadeg":[0,0,0.5,0.5],
   "sojasås":[0,0.5,0.5,0.5],
@@ -2800,7 +2814,14 @@ function healthKPIs(){
   function agg(arr){var s=[0,0,0,0],tot=0;arr.forEach(function(e){if(e.scores)for(var i=0;i<4;i++)s[i]+=e.scores[i];tot+=e.total||0});return{scores:s,total:tot,count:arr.length}}
   return{thisWeek:agg(thisWeek),lastWeek:agg(lastWeek),allTime:agg(HEALTH_LOG)};
 }
-function isOwner(){return(typeof IS_ADMIN!=="undefined"&&IS_ADMIN)||(ME||"").toLowerCase().indexOf("daniel")>=0}
+function isOwner(){
+  // Strikt: bara den inloggade admin-användaren (Daniel) ser de verkliga termerna.
+  // Baseras på inloggad e-post/admin-status — INTE på ME (enhetspersonifiering som kan ligga kvar i localStorage).
+  if(typeof MEMBER!=="undefined"&&MEMBER&&MEMBER.email&&ADMIN_EMAIL){
+    return MEMBER.email.toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  }
+  return(typeof IS_ADMIN!=="undefined"&&IS_ADMIN===true);
+}
 // Veckodags-fokus (oskyldig rytm, ingen tracking)
 function dayFocusToday(){
   var d=new Date().getDay();// 0=sön
@@ -3249,11 +3270,14 @@ function bindTodo(){
   })});
   // Add week's ingredients to shopping (alla måltider b/l/d)
   var addMI=document.getElementById("addMealItems");if(addMI)addMI.addEventListener("click",function(){
-    var recipes=LISTS.recipes||[];var names=allPlannedMeals();
-    var added=0,askDupes=[];
-    // Tagga varje vara med vilken rätt den kom från (fromMeals=array av rättnamn)
+    var recipes=LISTS.recipes||[];
+    // Bara EJ ätna planerade måltider — ätna/efterregistrerade ska aldrig fylla på inköp
+    var names=[];var wp=LISTS.weekPlan||{};
+    Object.keys(wp).forEach(function(k){var m=getDayMeals(k);["b","l","d"].forEach(function(s){if(m[s]&&!isMealEaten(k,s))names.push(m[s])})});
+    var added=0,askDupes=[],skippedStaple=0;
     function tagFrom(item,recName){if(!item.fromMeals)item.fromMeals=[];if(item.fromMeals.indexOf(recName)<0)item.fromMeals.push(recName)}
     names.forEach(function(n){var rec=recipes.find(function(r){return r.name===n});if(rec)(rec.items||[]).forEach(function(ing){
+      if(isBasicStaple(ing)){skippedStaple++;return}// salt/peppar/olja osv. läggs ej till — antas finnas hemma
       var existing=(LISTS.items||[]).find(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
       if(existing){if(askDupes.indexOf(ing)<0)askDupes.push(ing);tagFrom(existing,n)}
       else{var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];var ni={text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now(),fromMeals:[n]};LISTS.items.push(ni);added++}

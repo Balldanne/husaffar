@@ -193,7 +193,7 @@ function fSEK(v){v=N(v);if(v===0)return "0 kr";return Math.abs(v)>=1e6?(v/1e6).t
 function fSEK0(v){v=N(v);if(v===0)return "—";return fSEK(v)}
 function fN(v){return Math.round(N(v)).toLocaleString("sv-SE")}
 function fP(v,d){return(N(v)*100).toFixed(d||1)+"%"}
-function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2500)}
+function toast(msg,dur,action){var t=document.getElementById("toast");t.innerHTML="";t.textContent=msg;t.style.cursor=action?"pointer":"";t.onclick=action?function(){action();t.classList.remove("show")}:null;t.classList.add("show");setTimeout(function(){t.classList.remove("show");t.onclick=null},dur||2500)}
 // === BOTTOM SHEET (mobilvänlig väljare) ===
 function closeSheet(){var o=document.getElementById("sheetOverlay");if(o)o.remove()}
 // cards: [{emoji,name,meta,score,scoreColor,value,cat}], onPick(value), cats optional [{key,label}]
@@ -1289,7 +1289,8 @@ function showRecipeSheet(rec,have){
   });
   function ingListHtml(){
     return rec.items.map(function(ing){var st=S.ingStatus[ing];var home=st==="hemma";
-      return '<div class="ing-row" data-ing="'+encodeURIComponent(ing)+'" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;background:var(--bg2);margin-bottom:4px;cursor:pointer"><span style="font-size:14px">'+(home?"✓":"🛒")+'</span><span style="flex:1;font-size:12px'+(home?";color:var(--fg2)":"")+'">'+ing+'</span><span style="font-size:9px;font-weight:600;color:'+(home?"#1a8a65":"#c87a3a")+'">'+(home?"hemma":"köp")+'</span></div>'}).join('');
+      var subs=substitutesFor(ing);var weak=isLowRanked(ing)&&subs.length;
+      return '<div class="ing-row" data-ing="'+encodeURIComponent(ing)+'" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;background:var(--bg2);margin-bottom:4px;cursor:pointer"><span style="font-size:14px">'+(home?"✓":"🛒")+'</span><span style="flex:1;font-size:12px'+(home?";color:var(--fg2)":"")+'">'+ing+(weak?' <span class="ing-sub" data-ing="'+encodeURIComponent(ing)+'" style="font-size:9px;color:var(--teal);font-weight:600">💡 byt</span>':'')+'</span><span style="font-size:9px;font-weight:600;color:'+(home?"#1a8a65":"#c87a3a")+'">'+(home?"hemma":"köp")+'</span></div>'}).join('');
   }
   var body='<div style="background:var(--bg2);border-radius:10px;padding:9px;margin-bottom:10px;font-size:10px;color:var(--fg2)">💡 Tryck på en råvara för att växla <b>hemma</b>/<b>köp</b>. Appen gissar, du bestämmer.</div>'+
     '<div style="font-size:11px;font-weight:600;margin-bottom:6px">📋 Ingredienser</div>'+
@@ -1308,7 +1309,15 @@ function showRecipeSheet(rec,have){
   openInfoSheet((rec.emoji||"🍽️")+" "+rec.name+(rec.rating===2?" ⭐":rec.rating===1?" 👍":rec.rating===-1?" 👎":""),grade,body);
   setTimeout(function(){
     // Toggla ingrediens-status
-    function bindIng(){document.querySelectorAll(".ing-row").forEach(function(el){el.addEventListener("click",function(){var ing=decodeURIComponent(el.dataset.ing);S.ingStatus[ing]=S.ingStatus[ing]==="hemma"?"kop":"hemma";var l=document.getElementById("ingList");if(l){l.innerHTML=ingListHtml();bindIng()}})})}
+    function bindIng(){document.querySelectorAll(".ing-row").forEach(function(el){el.addEventListener("click",function(e){
+      if(e.target.closest(".ing-sub")){
+        var ing=decodeURIComponent(e.target.closest(".ing-sub").dataset.ing);var subs=substitutesFor(ing);
+        var opts=subs.map(function(s){return s.name+(s.total!=null?" ("+(s.total>0?"+":"")+s.total+")":"")}).join("\n");
+        var pick=prompt("Byt ut \""+ing+"\" mot ett bättre alternativ?\n\nFörslag:\n"+opts+"\n\nSkriv namnet (eller avbryt):",subs[0].name.replace(/ \(.*\)/,""));
+        if(pick&&pick.trim()){var i=rec.items.indexOf(ing);if(i>=0){rec.items[i]=pick.trim();delete S.ingStatus[ing];S.ingStatus[pick.trim()]="kop";listsSync();closeSheet();showRecipeSheet(rec,have);toast("Bytte till "+pick.trim())}}
+        return;
+      }
+      var ing=decodeURIComponent(el.dataset.ing);S.ingStatus[ing]=S.ingStatus[ing]==="hemma"?"kop":"hemma";var l=document.getElementById("ingList");if(l){l.innerHTML=ingListHtml();bindIng()}})})}
     bindIng();
     var am=document.querySelector(".addMissing");if(am)am.addEventListener("click",function(){
       var miss=rec.items.filter(function(ing){return S.ingStatus[ing]==="kop"});
@@ -1356,7 +1365,7 @@ function renderSearchPane(pane){
   function run(){
     var q=normItem(inp.value);
     if(q.length<1){res.innerHTML='<div style="color:var(--fg3);font-size:12px;text-align:center;padding:16px">Börja skriv för att söka…</div>';return}
-    var recipes=(LISTS.recipes||[]).filter(function(r){return normItem(r.name).indexOf(q)>=0||(r.items||[]).some(function(i){return normItem(i).indexOf(q)>=0})}).slice(0,12);
+    var recipes=(LISTS.recipes||[]).filter(function(r){return normItem(r.name).indexOf(q)>=0||(r.items||[]).some(function(i){return normItem(i).indexOf(q)>=0})}).slice(0,40);
     var items=knownItemNames().filter(function(n){return normItem(n).indexOf(q)>=0}).slice(0,10);
     var html="";
     if(recipes.length){html+='<div style="font-size:10px;font-weight:600;color:var(--fg2);margin:4px 0">🍽️ Rätter ('+recipes.length+')</div>';
@@ -1576,7 +1585,7 @@ function renderHealthKPI(){
     cats.map(function(c,i){var v=tw.scores[i];var pct=Math.max(2,Math.round(v/maxC*100));var col=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"][i];
       return '<div class="flex aic gap6"><span style="width:74px;font-size:9px;color:var(--fg2)">'+c+'</span><div style="flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+col+'"></div></div><span style="width:24px;text-align:right;font-size:9px;font-family:var(--m);color:var(--fg2)">'+v+'</span></div>'
     }).join('')+'</div>'+
-    '<div style="margin-top:10px"><div style="font-size:9px;color:var(--fg2);margin-bottom:4px">📈 Nivåer senaste 7 dagarna (faktiskt ätet)</div><div style="height:130px"><canvas id="focusTrend"></canvas></div></div>'+
+    '<div style="margin-top:10px"><div style="font-size:9px;color:var(--fg2);margin-bottom:4px">📈 Effektnivå 14 dagar — % av tröskel (100%=mål). Heldraget=ätet, streckat=planerat</div><div style="height:150px"><canvas id="focusTrend"></canvas></div></div>'+
     '<button class="btn btn-s btn-sm mt8" id="healthDetail" style="width:100%">📊 Detaljer & historik</button>'+
     '</div></div>'
 }
@@ -2119,38 +2128,196 @@ var MEAL_EMOJI={"tacos":"🌮","taco":"🌮","pasta":"🍝","lax":"🐟","fisk":
 // === HÄLSOMODELL (Vit/Bal/Ene/Åter) — diskret poängsystem per råvara ===
 // [Smak, Känsla, Driv, Bas] per 100g
 var DIET_DB={
-  "vattenmelon":[2,3,2,2],"ananas":[3,1,1,2],"ananasjuice":[3,1,1,1],"ingefärajuice":[2,2,2,1],"rödbetsjuice":[1,3,2,1],"spenatjuice":[1,2,1,2],"rödbetor":[1,3,2,1],"rödbeta":[1,3,2,1],
-  "avokado":[1,2,1,2],"spenat":[1,2,1,2],"sallad":[1,2,1,2],"ruccola":[1,2,1,2],"grönkål":[1,2,1,2],"mangold":[1,2,1,2],
-  "kiwi":[2,1,1,2],"lax":[1,2,2,1],"ingefära":[1,2,2,1],"mörk choklad":[1,2,2,1],"choklad":[1,2,2,1],
-  "gurkmeja":[0,2,1,2],"kanel":[1,1,2,1],"muskot":[1,1,1,1],"grekisk yoghurt":[2,1,1,2],"yoghurt":[2,1,1,2],"kimchi":[2,1,1,2],"surkål":[2,1,1,2],"pumpafrön":[1,1,2,1],
-  "valnötter":[1,1,2,1],"valnöt":[1,1,2,1],"jordgubbar":[2,1,1,2],"jordgubb":[2,1,1,2],"hallon":[2,1,1,1],
-  "blåbär":[1,2,1,1],"citron":[2,1,0,1],"lime":[2,1,0,1],"mynta":[2,1,0,1],"persilja":[2,1,1,1],
-  "selleri":[1,2,0,1],"gurka":[1,1,0,2],"tomat":[1,1,1,1],"morot":[1,1,1,1],"paprika":[1,1,1,1],
-  "mandel":[1,1,2,1],"chiafrön":[1,1,1,2],"linfrön":[1,1,1,2],"honung":[1,0,1,1],"grönt te":[1,2,1,1],
-  // Nya Smak-hjältar (dokumenterad/plausibel doft- & vätskeeffekt)
-  "bockhornsklöver":[3,1,1,1],"papaya":[3,1,0,2],"honungsmelon":[2,1,0,2],"cantaloupe":[2,1,0,2],"kokosvatten":[3,1,0,2],
-  "kefir":[2,1,1,2],"tranbär":[2,1,0,1],"kardemumma":[2,1,1,1],"fänkålsfrö":[2,1,0,1],"vetegräs":[2,2,1,1],"pepparmynta":[2,1,0,1],"grapefrukt":[2,1,0,1],
-  // Libido/cirkulation (zink, NO, omega-3)
-  "ostron":[0,1,3,1],"pistage":[0,1,2,1],"pistagenötter":[0,1,2,1],"sardiner":[0,2,2,1],"makrill":[0,2,2,1],"maca":[1,1,2,1],"ginseng":[0,1,2,0],
-  // Proteiner & middagsråvaror
-  "räkor":[1,2,2,1],"scampi":[1,2,2,1],"tonfisk":[1,2,2,1],"torsk":[1,1,2,1],"vit fisk":[1,1,2,1],"sej":[1,1,2,1],"kyckling":[0,1,2,1],"kycklingfilé":[0,1,2,1],
-  "ägg":[0,1,2,1],"halloumi":[1,1,1,1],"quinoa":[1,1,1,2],"bulgur":[0,1,1,1],"linser":[1,1,2,1],"kikärtor":[1,1,2,1],
-  "bönor":[0,1,1,1],"sötpotatis":[1,1,1,2],"zucchini":[1,1,0,1],
-  "fänkål":[1,2,1,1],"granatäpple":[2,1,2,1],"mango":[2,1,1,2],"apelsin":[2,1,0,1],"basilika":[2,1,1,1],
-  "koriander":[2,1,1,1],"chili":[1,2,2,0],"kokosmjölk":[1,1,1,2],"olivolja":[0,1,1,1],"feta":[1,1,1,1],
-  "sojabönor":[1,1,2,1],"edamame":[1,1,2,1],"tofu":[0,1,1,1],"sesamfrön":[1,1,2,1],"saffran":[1,1,3,1],
-  // Svavel/doft-problematiska — sänkt Smak (men cirkulation/näring kvar)
-  "broccoli":[-2,2,1,1],"sparris":[-2,2,1,1],"blomkål":[-2,1,1,1],"kål":[-2,1,1,1],"brysselkål":[-2,1,1,1],
-  // Frukostråvaror
-  "havregryn":[0,1,1,2],"müsli":[0,1,1,1],"banan":[1,0,1,2],"äpple":[1,1,0,1],"jordnötssmör":[0,1,2,1],
-  "äggröra":[0,1,2,1],"omelett":[0,1,2,1],"smoothie":[2,1,1,2],"granola":[0,1,1,1],"cottage cheese":[0,1,2,2],
-  // Negativa
-  "vitlök":[-3,0,0,0],"lök":[-2,0,0,0],"rödlök":[-2,0,0,0],"gul lök":[-2,0,0,0],"purjolök":[-2,0,0,0],"schalottenlök":[-2,0,0,0],"alkohol":[-2,-2,-2,-1],
-  "öl":[-2,-2,-2,-1],"vin":[-2,-2,-2,-1],"sprit":[-2,-2,-2,-1],"snus":[-2,-1,-2,0],"kaffe":[-2,0,1,-1],
-  "socker":[-1,-1,0,-1],"chips":[-1,-1,-1,-1],"korv":[-2,-1,0,-1],"bacon":[-2,-1,0,-1],
-  "nötkött":[-2,0,1,0],"blåmögelost":[-2,0,0,0],"grädde":[-1,0,0,-1],"pommes":[-2,-1,-1,-1],"smör":[-1,0,0,0],"ost":[0,0,0,0],
-  "pasta":[0,0,0,0],"ris":[0,0,1,1],"nudlar":[0,0,0,0],"sojasås":[0,0,0,0],"potatis":[0,0,0,1],"dill":[1,1,0,1],"oliver":[0,1,1,0],
-  "musslor":[0,1,2,1],"ärtor":[0,1,1,1],"fläsk":[-1,0,1,0],"timjan":[1,1,0,1],"lamm":[-1,0,1,0]
+  "ananas":[3,1,1,2],
+  "papaya":[3,1,0.5,2],
+  "kokosvatten":[2.5,1.5,1,2],
+  "bockhornsklöver":[2.5,1,1.5,1],
+  "vattenmelon":[2,2.5,2,2],
+  "citron":[2,1,0.5,1],
+  "lime":[2,1,0.5,1],
+  "grapefrukt":[2,1,0.5,1],
+  "apelsin":[2,1,0.5,1],
+  "kiwi":[2,1.5,1,2],
+  "jordgubbar":[2,1.5,1,2],
+  "jordgubb":[2,1.5,1,2],
+  "hallon":[2,1.5,1,1.5],
+  "blåbär":[1.5,2,1,1.5],
+  "tranbär":[2,1,0.5,1],
+  "honungsmelon":[2,1,0.5,2],
+  "cantaloupe":[2,1,0.5,2],
+  "mango":[2,1.5,1,2],
+  "granatäpple":[2,1.5,2,1.5],
+  "grekisk yoghurt":[2,1.5,1,2],
+  "yoghurt":[2,1.5,1,2],
+  "kefir":[2.5,1.5,1,2],
+  "kimchi":[2,1.5,1,1.5],
+  "surkål":[2,1,1,1.5],
+  "persilja":[2,1,1,1],
+  "mynta":[2,1,0.5,1],
+  "pepparmynta":[2,1,0.5,1],
+  "basilika":[2,1,1,1],
+  "koriander":[2,1,1,1],
+  "dill":[1.5,1,0.5,1],
+  "vetegräs":[2,2,1,1],
+  "spenatjuice":[1.5,2,1,2],
+  "rödbetsjuice":[1.5,3,2.5,1],
+  "ananasjuice":[3,1,1,1],
+  "ingefärajuice":[2,2,2,1],
+  "grönt te":[1.5,2,1,1],
+  "spenat":[1,2,1.5,2],
+  "sallad":[1,1.5,0.5,2],
+  "ruccola":[1.5,2,1,1.5],
+  "grönkål":[1,2,1.5,2],
+  "mangold":[1,2,1,2],
+  "selleri":[1,1.5,0.5,1.5],
+  "rödbetor":[1,2.5,2.5,1.5],
+  "rödbeta":[1,2.5,2.5,1.5],
+  "avokado":[1,2,1.5,2],
+  "ostron":[1,1,3,1.5],
+  "saffran":[1,1.5,2,1],
+  "ingefära":[1.5,2,2,1],
+  "chili":[1,1.5,2,0.5],
+  "mörk choklad":[1,2,1.5,1],
+  "choklad":[0.5,1.5,1.5,1],
+  "maca":[1,1,2,1],
+  "ginseng":[0.5,1.5,2,0.5],
+  "lax":[1,2,2.5,1.5],
+  "makrill":[0.5,2,2,1.5],
+  "sardiner":[0.5,2,2,1.5],
+  "sill":[0.5,1.5,1.5,1],
+  "räkor":[1,1.5,2.5,1],
+  "scampi":[1,1.5,2.5,1],
+  "tonfisk":[1,1.5,2.5,1],
+  "torsk":[1,1,2,1],
+  "vit fisk":[1,1,2,1],
+  "sej":[1,1,2,1],
+  "musslor":[0.5,1,2.5,1],
+  "kyckling":[0,1,2,1],
+  "kycklingfilé":[0,1,2,1],
+  "ägg":[0,1,2,1.5],
+  "kalkon":[0,1,2,1],
+  "cottage cheese":[0.5,1,2,2],
+  "feta":[0.5,1,1,1],
+  "linser":[1,1.5,2,1.5],
+  "kikärtor":[1,1.5,1.5,1.5],
+  "bönor":[0.5,1.5,1.5,1.5],
+  "sojabönor":[1,1,2,1],
+  "edamame":[1,1,2,1],
+  "tofu":[0,1,1.5,1.5],
+  "pumpafrön":[1,1,2,1],
+  "sesamfrön":[1,1,1.5,1],
+  "linfrön":[1,1.5,1,2],
+  "chiafrön":[1,1.5,1,2],
+  "mandel":[1,1,1.5,1.5],
+  "valnötter":[1,1.5,2,1.5],
+  "valnöt":[1,1.5,2,1.5],
+  "pistage":[0.5,1,2,1],
+  "pistagenötter":[0.5,1,2,1],
+  "jordnötssmör":[0,1,1.5,1.5],
+  "gurkmeja":[0.5,2,1,2],
+  "kanel":[1,1,1.5,1],
+  "kardemumma":[2,1,1,1],
+  "muskot":[1,1,1,1],
+  "fänkålsfrö":[2,1,0.5,1],
+  "fänkål":[1,1.5,1,1],
+  "oregano":[1,1,0.5,1],
+  "timjan":[1,1,0.5,1],
+  "havregryn":[0,1,1,2],
+  "müsli":[0,1,1,1],
+  "granola":[0,0.5,1,1],
+  "quinoa":[1,1,1,2],
+  "bulgur":[0,1,1,1.5],
+  "sötpotatis":[1,1,1,2],
+  "potatis":[0,0.5,0.5,1.5],
+  "banan":[1,1,1,2],
+  "kokosmjölk":[1,1,1,2],
+  "morot":[1,1,1,1.5],
+  "ärtor":[0.5,1,1.5,1.5],
+  "tomat":[1,1,1,1],
+  "paprika":[1,1.5,1,1],
+  "gurka":[1,1,0.5,2],
+  "zucchini":[1,1,0.5,1],
+  "honung":[1,0.5,1,1],
+  "oliver":[0.5,1,1,0.5],
+  "olivolja":[0.5,1,1,1],
+  "broccoli":[-1.5,2,1.5,1.5],
+  "blomkål":[-1.5,1.5,1,1.5],
+  "brysselkål":[-2,1.5,1,1],
+  "kål":[-1.5,1,1,1.5],
+  "sparris":[-1.5,2,1.5,1.5],
+  "vitlök":[-2.5,1,1,0.5],
+  "lök":[-2,0.5,0.5,0.5],
+  "rödlök":[-2,0.5,0.5,0.5],
+  "gul lök":[-2,0.5,0.5,0.5],
+  "purjolök":[-1.5,0.5,0.5,0.5],
+  "schalottenlök":[-1.5,0.5,0.5,0.5],
+  "nötkött":[-2,0.5,1.5,0.5],
+  "lamm":[-1.5,0.5,1,0],
+  "fläsk":[-1.5,0.5,1,0.5],
+  "korv":[-2,-1,0,-1],
+  "bacon":[-2,-1,0.5,-1],
+  "smör":[-1,0,0,0.5],
+  "grädde":[-1,0.5,0.5,0],
+  "blåmögelost":[-2,0.5,0.5,0],
+  "ost":[-0.5,0.5,0.5,0.5],
+  "parmesan":[0,0.5,1,0.5],
+  "mozzarella":[0,1,1,1],
+  "halloumi":[0.5,1,1,1],
+  "pasta":[0,0.5,0.5,1],
+  "ris":[0,0.5,1,1.5],
+  "nudlar":[0,0.5,0.5,1],
+  "bröd":[0,0.5,0.5,1],
+  "tortillas":[0,0.5,0.5,1],
+  "hamburgerbröd":[-0.5,0,0.5,0.5],
+  "pizzadeg":[0,0,0.5,0.5],
+  "sojasås":[0,0.5,0.5,0.5],
+  "passata":[1,1,1,1],
+  "majs":[0,0.5,1,1],
+  "socker":[-1.5,-1,0,-1],
+  "sylt":[-1,-0.5,0,0],
+  "chips":[-1.5,-1,-1,-1],
+  "pommes":[-2,-1,-1,-1],
+  "alkohol":[-2,-2,-2.5,-1.5],
+  "öl":[-2,-2,-2,-1.5],
+  "vin":[-1.5,-1.5,-2,-1.5],
+  "sprit":[-2.5,-2,-3,-1.5],
+  "kaffe":[-1,0,1.5,-1],
+  "snus":[-2,-1,-2,0],
+  "smoothie":[2,1.5,1,2],
+  "salt":[0,0,0,0],
+  "nötfärs":[-2,0.5,1.5,0.5],
+  "äpple":[1,1,0.5,1.5]
+};
+var SUBSTITUTES={
+  "vitlök":["vitlökspulver (mildare lukt)","ingefära","schalottenlök (mildare)"],
+  "lök":["purjolök (mildare)","fänkål","schalottenlök"],
+  "gul lök":["purjolök (mildare)","fänkål"],
+  "rödlök":["purjolök (mildare)","fänkål"],
+  "nötkött":["kyckling","kalkon","linser"],
+  "nötfärs":["kycklingfärs","kalkonfärs","linser"],
+  "korv":["kyckling","kalkon"],
+  "bacon":["kalkonbacon","rökt lax"],
+  "fläsk":["kyckling","kalkon"],
+  "lamm":["kyckling","torsk"],
+  "socker":["honung","banan (mosad)","dadlar"],
+  "sylt":["färska bär","mosad banan"],
+  "chips":["rostade kikärtor","nötter","grönsaksstavar"],
+  "pommes":["rostad sötpotatis","rostad potatis i ugn"],
+  "grädde":["kokosmjölk","grekisk yoghurt"],
+  "smör":["olivolja","avokado"],
+  "blåmögelost":["feta","getost"],
+  "alkohol":["alkoholfritt alternativ","kombucha","bär-kolsyrat"],
+  "öl":["alkoholfri öl","kombucha"],
+  "vin":["alkoholfritt vin","druvjuice"],
+  "kaffe":["grönt te","matcha"],
+  "broccoli":["spenat","sparris (vid tillagning)","grönkål"],
+  "sparris":["gröna bönor","zucchini"],
+  "blomkål":["broccoli","zucchini"],
+  "kål":["spenat","grönkål"],
+  "pasta":["fullkornspasta","zucchininudlar","quinoa"],
+  "ris":["quinoa","blomkålsris","bulgur"],
+  "nudlar":["risnudlar","zucchininudlar"],
+  "bröd":["fullkornsbröd","rågbröd"]
 };
 var DIET_CATS=["Vitalitet","Balans","Energi","Återhämtning"];var DIET_CATS_SHORT=["Vit","Bal","Ene","Åter"];
 function dietScore(text){
@@ -2164,6 +2331,21 @@ function dietBadge(text){
   var d=dietScore(text);if(!d)return '';
   var col=d.total>=5?"#1a8a65":d.total>=2?"#7a9a3a":d.total>=0?"#999":d.total>=-2?"#c87a3a":"#c83a3a";
   return '<span class="diet-badge" data-diet="'+encodeURIComponent(text)+'" style="cursor:pointer;font-size:9px;color:'+col+';font-weight:600;font-family:var(--m)" title="Vit/Bal/Ene/Åter: '+d.scores.join("/")+'">'+(d.total>0?"+":"")+d.total+'</span>';
+}
+// === ERSÄTTNINGSFÖRSLAG (komplement till lågt rankade råvaror) ===
+// Hitta ersättningar för en råvara. Returnerar array av {name, total} eller []
+function substitutesFor(text){
+  var t=(text||"").toLowerCase().trim();
+  // Exakt/delmatchning mot SUBSTITUTES-nycklar
+  var key=null;for(var k in SUBSTITUTES){if(t.indexOf(k)>=0){key=k;break}}
+  if(!key)return [];
+  return SUBSTITUTES[key].map(function(name){var d=dietScore(name);return{name:name,total:d?d.total:null}});
+}
+// Är en råvara "lågt rankad" (värd att föreslå byte)? total < tröskel
+function isLowRanked(text){var d=dietScore(text);return d&&d.total<0}
+// Hitta lågt rankade råvaror i ett recept som har ersättningar
+function recipeWeakItems(rec){
+  return (rec.items||[]).filter(function(i){return isLowRanked(i)&&substitutesFor(i).length}).map(function(i){return{item:i,subs:substitutesFor(i)}});
 }
 var COOKED_CATS={wok:1,gryta:1,soppa:1,pasta:1,grill:1};
 var ALLIUM={"vitlök":1,"lök":1,"rödlök":1,"gul lök":1,"purjolök":1,"schalottenlök":1};
@@ -2364,6 +2546,25 @@ function setDayMeal(dayKey,slot,name){
   if(name===null)delete obj[slot];else obj[slot]=name;
   if(Object.keys(obj).length===0)delete LISTS.weekPlan[dayKey];
   else LISTS.weekPlan[dayKey]=obj;
+}
+// Ta bort en planerad rätts varor från inköpslistan — selektivt och säkert.
+// Regler: bara EJ köpta varor; behåll varor som annan planerad rätt fortfarande behöver;
+// rör aldrig manuellt tillagda varor (de saknar rätten i fromMeals).
+function removeMealItems(recName){
+  if(!recName||!LISTS.items)return 0;
+  var stillPlanned=allPlannedMeals();// rätter som fortfarande ligger i planen
+  var removed=0;
+  LISTS.items=LISTS.items.filter(function(it){
+    if(it.done)return true;// köpt → rör aldrig
+    if(!it.fromMeals||it.fromMeals.indexOf(recName)<0)return true;// kom inte från denna rätt → behåll
+    // Ta bort rätten ur varans källista
+    it.fromMeals=it.fromMeals.filter(function(m){return m!==recName});
+    // Behåll om varan fortfarande behövs av någon ANNAN planerad rätt (delad ingrediens)
+    var neededByOther=it.fromMeals.some(function(m){return stillPlanned.indexOf(m)>=0});
+    if(neededByOther||it.fromMeals.length>0)return true;
+    removed++;return false;// ingen annan rätt behöver den + ej köpt → ta bort
+  });
+  return removed;
 }
 function allPlannedMeals(){
   var wp=LISTS.weekPlan||{};var names=[];
@@ -2648,6 +2849,12 @@ function bindTodo(){
     LISTS.history[hkey].text=text;LISTS.history[hkey].area=hist.area||targetArea;LISTS.history[hkey].cat=hist.cat||guess.cat;
     addActivity(ME||"Okänd","la till \""+text+"\"");
     listsSync();render();
+    // Diskret förslag om varan är lågt rankad och har bättre alternativ
+    var subs=substitutesFor(text);
+    if(isLowRanked(text)&&subs.length){
+      var best=subs[0];
+      setTimeout(function(){toast('💡 '+text+' är lågt rankad — testa '+best.name+'?',5000,function(){addItem(best.name,true)})},400);
+    }
     setTimeout(function(){var i=document.getElementById("todoInput");if(i){i.focus();i.value=""}},50);
   }
   inp.addEventListener("keydown",function(e){if(e.key==="Enter"){var sg=document.getElementById("todoSuggest");if(sg)sg.classList.remove("show");addItem(inp.value);inp.value=""}});
@@ -2783,7 +2990,7 @@ function bindTodo(){
     var fi=FOCUS_IDX[dayObj.focus];var slotName=slot==="b"?"Frukost":slot==="l"?"Lunch":"Middag";
     var fEmoji=FOCUS_EMOJI[dayObj.focus];
     var CAT_LABELS={sallad:"🥗 Sallad",bowl:"🥣 Bowl",pasta:"🍝 Pasta",wok:"🥘 Wok",gryta:"🍲 Gryta",soppa:"🍲 Soppa",grill:"🔥 Grill",frukost:"🍳 Frukost"};
-    var cards=ranked.slice(0,60).map(function(x){var ms=dietMealScore(x.r.items,x.r.cat);
+    var cards=ranked.slice(0,400).map(function(x){var ms=dietMealScore(x.r.items,x.r.cat);
       var tag=x.r.power?"⚡ Power":x.r.treat?"🍔 Treat":x.r.season==="grill"?"🔥 Grill":"";
       var rateTag=x.r.rating===2?" ⭐":x.r.rating===1?" 👍":"";
       var meta=focusName(dayObj.focus)+" "+ms.scores[fi]+(tag?" · "+tag:"");
@@ -2795,12 +3002,24 @@ function bindTodo(){
     var catsPresent={};cards.forEach(function(c){if(c.cat&&CAT_LABELS[c.cat])catsPresent[c.cat]=true});
     var catList=Object.keys(catsPresent).map(function(k){return{key:k,label:CAT_LABELS[k]}});
     var sub=dayObj.n+" · "+fEmoji+" "+focusName(dayObj.focus)+(isOwner()&&dayObj.smakW>=0.7?" · Smak-laddning 🍑":"");
-    openSheet("Välj "+slotName.toLowerCase(),sub,cards,function(name){setDayMeal(day,slot,name);listsSync();toast("✨ "+slotName+" satt!");render()},catList.length>=2?catList:null);
+    openSheet("Välj "+slotName.toLowerCase(),sub,cards,function(name){
+      var prev=getDayMeals(day)[slot];var prevEaten=isMealEaten(day,slot);
+      // Om man byter ut en tidigare planerad (ej äten) rätt → rensa dess varor
+      if(prev&&prev!==name&&!prevEaten)removeMealItems(prev);
+      setDayMeal(day,slot,name);
+      if(prev&&prev!==name)setMealEaten(day,slot,false);// byte nollställer äten-status
+      listsSync();toast("✨ "+slotName+" satt!");render();
+    },catList.length>=2?catList:null);
   });
   });
   // Clear a meal slot
   document.querySelectorAll(".clear-slot").forEach(function(el){el.addEventListener("click",function(e){
-    e.stopPropagation();setDayMeal(el.dataset.day,el.dataset.slot,null);setMealEaten(el.dataset.day,el.dataset.slot,false);listsSync();render()})});
+    e.stopPropagation();var d=el.dataset.day,s=el.dataset.slot;
+    var wasEaten=isMealEaten(d,s);var oldName=getDayMeals(d)[s];
+    setDayMeal(d,s,null);setMealEaten(d,s,false);
+    // Om måltiden INTE var äten → ta bort dess ej köpta varor (äten måltid rör aldrig inköp)
+    if(!wasEaten&&oldName){var rm=removeMealItems(oldName);if(rm)toast("Rätt borttagen · "+rm+" ej köpta varor rensade");else render()}
+    listsSync();render()})});
   // Markera måltid ätet
   document.querySelectorAll(".meal-eaten").forEach(function(el){el.addEventListener("click",function(e){
     e.stopPropagation();var d=el.dataset.day,s=el.dataset.slot;var now=isMealEaten(d,s);setMealEaten(d,s,!now);
@@ -2815,13 +3034,15 @@ function bindTodo(){
   var addMI=document.getElementById("addMealItems");if(addMI)addMI.addEventListener("click",function(){
     var recipes=LISTS.recipes||[];var names=allPlannedMeals();
     var added=0,askDupes=[];
+    // Tagga varje vara med vilken rätt den kom från (fromMeals=array av rättnamn)
+    function tagFrom(item,recName){if(!item.fromMeals)item.fromMeals=[];if(item.fromMeals.indexOf(recName)<0)item.fromMeals.push(recName)}
     names.forEach(function(n){var rec=recipes.find(function(r){return r.name===n});if(rec)(rec.items||[]).forEach(function(ing){
-      var exists=(LISTS.items||[]).some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
-      if(exists){if(askDupes.indexOf(ing)<0)askDupes.push(ing)}
-      else{var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];if(!LISTS.items.some(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done})){LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++}}
+      var existing=(LISTS.items||[]).find(function(li){return li.text.toLowerCase()===ing.toLowerCase()&&!li.done});
+      if(existing){if(askDupes.indexOf(ing)<0)askDupes.push(ing);tagFrom(existing,n)}
+      else{var guess=guessArea(ing);if(!LISTS.items)LISTS.items=[];var ni={text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now(),fromMeals:[n]};LISTS.items.push(ni);added++}
     })});
     if(askDupes.length){var addDupes=confirm(askDupes.length+" varor finns redan:\n"+askDupes.join(", ")+"\n\nLägg till ändå?");
-      if(addDupes){askDupes.forEach(function(ing){var guess=guessArea(ing);LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now()});added++})}}
+      if(addDupes){askDupes.forEach(function(ing){var guess=guessArea(ing);LISTS.items.push({text:ing,area:guess.area,cat:guess.cat,done:false,pri:"medel",assignee:"",price:0,added:Date.now(),fromMeals:[]});added++})}}
     if(added)addActivity(ME||"Okänd","la till "+added+" ingredienser från veckomenyn");listsSync();
     // Basvaru-fråga för smidighet
     var staples=getStapleSuggestions("mat").concat(getStapleSuggestions(null).filter(function(s){return s.area!=="mat"}));
@@ -3125,6 +3346,46 @@ function bindAll(f,c){
 }
 
 // === CHARTS ===
+// === EFFEKTNIVÅ-MODELL (ackumulering + avklingning per fokus) ===
+// Varje fokus har egen dynamik: uptake (hur mkt av dagens intag som tas upp) + decay (kvar till nästa dag)
+// Ordning: [Smak/Vitalitet, Känsla/Balans, Driv/Energi, Bas/Återhämtning]
+var EFFECT_DYN=[
+  {uptake:0.35,decay:0.82},// Vitalitet: långsam uppbyggnad, långsam avklingning (ackumuleras över dagar)
+  {uptake:0.50,decay:0.72},// Balans: medel
+  {uptake:0.75,decay:0.55},// Energi/Driv: snabb upp, snabb ned (kort latens)
+  {uptake:0.65,decay:0.68} // Återhämtning: snabb upp, medel ned
+];
+// FASTA absoluta referensnivåer härledda ur jämvikt (steady state = dagligt_intag*uptake/(1-decay))
+// THRESHOLD = "tillräckligt bra" jämviktsnivå (linjen man inte vill under). CEILING = "mycket bra".
+// Dessa är konstanta → en given poängnivå betyder alltid samma sak över tid.
+var EFFECT_THRESHOLD=[9.7,7.1,8.3,8.1];// jämvikt vid hyfsad daglig kost per fokus
+var EFFECT_CEILING=[17.5,14.3,15.0,14.2];// jämvikt vid stark daglig kost per fokus
+// Bygg ackumulerade ABSOLUTA nivåer från dagspoäng
+function accumulateLevels(dailyScores){
+  var lvl=[0,0,0,0];var out=[];
+  dailyScores.forEach(function(day){
+    var row=[];
+    for(var f=0;f<4;f++){
+      lvl[f]=lvl[f]*EFFECT_DYN[f].decay+(day[f]||0)*EFFECT_DYN[f].uptake;
+      row.push(lvl[f]);
+    }
+    out.push(row.slice());
+  });
+  return out;
+}
+// Hämta dagspoäng (faktiskt ätet) för ett datum från HEALTH_LOG
+function dayScoresFromLog(dayStart){
+  var s=[0,0,0,0];
+  (HEALTH_LOG||[]).forEach(function(e){if(e.action!=="eaten"||!e.scores)return;var d=new Date(e.t);d.setHours(0,0,0,0);if(d.getTime()===dayStart)for(var f=0;f<4;f++)s[f]+=e.scores[f]});
+  return s;
+}
+// Prognos: planerade måltider i veckoplanen för en given veckodag
+function dayScoresFromPlan(dayKey){
+  var s=[0,0,0,0];var wp=LISTS.weekPlan&&LISTS.weekPlan[dayKey];if(!wp)return s;
+  var slots=typeof wp==="string"?{d:wp}:wp;
+  ["b","l","d"].forEach(function(sl){var nm=slots[sl];if(!nm)return;var r=(LISTS.recipes||[]).find(function(x){return x.name===nm});if(!r)return;var ms=dietMealScore(r.items,r.cat);for(var f=0;f<4;f++)s[f]+=ms.scores[f]});
+  return s;
+}
 function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e){}}S.charts={};
   var tc=S.dark?"#9C9588":"#6B6358",gc=S.dark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)",C={coral:"#C2532E",amber:"#D4890F",teal:"#1A8A65",purple:"#6B4DAA",blue:"#2E78B7"};
   // Hem & ekonomi charts
@@ -3163,14 +3424,48 @@ function updateCharts(){for(var k in S.charts){try{S.charts[k].destroy()}catch(e
   // Dashboard: fokus-trendgraf (admin/ägare)
   var ftEl=document.getElementById("focusTrend");
   if(ftEl&&isOwner()){
-    var days=[],dayLabels=[];var nowD=new Date();
-    for(var di=6;di>=0;di--){var dt=new Date(nowD);dt.setDate(nowD.getDate()-di);dt.setHours(0,0,0,0);days.push(dt.getTime());dayLabels.push(["Sön","Mån","Tis","Ons","Tor","Fre","Lör"][dt.getDay()])}
-    var series=[[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]];
-    (HEALTH_LOG||[]).forEach(function(e){if(e.action!=="eaten"||!e.scores)return;var d=new Date(e.t);d.setHours(0,0,0,0);var idx=days.indexOf(d.getTime());if(idx<0)return;for(var f=0;f<4;f++)series[f][idx]+=e.scores[f]});
+    var nowD=new Date();nowD.setHours(0,0,0,0);
+    var WK=["Sön","Mån","Tis","Ons","Tor","Fre","Lör"];var WKEY=["sun","mon","tue","wed","thu","fri","sat"];
+    // 14 dagar: 7 bakåt (historik, faktiskt ätet) + idag + 6 framåt (prognos från veckoplan)
+    var dailyScores=[],dayLabels=[],splitIdx=7;// index 0-6 historik, 7=idag, 8-13 prognos
+    for(var di=-7;di<=6;di++){
+      var dt=new Date(nowD);dt.setDate(nowD.getDate()+di);dt.setHours(0,0,0,0);
+      dayLabels.push(WK[dt.getDay()]);
+      if(di<=0)dailyScores.push(dayScoresFromLog(dt.getTime()));
+      else dailyScores.push(dayScoresFromPlan(WKEY[dt.getDay()]));
+    }
+    var levels=accumulateLevels(dailyScores);// [14][4] ABSOLUTA nivåer
+    // Skala varje fokus mot SIN fasta tröskel: tröskel=100 (gemensam linje), absolut & jämförbart över tid
+    var series=[[],[],[],[]];var ceilPct=[];
+    for(var f=0;f<4;f++)ceilPct.push(Math.round(EFFECT_CEILING[f]/EFFECT_THRESHOLD[f]*100));
+    levels.forEach(function(r){for(var f=0;f<4;f++)series[f].push(Math.round(r[f]/EFFECT_THRESHOLD[f]*100))});
+    // Y-max = högsta takvärdet + lite luft (så alla taklinjer ryms)
+    var yMax=Math.max.apply(null,ceilPct)+15;
     var emj=["🍑","🌿","🚀","🧘"];var labs=isOwner()?["Smak","Känsla","Driv","Bas"]:["Vitalitet","Balans","Energi","Återhämtning"];
     var cols=["#c83a7a","#8a3ac8","#c87a3a","#3a8ac8"];
-    S.charts.focusTrend=new Chart(ftEl,{type:"line",data:{labels:dayLabels,datasets:series.map(function(s,i){return{label:emj[i]+" "+labs[i],data:s,borderColor:cols[i],backgroundColor:cols[i],tension:.35,borderWidth:2,pointRadius:2}})},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:tc,boxWidth:10,padding:6}}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:tc}},y:{grid:{color:gc},ticks:{font:{size:8},color:tc},border:{display:false}}}}});
+    var ctx=ftEl.getContext("2d");
+    // Gradient botten(svag)→topp(stark) som bakgrundsskugga
+    var grad=ctx.createLinearGradient(0,0,0,ftEl.height||150);
+    grad.addColorStop(0,"rgba(26,138,101,.10)");grad.addColorStop(0.5,"rgba(200,200,80,.04)");grad.addColorStop(1,"rgba(200,80,80,.08)");
+    // Datasets: varje fokus, historik heldragen + prognos streckad (split vid idag)
+    var datasets=[];
+    series.forEach(function(s,i){
+      datasets.push({label:emj[i]+" "+labs[i],data:s,borderColor:cols[i],backgroundColor:"transparent",tension:.4,borderWidth:2,pointRadius:function(c){return c.dataIndex===splitIdx?3:0},pointBackgroundColor:cols[i],
+        segment:{borderDash:function(c){return c.p0DataIndex>=splitIdx?[4,3]:undefined}}});
+    });
+    // Tröskellinje vid 100% = jämvikt vid hyfsad kost (samma linje för alla fokus, "vill ej under")
+    var midline={label:"Mål-tröskel",data:series[0].map(function(){return 100}),borderColor:"rgba(120,120,120,.6)",borderWidth:1.5,borderDash:[5,3],pointRadius:0,fill:false,tension:0};
+    datasets.push(midline);
+    S.charts.focusTrend=new Chart(ftEl,{type:"line",data:{labels:dayLabels,datasets:datasets},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:"index"},
+        plugins:{legend:{labels:{font:{size:8},color:tc,boxWidth:8,padding:5,filter:function(l){return l.text!=="Mål-tröskel"}}},
+          tooltip:{callbacks:{title:function(items){var idx=items[0].dataIndex;return dayLabels[idx]+(idx<splitIdx?" (ätet)":idx===splitIdx?" (idag)":" (planerat)")},
+            label:function(c){if(c.dataset.label==="Mål-tröskel")return null;return c.dataset.label+": "+c.parsed.y+"% av tröskel"}}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:8},color:tc,maxRotation:0,autoSkip:false,callback:function(v,i){return i%2===0?dayLabels[i]:""}}},
+          y:{min:0,max:yMax,grid:{color:gc},ticks:{font:{size:8},color:tc,stepSize:50,callback:function(v){return v===100?"tröskel":v+"%"}},border:{display:false}}},
+        elements:{line:{fill:false}}}});
+    // Lägg en bakgrunds-annotation för "idag"-linjen via fyllning
+    var todayBand={id:"todayBand",beforeDraw:function(chart){var xa=chart.scales.x,ya=chart.scales.y;var x=xa.getPixelForValue(splitIdx);var c=chart.ctx;c.save();c.strokeStyle="rgba(120,120,120,.35)";c.setLineDash([3,3]);c.beginPath();c.moveTo(x,ya.top);c.lineTo(x,ya.bottom);c.stroke();c.restore()}};
   }
   // Dashboard charts removed in v16 (feed-focused design)
 }
@@ -3246,14 +3541,21 @@ function openMembersPanel(){
       (m.admin?'':'<button class="mem-act" data-act="remove" data-uid="'+uid+'" style="padding:6px 10px;border-radius:8px;border:1px solid #c83a3a;background:transparent;color:#c83a3a;font-size:11px;cursor:pointer;margin-left:6px">Ta bort</button>');
     return '<div style="display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;background:var(--bg2);margin-bottom:7px"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis">'+(m.email||uid)+'</div><div style="font-size:10px;color:var(--fg2)">'+status+'</div></div>'+btns+'</div>';
   }).join('');
-  openInfoSheet("👥 Medlemmar","Godkänn vem som når familjens data",rows||'<div style="color:var(--fg3);font-size:12px">Inga medlemmar än</div>');
+  openInfoSheet("👥 Medlemmar","Godkänn vem som når familjens data",(rows||'<div style="color:var(--fg3);font-size:12px">Inga medlemmar än</div>')+
+    '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;margin-bottom:4px">🍽️ Receptbank</div><div style="font-size:10px;color:var(--fg2);margin-bottom:8px">'+(LISTS.recipes||[]).length+' rätter i banken. Synka för att lägga till saknade inbyggda rätter (behåller dina betyg).</div><button class="btn btn-s btn-sm" id="syncRecipes" style="width:100%">🔄 Synka receptbanken ('+DEFAULT_RECIPES.length+' inbyggda)</button></div>');
   setTimeout(function(){document.querySelectorAll(".mem-act").forEach(function(b){b.addEventListener("click",function(){
     var uid=b.dataset.uid,act=b.dataset.act;
     if(act==="approve"){setMemberApproval(uid,true);toast("✓ Godkänd")}
     else if(act==="revoke"){setMemberApproval(uid,false);toast("Åtkomst återkallad")}
     else if(act==="remove"){if(confirm("Ta bort medlemmen helt?")){removeMember(uid);toast("Borttagen")}}
     closeSheet();
-  })})},50);
+  })});
+    var sy=document.getElementById("syncRecipes");if(sy)sy.addEventListener("click",function(){
+      var have={};(LISTS.recipes||[]).forEach(function(r){have[r.name.toLowerCase()]=true});
+      var added=0;dc(DEFAULT_RECIPES).forEach(function(r){if(!have[r.name.toLowerCase()]){LISTS.recipes.push(r);added++}});
+      listsSync();toast(added?("✓ "+added+" rätter tillagda ("+LISTS.recipes.length+" totalt)"):"Banken var redan komplett ("+LISTS.recipes.length+")");closeSheet();render();
+    });
+  },50);
 }
 // Väntläge-skärm
 function rPending(el){

@@ -1889,15 +1889,17 @@ function showRecipeSheet(rec,have){
       '<div style="background:var(--bg2);border-radius:12px;padding:12px;margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;font-weight:600">💚 Hälsoscore</span><span style="font-size:18px;font-weight:700;font-family:var(--m);color:'+(ms.total>=20?"#1a8a65":"#999")+'">'+(ms.total>=0?"+":"")+ms.total+'</span></div>'+bars+'</div>'
     :(ms.total>=20?'<div style="background:linear-gradient(135deg,rgba(26,138,101,.08),transparent);border:1px solid var(--tealL);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--teal)">⭐ Passar dagens hälsorytm bra</div>':'<div style="background:var(--bg2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--fg2)">🍽️ En bra vardagsrätt</div>'))+
     '<div style="font-size:11px;font-weight:600;margin-bottom:6px">Vad tycker du om rätten?'+(function(){
-       var r=rec.ratings||{};var others=Object.keys(r).filter(function(u){return u!==ME&&r[u]});
+       var r=rec.ratings||{};var others=Object.keys(r).filter(function(u){return u!==ratingAs()&&r[u]});
        if(!others.length)return '';
        var t=others.map(function(u){var v=r[u];return (v===2?"⭐":v===1?"👍":"👎")+" "+u}).join(", ");
        return ' <span style="font-weight:400;color:var(--fg3);font-size:10px">· '+t+'</span>';
      })()+'</div>'+
+    // Admin kan sätta omdöme åt vem som helst i familjen (inkl. barnen) — testa genom att fråga dem
+    (isOwner()?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--fg2);margin-bottom:4px">Sätter omdöme som:</div><div class="flex gap4" style="flex-wrap:wrap">'+familyRaters().map(function(p){var on=ratingAs()===p;return '<button class="rate-as" data-who="'+p+'" style="padding:5px 11px;border-radius:13px;border:1px solid '+(on?"var(--purple)":"var(--border)")+';background:'+(on?"var(--purple)":"var(--bg2)")+';color:'+(on?"#fff":"var(--fg)")+';font-size:11px;cursor:pointer">'+p+'</button>'}).join('')+'</div></div>':'')+
     '<div style="display:flex;gap:8px;margin-bottom:10px">'+
-      '<button class="rate-btn" data-rate="2" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(myRating(rec)===2?"#e0a800":"var(--border)")+';background:'+(myRating(rec)===2?"#FFF6D9":"var(--bg2)")+';font-size:16px;cursor:pointer">⭐<div style="font-size:9px;color:var(--fg2)">Favorit</div></button>'+
-      '<button class="rate-btn" data-rate="1" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(myRating(rec)===1?"#1a8a65":"var(--border)")+';background:'+(myRating(rec)===1?"#E6F4EE":"var(--bg2)")+';font-size:16px;cursor:pointer">👍<div style="font-size:9px;color:var(--fg2)">Gillar</div></button>'+
-      '<button class="rate-btn" data-rate="-1" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(myRating(rec)===-1?"#c83a3a":"var(--border)")+';background:'+(myRating(rec)===-1?"#FBEAEA":"var(--bg2)")+';font-size:16px;cursor:pointer">👎<div style="font-size:9px;color:var(--fg2)">Sällan</div></button>'+
+      '<button class="rate-btn" data-rate="2" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(ratingFor(rec)===2?"#e0a800":"var(--border)")+';background:'+(ratingFor(rec)===2?"#FFF6D9":"var(--bg2)")+';font-size:16px;cursor:pointer">⭐<div style="font-size:9px;color:var(--fg2)">Favorit</div></button>'+
+      '<button class="rate-btn" data-rate="1" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(ratingFor(rec)===1?"#1a8a65":"var(--border)")+';background:'+(ratingFor(rec)===1?"#E6F4EE":"var(--bg2)")+';font-size:16px;cursor:pointer">👍<div style="font-size:9px;color:var(--fg2)">Gillar</div></button>'+
+      '<button class="rate-btn" data-rate="-1" style="flex:1;padding:10px;border-radius:10px;border:1px solid '+(ratingFor(rec)===-1?"#c83a3a":"var(--border)")+';background:'+(ratingFor(rec)===-1?"#FBEAEA":"var(--bg2)")+';font-size:16px;cursor:pointer">👎<div style="font-size:9px;color:var(--fg2)">Sällan</div></button>'+
     '</div>'+
     '<button class="del-recipe" style="width:100%;padding:10px;border-radius:10px;border:1px solid #c83a3a;background:transparent;color:#c83a3a;font-size:12px;cursor:pointer">🗑️ Ta bort rätten</button>';
   var badgeR=ratingScore(rec);
@@ -1921,20 +1923,21 @@ function showRecipeSheet(rec,have){
     });
     var st=document.querySelector(".settoday");if(st)st.addEventListener("click",function(){setDayMeal(todayKey(),"d",rec.name);listsSync();closeSheet();toast("🍽️ "+rec.name+" — dagens middag!");render()});
     document.querySelectorAll(".comp-open").forEach(function(el){el.addEventListener("click",function(){openComponentSheet(decodeURIComponent(el.dataset.comp))})});
+    document.querySelectorAll(".rate-as").forEach(function(b){b.addEventListener("click",function(){S.rateAs=b.dataset.who;haptic("tap");closeSheet();showRecipeSheet(rec,have)})});
     document.querySelectorAll(".rate-btn").forEach(function(b){b.addEventListener("click",function(){
       var rt=N(b.dataset.rate);
       if(!rec.ratings)rec.ratings={};
-      var u=ME||"jag";
+      var u=ratingAs();
       rec.ratings[u]=(rec.ratings[u]===rt)?0:rt;
       if(!rec.ratings[u])delete rec.ratings[u];
-      // Två tummar ner (båda ogillar) → auto-radering
+      // Två tummar ner (båda vuxna ogillar) → auto-radering
       if(thumbsDownCount(rec)>=2){
         var i=LISTS.recipes.indexOf(rec);if(i>=0)LISTS.recipes.splice(i,1);
         listsSync();closeSheet();toast("👎👎 Båda ogillar — rätten borttagen");render();return;
       }
-      listsSync();closeSheet();
+      listsSync();haptic("ok");closeSheet();
       var rs=ratingScore(rec);
-      toast(rt===2?"⭐ Favorit!":rt===1?"👍 Gillas":rt===-1?"👎 Visas mer sällan":"Betyg rensat");render();
+      toast((isOwner()&&u!==ME?u+": ":"")+(rt===2?"⭐ Favorit!":rt===1?"👍 Gillas":rt===-1?"👎 Visas mer sällan":"Betyg rensat"));render();
     })});
     var del=document.querySelector(".del-recipe");if(del)del.addEventListener("click",function(){
       if(confirm("Ta bort \""+rec.name+"\" från receptbanken?")){
@@ -2089,7 +2092,7 @@ function rTrain(){
 
   var h='<div class="pad">';
   // ENKEL NIVÅ: avskalad vy — snabb-logg + mjuk inbjudan att utforska mer (övervälda inte)
-  if(depth()==="enkel"){
+  if(depth("train")==="enkel"){
     h+='<div class="card anim-in" style="margin-bottom:10px;background:linear-gradient(135deg,#1a8a65,#0f6e4f);color:#fff"><div style="font-size:11px;opacity:.85">Denna vecka</div><div style="font-size:22px;font-weight:700">'+totalDone+' pass loggade</div>'+(streak>=2?'<div style="font-size:11px;margin-top:4px">🔥 '+streak+' dagar i rad!</div>':'')+'</div>';
     h+='<div class="card" style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;margin-bottom:8px">Logga snabbt</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
       '<button class="log-act" data-type="lopning" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 4px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);cursor:pointer"><span style="font-size:28px">🏃</span><span style="font-size:12px;font-weight:600">Sprang</span></button>'+
@@ -2100,6 +2103,7 @@ function rTrain(){
     return h;
   }
   // Header-kort med streak + nudge
+  h+='<div class="flex jcb aic" style="margin-bottom:6px"><span style="font-size:13px;font-weight:700">💪 Träning</span>'+depthToggle("train")+'</div>';
   h+='<div class="card anim-in" style="margin-bottom:10px;background:linear-gradient(135deg,#1a8a65,#0f6e4f);color:#fff"><div class="flex jcb aic"><div><div style="font-size:11px;opacity:.85">Din träningsvecka</div><div style="font-size:22px;font-weight:700">'+totalDone+" / "+totalGoal+' pass</div></div><div style="text-align:center"><div style="font-size:24px;font-weight:700">'+streak+'</div><div style="font-size:9px;opacity:.85">dagars streak 🔥</div></div></div><div style="font-size:11px;margin-top:8px;background:rgba(255,255,255,.15);border-radius:8px;padding:7px 9px">'+nudge+'</div></div>';
   // Veckomål-progress
   h+='<div class="card" style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;margin-bottom:8px">🎯 Veckomål</div>'+
@@ -2173,7 +2177,7 @@ function setMyBwLevel(n){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts
 function bindTrain(){
   var dt=document.getElementById("trainDoneToday");if(dt)dt.addEventListener("click",function(){var now=isWorkoutDone(todayKey());setWorkoutDone(todayKey(),!now);if(!now){addTrainSession({type:areaTypeToday(),parts:[],dur:0,note:"Dagens rekommendation"})}listsSync();haptic("ok");toast(now?"Avbockad":"💪 Tränat — snyggt!");render()});
   var bs=document.getElementById("buildSession");if(bs)bs.addEventListener("click",openSessionBuilder);
-  var em=document.getElementById("exploreMore");if(em)em.addEventListener("click",function(){setDepth("lagom");haptic("ok");toast("✨ Nu ser du mer — ändra tillbaka i ⚙️");render()});
+  var em=document.getElementById("exploreMore");if(em)em.addEventListener("click",function(){setDepth("train","mer");haptic("ok");toast("✨ Nu ser du mer av träningen");render()});
   var eg=document.getElementById("trainEditGoals");if(eg)eg.addEventListener("click",openTrainGoalsSheet);
   document.querySelectorAll(".log-act").forEach(function(b){b.addEventListener("click",function(){openLogSheet(b.dataset.type)})});
   document.querySelectorAll(".prog-open").forEach(function(b){b.addEventListener("click",function(){openProgramSheet(b.dataset.prog)})});
@@ -2255,9 +2259,28 @@ function openAddMealSheet(){
       if(!LISTS.recipes)LISTS.recipes=[];
       LISTS.recipes.push({name:name,emoji:emoji,items:items,cat:cat});
       var ms=dietMealScore(items,cat);
-      addActivity(ME||"Okänd","skapade "+emoji+" "+name);listsSync();closeSheet();
-      toast(emoji+" "+name+" skapad · "+(ms.total>0?"+":"")+ms.total);render();
+      addActivity(ME||"Okänd","skapade "+emoji+" "+name);haptic("ok");listsSync();closeSheet();
+      // Nästa steg-erbjudande: lägg direkt i veckomenyn + ingredienser på inköp
+      offerMealPlacement(name,emoji,items);
     });
+  },60);
+}
+// Efter att en rätt skapats: erbjud att lägga den i veckomenyn + ingredienser på inköp
+function offerMealPlacement(name,emoji,items){
+  var days=WEEKDAYS.map(function(d){return '<button class="mp-day btn btn-s btn-sm" data-day="'+d.k+'" style="flex:1;min-width:44px">'+d.n+'</button>'}).join('');
+  var body='<div style="font-size:13px;font-weight:700;text-align:center;margin-bottom:4px">'+emoji+" "+name+'</div><div style="font-size:11px;color:var(--fg2);text-align:center;margin-bottom:14px">Rätten är sparad i banken! Vill du lägga in den nu?</div>'+
+    '<div style="font-size:10px;color:var(--fg2);margin-bottom:4px">Lägg som middag på:</div>'+
+    '<div class="flex gap4" style="flex-wrap:wrap;margin-bottom:12px">'+days+'</div>'+
+    '<button class="btn btn-p" id="mpShop" style="width:100%;margin-bottom:6px">🛒 Lägg ingredienser på inköpslistan</button>'+
+    '<button class="btn btn-s" id="mpSkip" style="width:100%">Klar — gör inget mer</button>';
+  openInfoSheet("✓ Rätt skapad","Lägg in den i veckan",body);
+  setTimeout(function(){
+    document.querySelectorAll(".mp-day").forEach(function(b){b.addEventListener("click",function(){setDayMeal(b.dataset.day,"d",name);haptic("ok");listsSync();var dn=WEEKDAYS.find(function(d){return d.k===b.dataset.day});toast("🍽️ "+name+" → "+(dn?dn.n:""));closeSheet();render()})});
+    var ms=document.getElementById("mpShop");if(ms)ms.addEventListener("click",function(){
+      var added=0;items.forEach(function(ing){if(isBasicStaple(ing))return;var ex=(LISTS.items||[]).find(function(li){return normItem(li.text)===normItem(ing)&&!li.done});if(ex){if(ex.fromMeals.indexOf(name)<0)ex.fromMeals.push(name)}else{var g=guessArea(ing);if(!LISTS.items)LISTS.items=[];LISTS.items.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),text:ing,area:g.area||"mat",cat:g.cat||"",done:false,pri:"medel",assignee:"",price:0,added:Date.now(),fromMeals:[name],qty:1,unit:""});added++}});
+      haptic("ok");listsSync();closeSheet();toast("🛒 "+added+" råvaror tillagda");render();
+    });
+    var sk=document.getElementById("mpSkip");if(sk)sk.addEventListener("click",function(){closeSheet();render()});
   },60);
 }
 // Effektlogg-vy (admin-only): notera dagens utfall + se historik. Neutralt och frivilligt.
@@ -2675,10 +2698,14 @@ function renderAchievements(){
     }).join('')+'</div></div></div>'
 }
 var ME=localStorage.getItem("fc_me")||"";
-// Detaljnivå användaren själv väljer: "enkel" | "lagom" | "detalj". Styr hur mycket info som visas.
-var UI_DEPTH=localStorage.getItem("fc_depth")||"";
-function setDepth(d){UI_DEPTH=d;localStorage.setItem("fc_depth",d)}
-function depth(){return UI_DEPTH||"lagom"}
+var APP_VERSION="0.1";// 0.x = beta (Daniel), 1.0 = release till Malin, sen 1.1, 1.2...
+// Detaljnivå PER DEL — var och en optar in i fördjupning där de vill. Allt börjar enkelt.
+// Delar: "mat", "train", "ekonomi", "husjakt". Nivåer: "enkel" | "mer"
+var UI_DEPTH={};
+try{UI_DEPTH=JSON.parse(localStorage.getItem("fc_depth2")||"{}")}catch(e){UI_DEPTH={}}
+function depth(part){return UI_DEPTH[part]||"enkel"}
+function setDepth(part,lvl){UI_DEPTH[part]=lvl;localStorage.setItem("fc_depth2",JSON.stringify(UI_DEPTH))}
+function toggleDepth(part){setDepth(part,depth(part)==="enkel"?"mer":"enkel")}
 // === WEATHER ===
 var WEATHER=null;var WEATHER_TS=0;
 async function fetchWeather(){
@@ -2856,7 +2883,12 @@ function connect(id){
 }
 
 // === RENDER ===
-function render(){var a=document.getElementById("app");a.className=S.dark?"dark":"";if(S.screen==="login"){rLogin(a);return}if(S.screen==="pending"){rPending(a);return}rApp(a);if(S.tab==="dash"||S.tab==="bostad")setTimeout(updateCharts,50);setTimeout(animateCounters,30);if(!UI_DEPTH&&S.screen==="app")setTimeout(showWelcomeDepth,400)}
+function render(){var a=document.getElementById("app");a.className=S.dark?"dark":"";if(S.screen==="login"){rLogin(a);return}if(S.screen==="pending"){rPending(a);return}rApp(a);if(S.tab==="dash"||S.tab==="bostad")setTimeout(updateCharts,50);setTimeout(animateCounters,30)}
+// Liten växel för att fördjupa/förenkla en del. Returnerar HTML; binds via .depth-toggle.
+function depthToggle(part){
+  var on=depth(part)==="mer";
+  return '<button class="depth-toggle" data-part="'+part+'" style="font-size:10px;color:'+(on?"var(--teal)":"var(--fg3)")+';background:none;border:none;cursor:pointer;padding:2px 6px;white-space:nowrap">'+(on?"✓ Visar mer · förenkla":"✨ Visa mer")+'</button>';
+}
 // Dagens pass-byggare: kryssa i block du gjort (löp/program/övningar/stretch) → logga som ett pass
 function openSessionBuilder(){
   var picked={};
@@ -2895,29 +2927,18 @@ function openSessionBuilder(){
 }
 // Ändra detaljnivå när som helst
 function openDepthSheet(){
-  var opts=[{d:"enkel",t:"🌱 Enkelt",s:"Det viktigaste — inga siffror eller extra val"},{d:"lagom",t:"⚖️ Lagom",s:"Förslag och markeringar, men rent"},{d:"detalj",t:"🔬 Detaljerat",s:"Allt: full info och finjustering"}];
-  var cur=depth();
-  var body='<div style="font-size:11px;color:var(--fg2);margin-bottom:12px">Hur detaljerad vill du att Härvan ska vara? Ändra fritt.</div>'+
-    opts.map(function(o){var on=cur===o.d;return '<button class="depth-pick btn btn-s" data-d="'+o.d+'" style="width:100%;text-align:left;padding:13px;margin-bottom:8px;height:auto;display:block;border:1px solid '+(on?"var(--teal)":"var(--border)")+'"><div style="font-size:13px;font-weight:700">'+o.t+(on?' <span style="font-size:9px;color:var(--teal)">✓ VALD</span>':'')+'</div><div style="font-size:10px;color:var(--fg2);margin-top:2px">'+o.s+'</div></button>'}).join('');
-  openInfoSheet("⚙️ Detaljnivå","Välj hur mycket du vill se",body);
-  setTimeout(function(){document.querySelectorAll(".depth-pick").forEach(function(b){b.addEventListener("click",function(){setDepth(b.dataset.d);haptic("ok");closeSheet();toast("Detaljnivå: "+b.dataset.d);render()})})},60);
+  var parts=[{p:"mat",t:"🍽️ Mat & recept",s:"Hälsopoäng, tillbehör, detaljer"},{p:"train",t:"💪 Träning",s:"Övningsbibliotek, program, statistik"},{p:"ekonomi",t:"💰 Ekonomi",s:"Detaljerade siffror och budget"},{p:"husjakt",t:"🔍 Husjakten",s:"Full analys och data"}];
+  var body='<div style="font-size:11px;color:var(--fg2);margin-bottom:14px">Allt börjar enkelt. Fördjupa just de delar du är nyfiken på — resten förblir lugnt. Ändra fritt, när som helst.</div>'+
+    parts.map(function(o){var on=depth(o.p)==="mer";return '<button class="dpart-pick btn btn-s" data-p="'+o.p+'" style="width:100%;text-align:left;padding:13px;margin-bottom:8px;height:auto;display:flex;align-items:center;gap:10px;border:1px solid '+(on?"var(--teal)":"var(--border)")+'"><div style="flex:1"><div style="font-size:13px;font-weight:700">'+o.t+'</div><div style="font-size:10px;color:var(--fg2);margin-top:2px">'+o.s+'</div></div><span style="font-size:11px;font-weight:700;color:'+(on?"var(--teal)":"var(--fg3)")+';white-space:nowrap">'+(on?"Mer ✓":"Enkel")+'</span></button>'}).join('');
+  openInfoSheet("⚙️ Detaljnivå per del","Fördjupa det du vill",body);
+  setTimeout(function(){document.querySelectorAll(".dpart-pick").forEach(function(b){b.addEventListener("click",function(){toggleDepth(b.dataset.p);haptic("tap");closeSheet();openDepthSheet()})})},60);
 }
 // Engångs-välkomst: låt användaren välja hur detaljerad appen ska vara
-function showWelcomeDepth(){
-  if(UI_DEPTH||document.getElementById("sheetOverlay"))return;
-  var body='<div style="font-size:12px;color:var(--fg2);margin-bottom:14px">Välkommen! Härvan kan vara så enkel eller detaljerad som du vill. Välj en stil — du kan ändra när som helst.</div>'+
-    '<button class="depth-pick btn btn-s" data-d="enkel" style="width:100%;text-align:left;padding:14px;margin-bottom:8px;height:auto;display:block"><div style="font-size:13px;font-weight:700">🌱 Enkelt</div><div style="font-size:10px;color:var(--fg2);margin-top:2px">Det viktigaste: dagens mat, inköp och att-göra. Inga siffror eller extra val.</div></button>'+
-    '<button class="depth-pick btn btn-s" data-d="lagom" style="width:100%;text-align:left;padding:14px;margin-bottom:8px;height:auto;display:block"><div style="font-size:13px;font-weight:700">⚖️ Lagom</div><div style="font-size:10px;color:var(--fg2);margin-top:2px">Lite mer: förslag, markeringar och träning — men fortfarande rent.</div></button>'+
-    '<button class="depth-pick btn btn-s" data-d="detalj" style="width:100%;text-align:left;padding:14px;height:auto;display:block"><div style="font-size:13px;font-weight:700">🔬 Detaljerat</div><div style="font-size:10px;color:var(--fg2);margin-top:2px">Allt: fullständig info, statistik och finjustering.</div></button>';
-  openInfoSheet("👋 Hej!","Hur vill du ha det?",body);
-  setTimeout(function(){document.querySelectorAll(".depth-pick").forEach(function(b){b.addEventListener("click",function(){setDepth(b.dataset.d);haptic("ok");closeSheet();toast("Du kan ändra detta i inställningar");render()})})},60);
-}
-
 function rLogin(el){
   var mode=S.authMode||"in";// "in" = logga in, "up" = skapa konto
   el.innerHTML='<div class="login"><div class="logo" style="width:72px;height:72px;border-radius:20px"><svg viewBox="0 0 56 32" width="48" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M6 16 C4 10,12 8,13 14 C14 20,7 21,8 14 C9 8,17 9,17 16 C17 22,23 22,23 15 C23 9,30 10,31 16 L50 16" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="16" r="2.8" fill="#fff"/></svg></div>'+
     '<h2>Härvan</h2>'+
-    '<p>'+(mode==="in"?"Logga in med din e-post":"Skapa ditt konto")+'</p>'+
+    '<p>'+(mode==="in"?"Logga in med din e-post":"Skapa ditt konto")+' <span style="font-size:9px;color:var(--fg3);opacity:.7">v'+APP_VERSION+(N(APP_VERSION)<1?" beta":"")+'</span></p>'+
     '<input id="authEmail" type="email" placeholder="E-post" autocomplete="email" value="'+(S.authEmail||"")+'">'+
     '<input id="authPass" type="password" placeholder="Lösenord (minst 8 tecken)" autocomplete="'+(mode==="in"?"current-password":"new-password")+'">'+
     '<button class="btn btn-p" id="authBtn">'+(mode==="in"?"Logga in":"Skapa konto")+'</button>'+
@@ -3012,11 +3033,15 @@ function rDash(f,c){var ps=S.prospects.map(function(p){return calcP(f,p)});var c
 
   return '<div class="anim-in"><div class="greeting">'+greet+(ME?', '+ME:'')+ ' 👋</div><div class="greeting-sub">'+dateStr+'</div></div>'+
   // Enkel förklaring av hälsotanken för vanlig user (admin har full graf istället)
-  (!isOwner()&&depth()!=="enkel"?'<div class="card anim-in" style="margin:8px 0;background:linear-gradient(135deg,rgba(26,138,101,.06),transparent)"><div style="padding:9px 12px;font-size:11px;color:var(--fg2)">💚 Maten är upplagd efter en hälsorytm över veckan. Recept och varor märkta <span style="font-size:12px">⭐</span> passar dagens rytm extra bra.</div></div>':'')+
+  (!isOwner()&&depth("mat")==="mer"?'<div class="card anim-in" style="margin:8px 0;background:linear-gradient(135deg,rgba(26,138,101,.06),transparent)"><div style="padding:9px 12px;font-size:11px;color:var(--fg2)">💚 Maten är upplagd efter en hälsorytm över veckan. Recept och varor märkta <span style="font-size:12px">⭐</span> passar dagens rytm extra bra.</div></div>':'')+
 
   // Weather
   '<div class="card anim-in anim-d1" style="margin:8px 0"><div class="card-b" id="weatherPanel" style="padding:10px 12px">'+(WEATHER?renderWeather():'<div style="font-size:10px;color:var(--fg3)">Hämtar väder...</div>')+'</div></div>'+
   // === DYGNSFLÖDE: frukost → (todo) → lunch → middag → träning. Aktuell måltid framhävd. ===
+  // "Extra bra idag" — råvaror som lyfter dagens fokus (visas när mat fördjupad eller för admin)
+  (function(){if(!isOwner()&&depth("mat")!=="mer")return '';var b=todayBoostFoods();if(!b.foods.length)return '';
+    return '<div class="card anim-in" style="margin:8px 0;background:linear-gradient(135deg,rgba(26,138,101,.07),transparent)"><div class="card-b" style="padding:10px 12px"><div style="font-size:11px;font-weight:700;margin-bottom:5px">🌿 Extra bra idag'+(isOwner()?' <span style="font-size:9px;color:var(--fg3);font-weight:400">('+focusName(b.focus)+'-fokus)</span>':'')+'</div><div style="display:flex;flex-wrap:wrap;gap:5px">'+b.foods.map(function(f){return '<span style="font-size:11px;background:var(--bg2);border-radius:12px;padding:3px 10px">'+f+'</span>'}).join('')+'</div></div></div>';
+  })()+
   (function(){var cs=currentSlot();return renderMealCard("b",cs==="b")})()+
 
   // Compact KPIs
@@ -3073,7 +3098,7 @@ function rBostad(f,c){var t=c.transfers;
   var prov=f.provision||{};var provAmount=calcProvision(N(f.curr_value),prov);var saleNet=N(f.curr_value)-provAmount-N(f.curr_mortgage);
   var bb_each=Math.round(barnbidrag(f.children)/f.persons.length);
   // === SUMMARY BAR ===
-  var sumBar='<div class="summary"><div style="font-size:12px;font-weight:600;margin-bottom:2px">🏠 Hem & ekonomi — översikt</div>'+
+  var sumBar='<div class="summary"><div class="flex jcb aic" style="margin-bottom:2px"><span style="font-size:12px;font-weight:600">🏠 Hem & ekonomi — översikt</span>'+(isOwner()?depthToggle("ekonomi"):'')+'</div>'+
     '<div class="metrics"><div class="met"><div class="met-l">💰 Disponibelt</div><div class="met-v"><span class="count-up" data-val="'+Math.round(c.disp)+'" data-suffix=" kr">'+fSEK(c.disp)+'</span></div><div class="met-s">/mån (netto+bb)</div></div>'+
     '<div class="met"><div class="met-l">📤 Utgifter</div><div class="met-v"><span class="count-up" data-val="'+Math.round(c.housing+c.totalBudget)+'" data-suffix=" kr">'+fSEK(c.housing+c.totalBudget)+'</span></div><div class="met-s">/mån totalt</div></div>'+
     '<div class="met"><div class="met-l">'+(c.surplus>=0?"📈":"📉")+' Överskott</div><div class="met-v '+(c.surplus>=0?"g":"r")+'"><span class="count-up" data-val="'+Math.round(c.surplus)+'" data-suffix=" kr">'+(c.surplus>=0?"+":"")+fSEK(c.surplus)+'</span></div><div class="met-s">/mån</div></div>'+
@@ -3137,18 +3162,18 @@ function rBostad(f,c){var t=c.transfers;
   var ovrSum='<span class="kpi">'+f.persons[0].name+' '+fSEK(t[0].surplus)+'</span><span class="kpi">'+f.persons[1].name+' '+fSEK(t[1].surplus)+'</span>';
 
   return sumBar+
-    (isOwner()?(
+    ((isOwner()&&depth("ekonomi")==="mer")?(
     sec("b-fam","👥","Familj & inkomster",famSum,famBody,false)+
     sec("b-bost","🏡","Nuvarande bostad",bostSum,bostBody,false)+
     sec("b-prov","💼","Försäljning & provision",provSum,provBody,false)+
     sec("b-bud","🛒","Budget & fördelning",budSum,budBody,false)+
     sec("b-ovr","💸","Månadsöverföringar",ovrSum,ovrBody,true)
-    ):'<div style="font-size:11px;color:var(--fg3);text-align:center;padding:14px">Detaljerad ekonomi hanteras av hushållets administratör.</div>')
+    ):isOwner()?'<div style="font-size:11px;color:var(--fg3);text-align:center;padding:14px">Tryck ✨ Visa mer för budget, inkomster och detaljer.</div>':'<div style="font-size:11px;color:var(--fg3);text-align:center;padding:14px">Detaljerad ekonomi hanteras av hushållets administratör.</div>')
 }
 
 // === PROSPECT LIST ===
 function rPL(f,c){if(!S.prospects.length)return '<div class="empty"><p>Inga prospekt</p><button class="btn btn-p mt8" id="np">➕ Nytt prospekt</button><div class="mt8"><input id="urlInput" placeholder="Klistra in Hemnet/Booli-länk..." style="width:100%;max-width:320px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"><button class="btn btn-s btn-sm mt6" id="urlAdd">🔗 Skapa från länk</button></div></div>';var currH=c.housing;
-  return '<div class="flex aic jcb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:600">🔍 Prospekt</span>'+(isOwner()?'<div class="flex gap4"><button class="btn btn-s btn-sm" id="urlBtn">🔗 Från länk</button><button class="btn btn-p btn-sm" id="np">➕ Nytt</button></div>':'')+'</div>'+
+  return '<div class="flex aic jcb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:600">🔍 Prospekt</span><div class="flex gap4 aic">'+depthToggle("husjakt")+(isOwner()?'<button class="btn btn-s btn-sm" id="urlBtn">🔗 Från länk</button><button class="btn btn-p btn-sm" id="np">➕ Nytt</button>':'')+'</div></div>'+
   (!isOwner()?'<div style="font-size:11px;color:var(--fg2);margin-bottom:8px">Markera de du gillar med ❤️ och skriv vad du tycker — det hjälper oss välja tillsammans.</div>':'')+
   (isOwner()?'<div id="urlBox" class="hidden" style="margin-bottom:8px"><div class="flex gap4"><input id="urlInput" placeholder="Klistra in Hemnet/Booli-länk..." style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:11px"><button class="btn btn-p btn-sm" id="urlAdd">Skapa</button></div></div>':'')+S.prospects.map(function(p,i){var r=calcP(f,p),diff=r.totalHousing-currH;
   var fav=(p.interest&&p.interest[ME])?true:false;
@@ -3158,6 +3183,7 @@ function rPL(f,c){if(!S.prospects.length)return '<div class="empty"><p>Inga pros
       '<div class="flex aic jcb"><div data-vi="'+i+'" style="cursor:pointer;flex:1"><span style="font-size:14px;font-weight:600">'+(p.name||"Namnlöst")+'</span>'+(p.addr?'<div style="font-size:10px;color:var(--fg2)">'+p.addr+'</div>':'')+'</div>'+
       '<button class="prosp-fav ib" data-pi="'+i+'" style="font-size:20px;width:40px;height:40px">'+(fav?"❤️":"🤍")+'</button></div>'+
       '<div class="flex gap8" style="margin:6px 0 0;font-size:12px"><span><b>'+fSEK(r.price)+'</b></span><span style="color:var(--fg2)">'+fSEK(r.totalHousing)+'/mån</span><span style="color:'+(diff<=0?"var(--teal)":"var(--rose)")+'">'+(diff>=0?"+":"")+fSEK(diff)+' vs nuv</span></div>'+
+      (depth("husjakt")==="mer"?'<div style="font-size:10px;color:var(--fg3);margin-top:5px">'+(p.area?p.area+" m² · ":"")+(p.year?"byggt "+p.year+" · ":"")+"risk: "+(r.riskLevel==="low"?"låg":r.riskLevel==="med"?"medel":"hög")+'</div>':'')+
       '<input class="prosp-note" data-pi="'+i+'" placeholder="💬 Vad tycker du?" value="'+((p.notes&&p.notes[ME])||"").replace(/"/g,"&quot;")+'" style="width:100%;margin-top:8px;padding:9px 11px;border:1px solid var(--border);border-radius:9px;box-sizing:border-box;background:var(--bg2);color:var(--fg);font-size:13px">'+
       '</div></div>';
   }
@@ -3736,6 +3762,18 @@ var FOCUS_EMOJI_SAFE={driv:"⚡",bas:"🧘",smak:"✨",kansla:"🌿"};
 function focusEmoji(f){return isOwner()?FOCUS_EMOJI[f]:FOCUS_EMOJI_SAFE[f]}
 var FOCUS_COLOR={driv:"#c87a3a",bas:"#3a8ac8",smak:"#c83a7a",kansla:"#8a3ac8"};
 var FOCUS_IDX={smak:0,kansla:1,driv:2,bas:3};
+// "Extra bra idag" — råvaror som lyfter dagens fokus. Snygg lista med tips.
+function todayBoostFoods(){
+  var f=WEEKDAYS[todayIdx()].focus;var idx=FOCUS_IDX[f];
+  // Hitta råvaror som starkt bidrar till dagens fokus-parameter
+  var ranked=Object.keys(DIET_DB).map(function(k){return {name:k,v:DIET_DB[k][idx],tot:DIET_DB[k].reduce(function(a,b){return a+b},0)}})
+    .filter(function(x){return x.v>=2})
+    .sort(function(a,b){return (b.v*2+b.tot)-(a.v*2+a.tot)});
+  // Plocka varierat (undvik 5 bär i rad) — ta unika "familjer" via första ordet
+  var seen={},out=[];
+  ranked.forEach(function(x){var fam=x.name.split(" ")[0].slice(0,4);if(seen[fam])return;seen[fam]=1;if(out.length<6)out.push(x.name)});
+  return {focus:f,foods:out};
+}
 // Ägare ser riktiga ord, vanlig user ser hälsobegrepp
 function focusName(f){return isOwner()?FOCUS_LABEL_REAL[f]:FOCUS_LABEL[f]}
 var SHOW_ALL_MEALS=true;
@@ -3915,6 +3953,10 @@ function recipeFocusScore(recipe,day){
 }
 // Mitt (denna användares) betyg på en rätt
 function myRating(recipe){if(!recipe.ratings)return recipe.rating||0;return recipe.ratings[ME||"jag"]||0;}
+// Admin kan sätta omdöme åt valfri familjemedlem. S.rateAs = vald person (default ME).
+function familyRaters(){var ps=(S.family&&S.family.persons)?S.family.persons.map(function(p){return p.name}):["Daniel","Malin"];var kids=(S.family&&S.family.children)?N(S.family.children):0;for(var i=1;i<=kids;i++)ps.push("Barn "+i);return ps;}
+function ratingAs(){return isOwner()?(S.rateAs||ME||"Daniel"):(ME||"jag");}
+function ratingFor(recipe){if(!recipe.ratings)return 0;return recipe.ratings[ratingAs()]||0;}
 // Summera betyg per användare. ratings={uid:val} där val: 2=⭐, 1=👍, -1=👎
 // Returnerar: ⭐=+3/pers, 👍=+1/pers, 👎=-2/pers. Två 👎 → mycket lågt (auto-radering hanteras separat)
 function ratingScore(recipe){
@@ -4240,7 +4282,7 @@ function rTodo(){
         return tipsHtml;
       })()+
       '<div style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px">'+
-        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer;flex-wrap:wrap;gap:4px"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny <span style="font-size:9px;color:var(--fg3);font-weight:400">'+weekSpanLabel()+'</span>'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4" style="position:relative"><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-p btn-sm" id="addMeal">+ Rätt</button><button class="btn btn-s btn-sm" id="planMore" title="Mer">⋯</button><div id="planMoreMenu" style="display:none;position:absolute;right:0;top:30px;z-index:30;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:5px;min-width:160px"><button class="btn btn-s btn-sm pm-item" id="autoWeek" style="width:100%;justify-content:flex-start;margin-bottom:3px">✨ Auto-fördela veckan</button><button class="btn btn-s btn-sm pm-item" id="cookPantry" style="width:100%;justify-content:flex-start">🍳 Vad kan jag laga?</button></div></div>')+'</div>'+
+        '<div class="flex aic jcb" id="planToggle" style="cursor:pointer;flex-wrap:wrap;gap:4px"><span style="font-size:11px;font-weight:600">'+(S.planCollapsed?"▸":"▾")+' 📅 Veckomeny <span style="font-size:9px;color:var(--fg3);font-weight:400">'+weekSpanLabel()+'</span>'+(eatenCount?' <span style="font-size:9px;color:#1a8a65;font-weight:500">✓'+eatenCount+' ätet</span>':'')+' <span id="dietInfo" style="cursor:pointer;color:var(--fg3);font-size:10px" title="Om poängen">ⓘ</span></span>'+(S.planCollapsed?'':'<div class="flex gap4 aic" style="position:relative"><span onclick="event.stopPropagation()">'+depthToggle("mat")+'</span><button class="btn btn-s btn-sm" id="toggleMeals" title="Visa/dölj frukost & lunch">'+(SHOW_ALL_MEALS?"🍽️ Alla mål":"🍽️ Middag")+'</button><button class="btn btn-p btn-sm" id="addMeal">+ Rätt</button><button class="btn btn-s btn-sm" id="planMore" title="Mer">⋯</button><div id="planMoreMenu" style="display:none;position:absolute;right:0;top:30px;z-index:30;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:5px;min-width:160px"><button class="btn btn-s btn-sm pm-item" id="autoWeek" style="width:100%;justify-content:flex-start;margin-bottom:3px">✨ Auto-fördela veckan</button><button class="btn btn-s btn-sm pm-item" id="cookPantry" style="width:100%;justify-content:flex-start">🍳 Vad kan jag laga?</button></div></div>')+'</div>'+
         (S.planCollapsed?'':
         (isOwner()?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Smak laddas mot helgen 🍑 · middag räcker, frukost/lunch valfritt</div>':'<div style="font-size:9px;color:var(--fg3);margin-top:3px">Middag räcker — frukost & lunch är valfria</div>')+
         // Veckokalender
@@ -4801,6 +4843,7 @@ function bindAll(f,c){
   document.getElementById("lo").addEventListener("click",function(){auth.signOut();localStorage.removeItem("hid");if(dbRef)dbRef.off();if(shopRef)shopRef.off();dbRef=null;shopRef=null;LISTS_LOADED=false;S.screen="login";S.hid="";render()});
   var mb=document.getElementById("membersBtn");if(mb)mb.addEventListener("click",openMembersPanel);
   document.querySelectorAll(".tab").forEach(function(t){t.addEventListener("click",function(){haptic("tap");S.viewIdx=null;S.tab=t.dataset.t;render();setTimeout(updateCharts,60)})});
+  document.querySelectorAll(".depth-toggle").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();toggleDepth(b.dataset.part);haptic("tap");render()})});
   // Bostad
   var bF=function(id,k,p){var el=document.getElementById(id);if(el)el.addEventListener("change",function(e){var fam=dc(S.family);fam[k]=p?p(e.target.value):e.target.value;ss({family:fam})})};
   bF("ca","curr_addr");bF("cv","curr_value",N);bF("cm","curr_mortgage",N);bF("ci","curr_int",N);bF("cam","curr_amort",N);bF("cb","curr_brf",N);bF("cg","curr_garage",N);bF("cr","rate",function(v){return Math.max(0.1,N(v))/100});

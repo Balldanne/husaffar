@@ -1336,186 +1336,256 @@ var DANIEL_REHAB={
 var KEGEL_PLAN={
   name:"Bäckenbotten (Kegel)",
   intro:"Knip = lyft/dra ihop som att hålla emot kiss + gas. Omvänt knip (reverse) = mjukt trycka/släppa utåt, som att slappna av helt. Andas normalt — spänn aldrig mage, rumpa eller lår. Båda riktningarna är lika viktiga: styrka OCH avslappning.",
+  general:"Allmänt att tänka på: Kvalitet före kvantitet — få kontrollerade knip slår många slarviga. Andas alltid, håll mage/rumpa/lår avslappnade. Mer är inte bättre: en överspänd (hyperton) bäckenbotten ger lika mycket besvär som en svag, därför är omvänt knip och full avslappning lika viktiga som styrkan. Töm blåsan först, träna aldrig genom att stoppa kissstrålen (bara som engångstest av rätt muskel).",
   steps:[
-    {step:1,name:"Nybörjare",how:"Knip 3 sek, släpp helt 3 sek. Sedan omvänt knip (tryck mjukt ut) 3 sek, vila 3 sek. 8 reps av varje.",freq:"2 ggr/dag",feel:"Du ska tydligt känna lyftet och kunna släppa helt. Tröttnar musklerna före 8 reps — ta färre. Ingen träng i mage/rumpa.",effect:"Vecka 1-2: mest att hitta och isolera musklerna. Bättre medvetenhet, inga stora effekter än."},
-    {step:2,name:"Uppbyggnad",how:"Knip 5 sek, släpp 5 sek. Omvänt knip 5 sek, vila 5 sek. 10 reps av varje.",freq:"2-3 ggr/dag",feel:"Håller du 5 sek utan att darra eller tappa greppet? Då sitter tekniken. Släppet ska kännas lika kontrollerat som knipet.",effect:"Vecka 3-5: ökad uthållighet och kontroll. Du börjar märka starkare bäckenbotten och bättre medveten avslappning."},
-    {step:3,name:"Etablerad",how:"Knip 7-10 sek, släpp 10 sek. Omvänt knip 7-10 sek, vila. 10-12 reps. Lägg till 5 snabba knip (1 sek) på slutet.",freq:"3 ggr/dag",feel:"Långa knip ska vara stadiga hela vägen. Snabba knipen testar reaktionssnabbhet. Fortfarande ingen medspänning.",effect:"Vecka 6-10: tydlig styrka och uthållighet. Förbättrad kontroll, cirkulation och funktion."},
-    {step:4,name:"Optimal/underhåll",how:"Blanda: 10 långa (10 sek knip/10 vila) + 10 snabba + omvänt knip 10 sek × 5. Variera knip/reverse fritt.",freq:"1-2 ggr/dag underhåll",feel:"Full kontroll i båda riktningar, kan knipa diskret när som helst utan ansträngning.",effect:"Underhållsnivå. Behåll genom regelbundenhet — bäckenbotten tappar form utan träning, som andra muskler."}
+    {step:1,name:"Hitta musklerna",how:"Knip 3 sek, släpp helt 3 sek. Sedan omvänt knip (tryck mjukt ut) 3 sek, vila 3 sek. 8 reps av varje.",freq:"2 ggr/dag",feel:"Du ska tydligt känna lyftet och kunna släppa helt. Tröttnar musklerna före 8 reps — ta färre. Ingen träng i mage/rumpa.",effect:"Vecka 1-2: mest att hitta och isolera musklerna. Bättre medvetenhet, inga stora effekter än.",between:"Mellan passen: lägg märke till bäckenbotten i vardagen — knip lätt före nysning, host eller lyft. Ingen extra träning behövs, bara medvetenhet.",tips:"Ligg ner i början — lättast att känna musklerna utan att tyngdkraften stör. Lägg en hand på magen för att kontrollera att den är avslappnad."},
+    {step:2,name:"Uppbyggnad",how:"Knip 5 sek, släpp 5 sek. Omvänt knip 5 sek, vila 5 sek. 10 reps av varje.",freq:"2-3 ggr/dag",feel:"Håller du 5 sek utan att darra eller tappa greppet? Då sitter tekniken. Släppet ska kännas lika kontrollerat som knipet.",effect:"Vecka 3-5: ökad uthållighet och kontroll. Du börjar märka starkare bäckenbotten och bättre medveten avslappning.",between:"Mellan passen: börja träna sittande också (vid skrivbordet, i bilen). Knip diskret medan du gör annat — ingen märker.",tips:"Variera position: liggande, sittande, stående. Bäckenbotten ska fungera i alla lägen. Sätt en diskret påminnelse om du glömmer."},
+    {step:3,name:"Etablerad",how:"Knip 7-10 sek, släpp 10 sek. Omvänt knip 7-10 sek, vila. 10-12 reps. Lägg till 5 snabba knip (1 sek) på slutet.",freq:"3 ggr/dag",feel:"Långa knip ska vara stadiga hela vägen. Snabba knipen testar reaktionssnabbhet. Fortfarande ingen medspänning.",effect:"Vecka 6-10: tydlig styrka och uthållighet. Förbättrad kontroll, cirkulation och funktion.",between:"Mellan passen: koppla knip till rörelse — knip på utandning när du reser dig, lyfter eller tränar styrka (t.ex. Brygga med knip i träningsdelen).",tips:"Nu lönar det sig att integrera med bålträning. Snabbknipen bygger den reflex som skyddar vid host/hopp."},
+    {step:4,name:"Stående & belastat",how:"Hela programmet stående: 10 långa (10 sek), 10 snabba, omvänt knip 10 sek × 5. Lägg till knip under en lätt knäböj eller på tå.",freq:"2-3 ggr/dag",feel:"Klarar du full kontroll stående och i rörelse? Då är basen stark. Knipet ska hålla även när benen jobbar.",effect:"Vecka 10-16: funktionell styrka som håller i vardagens belastningar — lyft, träning, hopp.",between:"Mellan passen: knip aktivt i din vanliga träning (squats, hip thrust). Bäckenbotten blir en naturlig del av varje lyft.",tips:"Stående är svårare — tyngdkraften jobbar emot. Tappar du kontrollen, gå tillbaka ett steg en vecka. Inget nederlag, bara finjustering."},
+    {step:5,name:"Med redskap (lätt)",how:"Introducera en lätt mjuk pilatesboll mellan låren eller en liten vikt. Knip 10 sek × 10 med bollen lätt klämd, omvänt knip × 5. Kegel-kulor (lättaste) kan provas korta stunder.",freq:"2 ggr/dag",freqNote:"Redskap introduceras tidigast efter ~4 mån konsekvent träning.",feel:"Bollen/vikten ger motstånd och feedback. Det ska kännas mer krävande men fortfarande kontrollerat — ingen medspänning.",effect:"Månad 4-5: ökad belastning ger fortsatt styrkeutveckling när kroppsvikt blivit för lätt.",between:"Mellan passen: fortsätt integrera knip i vardag och styrketräning. Redskapen är ett komplement, inte en ersättning för de fria knipen.",tips:"Kegel-kulor köps via hälso-/fysioterapibutiker. Börja med lättaste vikten och korta pass (5-10 min). Lyssna på kroppen — ta bort om något känns ansträngt eller ömt."},
+    {step:6,name:"Avancerad med redskap",how:"Kegel-kulor i längre pass (15-20 min) under vardagssysslor, kombinerat med aktiva långa/snabba knip. Omvänt knip × 8 för att hålla balansen styrka/avslappning.",freq:"1-2 ggr/dag",feel:"Du behåller kulorna med kontroll under rörelse. Full medveten styrning i båda riktningar. Aldrig ömhet eller trötthetsvärk.",effect:"Månad 5-6+: maximal styrka och uthållighet. Stark, responsiv och funktionell bäckenbotten.",between:"Mellan passen: bäckenbotten ska nu jobba automatiskt och korrekt vid host, lyft och träning — utan att du tänker på det.",tips:"VIKTIGT: mer är inte bättre. Om du märker svårighet att slappna av, känsla av tryck, eller obehag — backa. En överspänd bäckenbotten ger samma besvär som en svag. Då är omvänt knip och vila viktigare än mer styrka."},
+    {step:7,name:"Underhåll",how:"Blanda fritt: långa, snabba och omvänt knip, med eller utan redskap. Cirka 3 pass/vecka räcker för att hålla nivån.",freq:"3 ggr/vecka",feel:"Full kontroll i båda riktningar, kan knipa diskret när som helst utan ansträngning. Lika god avslappning som styrka.",effect:"Underhållsnivå. Behåll genom regelbundenhet — bäckenbotten tappar form utan träning, som andra muskler. Men den behöver inte mer än underhåll när den väl är stark.",between:"Mellan passen: knip är nu en naturlig vana, inbyggd i hur du rör dig. Inget tvång — bara underhåll.",tips:"Detta är slutnivån. Sikta inte på 'ännu mer' — målet är en stark OCH avslappningsbar bäckenbotten i balans, inte maximal spänning. Underhåll och njut av kontrollen."}
   ]
 };
 // === KROPPSVIKTSPROGRAM (bröst/axlar/armar/rumpa/bål — progressivt) ===
 // 3 nivåer. Eskalera när alla övningar känns kontrollerade i övre rep-spannet.
 // OBS: minskar inte fett lokalt — bygger muskel under. Synligt resultat kräver även kaloribalans (kost).
-// === ÖVNINGSDATABAS (full struktur) ===
-// Varje övning: id, name, area, goals[], muscles[], levels[{txt, equip[], cue}]
-// area: styrka/flex/kondition · goals: rumpa/mage/backen/helkropp/ben/rygg/axlar/armar/brost
+// === ÖVNINGSDATABAS (komplett) ===
+// Varje övning: id, name, area, goals[], muscles[], levels[{txt, equip[], cue, feel}]
+// area: styrka/flex/kondition · txt=gör så här · cue=teknik · feel=hur det ska kännas
 var EXERCISE_DB=[
-// ——— STYRKA: rumpa/ben ———
+// ═══ STYRKA: RUMPA & BEN ═══
 {id:"hipthrust",name:"Hip Thrust / Glutbrygga",area:"styrka",goals:["rumpa","ben"],muscles:["sätesmuskel","baksida lår","core"],levels:[
-{txt:"Glutbrygga med kroppsvikt — ligg på rygg, böjda knän, pressa höften upp tills kroppen är rak, knip i toppen 1 sek, sänk kontrollerat.",equip:["kroppsvikt"],cue:"Tryck genom hälarna, inte tårna. Spänn rumpan – inte ländryggen."},
-{txt:"Hip thrust med paus i toppen + gummiband runt knäna (pressa utåt mot bandet hela tiden).",equip:["gummiband"],cue:"Håll 2 sek i toppen. Bandet aktiverar yttre sätet."},
-{txt:"Single-leg hip thrust med vikt på höften + långsam excentrisk fas (sänk på 4 sek).",equip:["hantel","kettlebell","justerbarhantel"],cue:"Höften vågrät hela vägen – tappa inte ena sidan."}]},
+{txt:"Glutbrygga med kroppsvikt — ligg på rygg, böjda knän, pressa höften upp tills kroppen är rak, knip i toppen 1 sek, sänk kontrollerat. 12-15 reps.",equip:["kroppsvikt"],cue:"Tryck genom hälarna. Spänn rumpan – inte ländryggen.",feel:"Du ska känna det i skinkorna, inte i svanken. Känns det i ländryggen sänker du höften lite."},
+{txt:"Hip thrust med paus i toppen + gummiband runt knäna. 12 reps med 2 sek paus.",equip:["gummiband"],cue:"Pressa utåt mot bandet hela tiden. Håll 2 sek i toppen.",feel:"Brännande känsla på utsidan av sätet från bandet. Stabilt och kontrollerat."},
+{txt:"Single-leg hip thrust med vikt + långsam excentrisk fas (sänk på 4 sek). 8-10 reps/ben.",equip:["hantel","kettlebell"],cue:"Höften vågrät hela vägen – tappa inte ena sidan.",feel:"Intensivt i ett säte i taget. Sänkningen ska kännas kontrollerad, nästan darrig på slutet."}]},
 
 {id:"squat",name:"Squats / Knäböj",area:"styrka",goals:["rumpa","ben","helkropp"],muscles:["framsida lår","sätesmuskel","core"],levels:[
-{txt:"Kroppsvikt-squat — fötter axelbrett, sätt dig bakåt som mot en stol, djupt ner, tryck upp genom hälarna.",equip:["kroppsvikt"],cue:"Knäna i linje med tårna, bröstet upp, vikt på hälarna."},
-{txt:"Goblet squat — håll en kettlebell/hantel mot bröstet, djup squat med paus i botten.",equip:["kettlebell","hantel"],cue:"Armbågarna mellan knäna i botten. Rak rygg."},
-{txt:"Bulgarian split squat — bakre foten på bänk, sänk främre benet djupt, ev. med vikt.",equip:["hantel","stepbracka","kroppsvikt"],cue:"Mestadels vikt på främre benet. Håll bålen upprätt."}]},
+{txt:"Kroppsvikt-squat — fötter axelbrett, sätt dig bakåt som mot en stol, djupt ner, tryck upp genom hälarna. 15 reps.",equip:["kroppsvikt"],cue:"Knäna i linje med tårna, bröstet upp, vikt på hälarna.",feel:"Jobb i lår och rumpa. Knäna ska inte göra ont — gör de det, gå inte lika djupt."},
+{txt:"Goblet squat — håll kettlebell/hantel mot bröstet, djup squat med paus i botten. 12 reps.",equip:["kettlebell","hantel"],cue:"Armbågarna mellan knäna i botten. Rak rygg.",feel:"Tyngre i lår och rumpa, bålen jobbar för att hålla dig upprätt."},
+{txt:"Bulgarian split squat — bakre foten på bänk, sänk främre benet djupt, ev. med vikt. 10 reps/ben.",equip:["hantel","stepbracka","kroppsvikt"],cue:"Mestadels vikt på främre benet. Håll bålen upprätt.",feel:"Brännande i främre lår och säte. Balansutmaning — det ska vara tufft att hålla stabilt."}]},
 
 {id:"lunge",name:"Utfallssteg",area:"styrka",goals:["rumpa","ben"],muscles:["framsida lår","sätesmuskel","baksida lår"],levels:[
-{txt:"Stående utfall — kliv fram, sänk bakre knät mot golvet, tryck tillbaka.",equip:["kroppsvikt"],cue:"Främre knät över foten, inte förbi tårna."},
-{txt:"Gående utfall med hantlar i händerna.",equip:["hantel"],cue:"Långa steg, kontrollerad nedgång."},
-{txt:"Hopp-utfall (plyometriskt) – byt ben i luften.",equip:["kroppsvikt"],cue:"Mjuk landning, knät stabilt."}]},
+{txt:"Stående utfall — kliv fram, sänk bakre knät mot golvet, tryck tillbaka. 10/ben.",equip:["kroppsvikt"],cue:"Främre knät över foten, inte förbi tårna.",feel:"Jobb i främre lår och säte. Stabilt i höften, inget vingligt."},
+{txt:"Gående utfall med hantlar i händerna. 12/ben.",equip:["hantel"],cue:"Långa steg, kontrollerad nedgång.",feel:"Tyngre och mer balanskrävande. Säte och lår brinner mot slutet."},
+{txt:"Hopp-utfall (plyometriskt) – byt ben i luften. 8/ben.",equip:["kroppsvikt"],cue:"Mjuk landning, knät stabilt.",feel:"Pulshöjande och explosivt. Landa mjukt — inga hårda stötar i knät."}]},
 
 {id:"deadlift",name:"Marklyft / Höftgångjärn",area:"styrka",goals:["rumpa","rygg","ben"],muscles:["baksida lår","sätesmuskel","nedre rygg"],levels:[
-{txt:"Höftgångjärn utan vikt — skjut höften bakåt med rak rygg, känn sträck i baksida lår, res upp.",equip:["kroppsvikt"],cue:"Rörelsen sker i höften, inte i ryggen. Lätt böjda knän."},
-{txt:"Rumänsk marklyft med hantlar/kettlebell – sänk vikten längs benen.",equip:["hantel","kettlebell"],cue:"Vikten nära kroppen. Stanna när du känner sträck, inte längre."},
-{txt:"Marklyft med skivstång eller single-leg romanian deadlift.",equip:["skivstång","hantel"],cue:"Spänn bålen före varje lyft. Neutral rygg."}]},
+{txt:"Höftgångjärn utan vikt — skjut höften bakåt med rak rygg, känn sträck i baksida lår, res upp. 12 reps.",equip:["kroppsvikt"],cue:"Rörelsen sker i höften, inte i ryggen. Lätt böjda knän.",feel:"Sträck i baksida lår på vägen ner, säte som drar dig upp. Ryggen ska kännas neutral, aldrig rundad."},
+{txt:"Rumänsk marklyft med hantlar/kettlebell – sänk vikten längs benen. 10-12 reps.",equip:["hantel","kettlebell"],cue:"Vikten nära kroppen. Stanna när du känner sträck, inte längre.",feel:"Tydligt sträck i baksida lår. Stark känsla i säte och baksida när du reser dig."},
+{txt:"Marklyft med skivstång eller single-leg romanian deadlift. 6-8 reps.",equip:["skivstång","hantel"],cue:"Spänn bålen före varje lyft. Neutral rygg.",feel:"Helkroppsansträngning, mest baksida och säte. Bålen ska vara hård som en planka."}]},
 
 {id:"glutekick",name:"Glute Kickback",area:"styrka",goals:["rumpa"],muscles:["sätesmuskel"],levels:[
-{txt:"Stående på alla fyra — sparka ett ben rakt bakåt/uppåt, knip i toppen.",equip:["kroppsvikt"],cue:"Rör bara höften, håll ryggen still. Knip sätet i toppen."},
-{txt:"Kickback med gummiband runt fötterna/anklarna.",equip:["gummiband","ankelvikt"],cue:"Långsam återgång – kämpa mot bandet."},
-{txt:"Kabel/band-kickback stående med längre rörelsebana.",equip:["gummiband"],cue:"Full kontraktion, ingen svank."}]},
+{txt:"Stående på alla fyra — sparka ett ben rakt bakåt/uppåt, knip i toppen. 15/ben.",equip:["kroppsvikt"],cue:"Rör bara höften, håll ryggen still. Knip sätet i toppen.",feel:"Isolerad känsla i sätet. Känns det i svanken — lyft inte benet lika högt."},
+{txt:"Kickback med gummiband runt fötterna/anklarna. 15/ben.",equip:["gummiband","ankelvikt"],cue:"Långsam återgång – kämpa mot bandet.",feel:"Brännande direkt i skinkan, särskilt på vägen tillbaka mot motståndet."},
+{txt:"Kabel/band-kickback stående med längre rörelsebana. 12/ben.",equip:["gummiband"],cue:"Full kontraktion, ingen svank.",feel:"Djup, fokuserad brännkänsla i sätet vid full sträckning."}]},
 
-// ——— STYRKA: mage/core/bäcken ———
+{id:"sumosquat",name:"Sumo-squat / Bred knäböj",area:"styrka",goals:["rumpa","ben"],muscles:["insida lår","sätesmuskel","framsida lår"],levels:[
+{txt:"Bred ställning, tår utåt, sänk rakt ner, tryck upp genom hälarna. 15 reps.",equip:["kroppsvikt"],cue:"Knäna följer tårnas riktning utåt. Rak rygg.",feel:"Jobb på insida lår och säte — annorlunda än vanlig squat."},
+{txt:"Sumo-squat med kettlebell hängande mellan benen. 12 reps.",equip:["kettlebell","hantel"],cue:"Tyngden nära kroppen, bröstet upp.",feel:"Tyngre i insida lår och säte, stabil bål."},
+{txt:"Sumo-squat med puls i botten + hällyft. 12 reps + 10 pulser.",equip:["hantel","kroppsvikt"],cue:"Små kontrollerade pulser, håll spänningen.",feel:"Intensiv brännkänsla i insida lår och säte som byggs upp under pulserna."}]},
+
+{id:"calfraise",name:"Vadpress / Tåhävningar",area:"styrka",goals:["ben"],muscles:["vader"],levels:[
+{txt:"Stå på golvet, res dig på tå så högt du kan, sänk långsamt. 20 reps.",equip:["kroppsvikt"],cue:"Full sträckning i toppen, kontrollerad nedgång.",feel:"Brännande i vaderna, särskilt på de sista reps:en."},
+{txt:"Tåhävningar på trappsteg/kant för längre rörelse. 15 reps.",equip:["stepbracka","kroppsvikt"],cue:"Sänk hälen under steget för full stretch.",feel:"Djupare stretch i botten, starkare kontraktion i toppen."},
+{txt:"Single-leg tåhävning med vikt. 12/ben.",equip:["hantel","kroppsvikt"],cue:"Balans på ett ben, full kontroll.",feel:"Intensivt i en vad i taget, balansutmaning på köpet."}]},
+
+// ═══ STYRKA: MAGE & CORE & BÄCKEN ═══
 {id:"plank",name:"Planka",area:"styrka",goals:["mage","backen","helkropp"],muscles:["raka bukmuskeln","djup core","bäckenbotten"],levels:[
-{txt:"Planka på underarmar — rak kropp, spänn bål + bäckenbotten, 20–40 sek.",equip:["kroppsvikt"],cue:"Dra naveln in, knip lätt. Ingen svank, ingen puckel."},
-{txt:"Planka med växelvisa benlyft eller arm-tapp, eller längre håll (60 sek).",equip:["kroppsvikt"],cue:"Höften still när du lyfter – rotera inte."},
-{txt:"Planka med sliders (dra in knän) eller fötter på instabilt underlag.",equip:["sliders","bosu"],cue:"Kontrollerad rörelse, bålen spänd hela tiden."}]},
+{txt:"Planka på underarmar — rak kropp, spänn bål + bäckenbotten, 20–40 sek.",equip:["kroppsvikt"],cue:"Dra naveln in, knip lätt. Ingen svank, ingen puckel.",feel:"Hela bålen jobbar och skakar lätt mot slutet. Känns det i ländryggen — lyft höften något."},
+{txt:"Planka med växelvisa benlyft eller arm-tapp, eller längre håll (60 sek).",equip:["kroppsvikt"],cue:"Höften still när du lyfter – rotera inte.",feel:"Bålen jobbar extra för att stå emot rotation när du lyfter."},
+{txt:"Planka med sliders (dra in knän) eller fötter på instabilt underlag.",equip:["sliders","bosu"],cue:"Kontrollerad rörelse, bålen spänd hela tiden.",feel:"Djup core-aktivering, hela mitten brinner och kämpar för stabilitet."}]},
 
 {id:"deadbug",name:"Dead Bug",area:"styrka",goals:["mage","backen"],muscles:["djup core","raka bukmuskeln","bäckenbotten"],levels:[
-{txt:"Ligg på rygg, armar/knän upp — sänk motsatt arm + ben kontrollerat, ländrygg kvar i golvet.",equip:["kroppsvikt"],cue:"Pressa ländryggen mot golvet hela tiden. Andas."},
-{txt:"Dead bug med medvetet bäckenbotten-knip vid varje sänkning.",equip:["kroppsvikt"],cue:"Knip på utandning när benet sänks."},
-{txt:"Dead bug med längre räckvidd + lätt vikt i händerna.",equip:["hantel","kroppsvikt"],cue:"Långsammare = svårare. Tappa aldrig ländryggskontakten."}]},
+{txt:"Ligg på rygg, armar/knän upp — sänk motsatt arm + ben kontrollerat, ländrygg kvar i golvet. 10/sida.",equip:["kroppsvikt"],cue:"Pressa ländryggen mot golvet hela tiden. Andas.",feel:"Djup magmuskel jobbar för att hålla ryggen i golvet. Lugnt och kontrollerat."},
+{txt:"Dead bug med medvetet bäckenbotten-knip vid varje sänkning. 12/sida.",equip:["kroppsvikt"],cue:"Knip på utandning när benet sänks.",feel:"Samspel mellan djup mage och bäckenbotten. Stabilt centrum."},
+{txt:"Dead bug med längre räckvidd + lätt vikt i händerna. 12/sida.",equip:["hantel","kroppsvikt"],cue:"Långsammare = svårare. Tappa aldrig ländryggskontakten.",feel:"Hela djupa core:n brinner av att hålla emot. Skakighet är normalt."}]},
 
 {id:"sideplank",name:"Sidoplanka",area:"styrka",goals:["mage","helkropp"],muscles:["sneda bukmuskler","djup core","höft"],levels:[
-{txt:"Sidoplanka på underarm, höften upp, 20–30 sek/sida.",equip:["kroppsvikt"],cue:"Kroppen rak från sidan. Pressa höften uppåt."},
-{txt:"Sidoplanka med höftlyft (sänk och lyft höften upprepat).",equip:["kroppsvikt"],cue:"Kontrollerat – känn de sneda bukmusklerna."},
-{txt:"Sidoplanka med benlyft eller på instabilt underlag.",equip:["bosu","kroppsvikt"],cue:"Stabil bål, inget vikande i höften."}]},
+{txt:"Sidoplanka på underarm, höften upp, 20–30 sek/sida.",equip:["kroppsvikt"],cue:"Kroppen rak från sidan. Pressa höften uppåt.",feel:"Sidan av magen och höften jobbar hårt för att hålla dig uppe."},
+{txt:"Sidoplanka med höftlyft (sänk och lyft höften upprepat). 12/sida.",equip:["kroppsvikt"],cue:"Kontrollerat – känn de sneda bukmusklerna.",feel:"Brännande på sidan av midjan vid varje lyft."},
+{txt:"Sidoplanka med benlyft eller på instabilt underlag. 30-45 sek/sida.",equip:["bosu","kroppsvikt"],cue:"Stabil bål, inget vikande i höften.",feel:"Hela sidlinjen jobbar maximalt, balansutmaning i toppen."}]},
 
-{id:"bridgeknip",name:"Brygga med knip (bäckenbotten)",area:"styrka",goals:["backen","rumpa"],muscles:["bäckenbotten","sätesmuskel","djup core"],levels:[
-{txt:"Glutbrygga + medvetet bäckenbotten-knip i toppen, släpp helt i botten.",equip:["kroppsvikt","minipilatesboll"],cue:"Knip som att hålla emot kiss + gas. Slappna helt i botten."},
-{txt:"Brygga med längre knip-håll (5 sek) i toppen + gummiband runt knäna.",equip:["gummiband"],cue:"Andas normalt under knipet. Spänn inte rumpan i stället."},
-{txt:"Single-leg brygga med knip + kontrollerad sänkning.",equip:["kroppsvikt"],cue:"Håll höften jämn. Knip hela vägen upp och ner."}]},
+{id:"crunch",name:"Crunch & Mage",area:"styrka",goals:["mage"],muscles:["raka bukmuskeln","sneda bukmuskler"],levels:[
+{txt:"Ligg på rygg, böjda knän, rulla upp övre ryggen, känn magen jobba, sänk långsamt. 15 reps.",equip:["kroppsvikt"],cue:"Lyft med magen, dra inte i nacken. Hakan en knytnäve från bröstet.",feel:"Koncentrerad känsla i övre magen. Nacken ska vara avslappnad."},
+{txt:"Bicycle crunch — motsatt armbåge mot knä, växelvis. 20 totalt.",equip:["kroppsvikt"],cue:"Rotera från bålen, inte armarna. Långsamt.",feel:"Sneda bukmusklerna jobbar på sidorna, jämn brännkänsla."},
+{txt:"Hängande/sittande benlyft eller V-ups. 12-15 reps.",equip:["pullupbar","kroppsvikt"],cue:"Kontrollerad rörelse, ingen svikt.",feel:"Hela magen, särskilt nedre delen, jobbar intensivt."}]},
 
 {id:"abwheel",name:"Ab Wheel / Magrulle",area:"styrka",goals:["mage"],muscles:["raka bukmuskeln","djup core"],levels:[
-{txt:"Knästående utrullning kort bit + tillbaka (eller planka som förövning).",equip:["abwheel","kroppsvikt"],cue:"Spänn bålen, ingen svank. Rulla bara så långt du kontrollerar."},
-{txt:"Knästående full utrullning.",equip:["abwheel"],cue:"Naveln indragen hela vägen. Långsam återgång."},
-{txt:"Stående utrullning (mycket avancerat).",equip:["abwheel"],cue:"Endast med full bålkontroll."}]},
+{txt:"Knästående utrullning kort bit + tillbaka (eller planka som förövning). 8 reps.",equip:["abwheel","kroppsvikt"],cue:"Spänn bålen, ingen svank. Rulla bara så långt du kontrollerar.",feel:"Hela magen jobbar för att hålla kroppen rak. Stanna innan ryggen svankar."},
+{txt:"Knästående full utrullning. 8-10 reps.",equip:["abwheel"],cue:"Naveln indragen hela vägen. Långsam återgång.",feel:"Intensiv sträckning och kontraktion genom hela bålen."},
+{txt:"Stående utrullning (mycket avancerat). 5-8 reps.",equip:["abwheel"],cue:"Endast med full bålkontroll.",feel:"Maximal core-belastning — hela kroppen darrar av ansträngning."}]},
 
-// ——— STYRKA: överkropp ———
+{id:"bridgeknip",name:"Brygga med knip (bäckenbotten)",area:"styrka",goals:["backen","rumpa"],muscles:["bäckenbotten","sätesmuskel","djup core"],levels:[
+{txt:"Glutbrygga + medvetet bäckenbotten-knip i toppen, släpp helt i botten. 12 reps.",equip:["kroppsvikt","minipilatesboll"],cue:"Knip som att hålla emot kiss + gas. Slappna helt i botten.",feel:"Lyft i sätet + en inre lyftkänsla i bäckenbotten. Släppet ska kännas lika tydligt."},
+{txt:"Brygga med längre knip-håll (5 sek) i toppen + gummiband runt knäna. 10 reps.",equip:["gummiband"],cue:"Andas normalt under knipet. Spänn inte rumpan i stället.",feel:"Djup, lugn aktivering i bäckenbotten medan sätet håller bryggan."},
+{txt:"Single-leg brygga med knip + kontrollerad sänkning. 8/ben.",equip:["kroppsvikt"],cue:"Håll höften jämn. Knip hela vägen upp och ner.",feel:"Samspel mellan säte, baksida och bäckenbotten, ena sidan i taget."}]},
+
+// ═══ STYRKA: ÖVERKROPP ═══
 {id:"pushup",name:"Armhävningar",area:"styrka",goals:["brost","armar","axlar"],muscles:["bröstmuskel","triceps","främre axel","core"],levels:[
-{txt:"Armhävning mot bänk/vägg eller från knän — kropp rak, sänk bröstet, tryck upp.",equip:["kroppsvikt"],cue:"Armbågarna ca 45° från kroppen, inte rakt ut."},
-{txt:"Full armhävning på golvet, bröstet nästan i golvet.",equip:["kroppsvikt"],cue:"Spänn rumpa + bål så kroppen är en rak planka."},
-{txt:"Diamant-, deklinerad (fötter upp) eller med vikt-väst.",equip:["weightedvest","kroppsvikt"],cue:"Kontrollerad nedgång 2-3 sek."}]},
+{txt:"Armhävning mot bänk/vägg eller från knän — kropp rak, sänk bröstet, tryck upp. 10 reps.",equip:["kroppsvikt"],cue:"Armbågarna ca 45° från kroppen, inte rakt ut.",feel:"Bröst och baksida överarm jobbar. Bålen håller kroppen rak."},
+{txt:"Full armhävning på golvet, bröstet nästan i golvet. 10-12 reps.",equip:["kroppsvikt"],cue:"Spänn rumpa + bål så kroppen är en rak planka.",feel:"Bröst, axlar och triceps jobbar tillsammans. Hela kroppen spänd."},
+{txt:"Diamant-, deklinerad (fötter upp) eller med vikt-väst. 8-12 reps.",equip:["weightedvest","kroppsvikt"],cue:"Kontrollerad nedgång 2-3 sek.",feel:"Tydligt tyngre, intensiv känsla i bröst och triceps."}]},
 
 {id:"pikepush",name:"Pike Push-up (axlar)",area:"styrka",goals:["axlar","armar"],muscles:["axlar","triceps","övre rygg"],levels:[
-{txt:"Pike push-up — höft i vädret (V-form), sänk hjässan mot golvet, tryck upp.",equip:["kroppsvikt"],cue:"Tyngden över händerna. Titta mellan fötterna."},
-{txt:"Pike push-up med fötter på upphöjning (brantare vinkel).",equip:["kroppsvikt"],cue:"Ju brantare, desto mer axel."},
-{txt:"Handstand-push-up mot vägg (avancerat).",equip:["kroppsvikt"],cue:"Endast med full axelstyrka och kontroll."}]},
+{txt:"Pike push-up — höft i vädret (V-form), sänk hjässan mot golvet, tryck upp. 8 reps.",equip:["kroppsvikt"],cue:"Tyngden över händerna. Titta mellan fötterna.",feel:"Axlarna jobbar mest. Bra för att bygga press-styrka."},
+{txt:"Pike push-up med fötter på upphöjning (brantare vinkel). 8-10 reps.",equip:["stepbracka","kroppsvikt"],cue:"Ju brantare, desto mer axel.",feel:"Tydligt tyngre på axlarna, närmar sig handstående press."},
+{txt:"Handstand-push-up mot vägg (avancerat). 5-8 reps.",equip:["kroppsvikt"],cue:"Endast med full axelstyrka och kontroll.",feel:"Maximal axelbelastning. Kräver stark bål och balans."}]},
 
 {id:"row",name:"Rodd (rygg)",area:"styrka",goals:["rygg","armar"],muscles:["latissimus","övre rygg","biceps"],levels:[
-{txt:"Bordsrodd under ett stadigt bord, eller band-rodd sittande.",equip:["gummiband","kroppsvikt"],cue:"Dra armbågarna bakåt, kläm ihop skulderbladen."},
-{txt:"Hantelrodd – luta framåt, dra hanteln mot höften.",equip:["hantel"],cue:"Rak rygg, dra med ryggen inte bara armen."},
-{txt:"Pull-ups eller tunga hantelrodder.",equip:["pullupbar","hantel"],cue:"Full rörelse, kontrollerad nedgång."}]},
+{txt:"Bordsrodd under ett stadigt bord, eller band-rodd sittande. 12 reps.",equip:["gummiband","kroppsvikt"],cue:"Dra armbågarna bakåt, kläm ihop skulderbladen.",feel:"Ryggen mellan skulderbladen jobbar. Bröstet öppnas."},
+{txt:"Hantelrodd – luta framåt, dra hanteln mot höften. 12/arm.",equip:["hantel"],cue:"Rak rygg, dra med ryggen inte bara armen.",feel:"Tydligt jobb i ena sidan av ryggen och biceps."},
+{txt:"Pull-ups eller tunga hantelrodder. 6-10 reps.",equip:["pullupbar","hantel"],cue:"Full rörelse, kontrollerad nedgång.",feel:"Hela ryggen och armarna jobbar maximalt. Kontrollera nedgången."}]},
 
 {id:"dips",name:"Dips (triceps)",area:"styrka",goals:["armar","brost"],muscles:["triceps","nedre bröst","främre axel"],levels:[
-{txt:"Dips mot en stol — händer på kant, fötter på golv, böj armbågarna, tryck upp.",equip:["kroppsvikt"],cue:"Armbågarna bakåt, inte utåt. Axlarna ned från öronen."},
-{txt:"Dips mellan två stolar/bänkar, full rörelse.",equip:["kroppsvikt"],cue:"Sänk tills överarmen är vågrät."},
-{txt:"Långsamma negativa dips eller med vikt.",equip:["weightedvest","kroppsvikt"],cue:"Sänk 4-5 sek, tryck upp."}]},
+{txt:"Dips mot en stol — händer på kant, fötter på golv, böj armbågarna, tryck upp. 10 reps.",equip:["kroppsvikt"],cue:"Armbågarna bakåt, inte utåt. Axlarna ned från öronen.",feel:"Baksida överarm jobbar. Inget obehag i axlarna."},
+{txt:"Dips mellan två stolar/bänkar, full rörelse. 8-12 reps.",equip:["kroppsvikt"],cue:"Sänk tills överarmen är vågrät.",feel:"Triceps och nedre bröst brinner. Kontrollerad rörelse."},
+{txt:"Långsamma negativa dips eller med vikt. 6-10 reps.",equip:["weightedvest","kroppsvikt"],cue:"Sänk 4-5 sek, tryck upp.",feel:"Intensiv känsla i triceps, särskilt i den långsamma sänkningen."}]},
 
 {id:"shoulderpress",name:"Axelpress",area:"styrka",goals:["axlar","armar"],muscles:["axlar","triceps"],levels:[
-{txt:"Press med gummiband — stå på bandet, pressa händerna uppåt.",equip:["gummiband"],cue:"Spänn bålen, pressa rakt upp utan att svanka."},
-{txt:"Axelpress med hantlar/kettlebell.",equip:["hantel","kettlebell"],cue:"Armbågarna något framför kroppen. Kontroll i toppen."},
-{txt:"Tung axelpress stående eller push press.",equip:["hantel","skivstång"],cue:"Stadig bål, andas rätt."}]},
+{txt:"Press med gummiband — stå på bandet, pressa händerna uppåt. 12 reps.",equip:["gummiband"],cue:"Spänn bålen, pressa rakt upp utan att svanka.",feel:"Axlarna jobbar, lätt motstånd som ökar mot toppen."},
+{txt:"Axelpress med hantlar/kettlebell. 10-12 reps.",equip:["hantel","kettlebell"],cue:"Armbågarna något framför kroppen. Kontroll i toppen.",feel:"Tydligt jobb i axlar och triceps. Bålen håller dig stabil."},
+{txt:"Tung axelpress stående eller push press. 6-8 reps.",equip:["hantel","skivstång"],cue:"Stadig bål, andas rätt.",feel:"Helkroppsansträngning med fokus på axlar. Stark och stabil."}]},
 
-// ——— FLEXIBILITET ———
-{id:"dynstretch",name:"Dynamisk rörlighet",area:"flex",goals:["helkropp"],muscles:["helkropp"],levels:[
-{txt:"Grundläggande dynamisk stretch — höftöppnare, katt/ko, axelrullningar, 5 min.",equip:["kroppsvikt"],cue:"Mjuka, kontrollerade rörelser. Andas med rörelsen."},
-{txt:"Djupare rörelseuttag + foam rolling av spända områden.",equip:["foamroller","yogablock"],cue:"Rulla långsamt, pausa på ömma punkter."},
-{txt:"Flow-baserad rörlighet (yoga-sekvenser) med längre håll.",equip:["yogablock"],cue:"Kontroll i ytterlägen, andas djupt."}]},
+{id:"bicepscurl",name:"Bicepscurl",area:"styrka",goals:["armar"],muscles:["biceps","underarm"],levels:[
+{txt:"Curl med gummiband — stå på bandet, böj upp händerna kontrollerat. 15 reps.",equip:["gummiband"],cue:"Armbågarna stilla vid sidan. Ingen gungning.",feel:"Framsida överarm jobbar, motstånd ökar mot toppen."},
+{txt:"Hantelcurl, växelvis eller samtidigt. 12 reps.",equip:["hantel"],cue:"Långsam sänkning, vrid handflatan uppåt.",feel:"Tydlig brännkänsla i biceps, särskilt på vägen ner."},
+{txt:"Långsam curl med tyngre vikt + paus i toppen. 8-10 reps.",equip:["hantel","justerbarhantel"],cue:"3 sek upp, 3 sek ner. Ingen svikt.",feel:"Intensiv isolerad känsla i biceps. Brinner mot slutet."}]},
 
-{id:"hipmobility",name:"Höftrörlighet",area:"flex",goals:["rumpa","ben","helkropp"],muscles:["höftböjare","sätesmuskel","baksida lår"],levels:[
-{txt:"Höftöppnare i marken (90/90, fjäril), mjuka gungningar.",equip:["kroppsvikt"],cue:"Tvinga inte – andas in i sträcket."},
-{txt:"Djupa utfall med rotation + foam rolling av höft/lår.",equip:["foamroller"],cue:"Rotera bröstkorgen, känn höftböjaren öppna."},
-{txt:"Aktiv rörlighet med kontroll i ytterlägen (CARs).",equip:["kroppsvikt"],cue:"Långsamma, stora cirklar med full kontroll."}]},
-
-{id:"hamstring",name:"Baksida lår-rörlighet",area:"flex",goals:["ben","rygg"],muscles:["baksida lår","vader","nedre rygg"],levels:[
-{txt:"Sittande/stående framåtfällning, mjukt sträck mot tårna.",equip:["kroppsvikt"],cue:"Rak rygg, fäll från höften – runda inte ryggen."},
-{txt:"Foam rolling baksida lår + aktiv stretch med band.",equip:["foamroller","gummiband"],cue:"Dra tån mot dig med bandet, håll benet rakt."},
-{txt:"Dynamisk benpendling + djupa aktiva sträck.",equip:["kroppsvikt"],cue:"Kontrollerade pendlingar, öka gradvis."}]},
-
-{id:"thoracic",name:"Bröstrygg & hållning",area:"flex",goals:["rygg","axlar","helkropp"],muscles:["bröstrygg","bröstmuskel","axlar"],levels:[
-{txt:"Bröstöppnare mot dörrkarm + rotationer sittande.",equip:["kroppsvikt"],cue:"Öppna bröstet, dra axlarna bakåt och ned."},
-{txt:"Foam roller längs bröstryggen + rotationsstretch.",equip:["foamroller"],cue:"Rulla övre ryggen, andas ut i extensionen."},
-{txt:"Aktiva rotationer med band + hållningsövningar.",equip:["gummiband"],cue:"Rotera från bröstryggen, håll höften still."}]},
-
-// ——— KONDITION ———
+// ═══ KONDITION ═══
 {id:"mountainclimber",name:"Mountain Climbers",area:"kondition",goals:["mage","helkropp"],muscles:["core","höftböjare","axlar"],levels:[
-{txt:"Lugna mountain climbers — dra knät mot bröstet växelvis, 20 sek.",equip:["kroppsvikt"],cue:"Höften låg, händerna stadiga, bålen spänd."},
-{txt:"Snabbare tempo, 30–40 sek intervaller.",equip:["kroppsvikt"],cue:"Behåll plankans form även i fart."},
-{txt:"Cross-body climbers i högt tempo, längre intervaller.",equip:["sliders","kroppsvikt"],cue:"Knät mot motsatt armbåge, kontroll."}]},
+{txt:"Lugna mountain climbers — dra knät mot bröstet växelvis, 20 sek.",equip:["kroppsvikt"],cue:"Höften låg, händerna stadiga, bålen spänd.",feel:"Pulsen stiger, magen jobbar. Lugnt tempo att börja med."},
+{txt:"Snabbare tempo, 30–40 sek intervaller.",equip:["kroppsvikt"],cue:"Behåll plankans form även i fart.",feel:"Andfådd och varm, hela bålen och benen jobbar."},
+{txt:"Cross-body climbers i högt tempo, längre intervaller (45 sek).",equip:["sliders","kroppsvikt"],cue:"Knät mot motsatt armbåge, kontroll.",feel:"Hög puls, svettig, sneda magmusklerna brinner."}]},
 
 {id:"kettlebellswing",name:"Kettlebell Swing",area:"kondition",goals:["rumpa","helkropp","rygg"],muscles:["sätesmuskel","baksida lår","core"],levels:[
-{txt:"Höftgångjärn utan vikt — öva rörelsen, kraft från höften, knip i toppen.",equip:["kroppsvikt"],cue:"Det är ett gångjärn, inte en squat. Kraft från höften."},
-{txt:"Kettlebell swing med lätt vikt till brösthöjd.",equip:["kettlebell"],cue:"Snäpp höften fram, kettlebellen 'svävar'. Spänn rumpan."},
-{txt:"Tyngre swing eller single-arm swing, längre set.",equip:["kettlebell"],cue:"Bålen spänd, andas i rytm med svingen."}]},
+{txt:"Höftgångjärn utan vikt — öva rörelsen, kraft från höften, knip i toppen. 15 reps.",equip:["kroppsvikt"],cue:"Det är ett gångjärn, inte en squat. Kraft från höften.",feel:"Säte och baksida lår jobbar. Lär in rörelsen innan vikt."},
+{txt:"Kettlebell swing med lätt vikt till brösthöjd. 15-20 reps.",equip:["kettlebell"],cue:"Snäpp höften fram, kettlebellen 'svävar'. Spänn rumpan.",feel:"Explosiv känsla i säte, pulsen stiger snabbt. Kraftfullt."},
+{txt:"Tyngre swing eller single-arm swing, längre set. 20+ reps.",equip:["kettlebell"],cue:"Bålen spänd, andas i rytm med svingen.",feel:"Hög puls och kraft, hela bakkedjan och core jobbar hårt."}]},
 
 {id:"hiit",name:"HIIT-intervaller",area:"kondition",goals:["helkropp"],muscles:["helkropp"],levels:[
-{txt:"30 sek arbete / 30 sek vila, enkla rörelser (knälyft, step-ups).",equip:["kroppsvikt"],cue:"Hitta ett tempo du klarar hela passet."},
-{txt:"40/20-intervaller med blandade rörelser (burpees light, jumping jacks).",equip:["kroppsvikt"],cue:"Kvalitet i rörelsen även när du blir trött."},
-{txt:"Tabata (20/10 ×8) eller längre arbetsblock, högre intensitet.",equip:["kettlebell","kroppsvikt"],cue:"Maximal ansträngning i arbetsfasen, full vila."}]},
+{txt:"30 sek arbete / 30 sek vila, enkla rörelser (knälyft, step-ups). 6 varv.",equip:["kroppsvikt"],cue:"Hitta ett tempo du klarar hela passet.",feel:"Pulsen går upp och ner. Du ska bli andfådd men kunna fortsätta."},
+{txt:"40/20-intervaller med blandade rörelser (burpees light, jumping jacks). 8 varv.",equip:["kroppsvikt"],cue:"Kvalitet i rörelsen även när du blir trött.",feel:"Rejält andfådd i arbetsfasen, kort återhämtning i vilan."},
+{txt:"Tabata (20/10 ×8) eller längre arbetsblock, högre intensitet.",equip:["kettlebell","kroppsvikt"],cue:"Maximal ansträngning i arbetsfasen, full vila.",feel:"Maxansträngning — du ska vara helt slut efter varje arbetsintervall."}]},
 
 {id:"jumpingjack",name:"Jumping Jacks / Steps",area:"kondition",goals:["helkropp"],muscles:["vader","axlar","core"],levels:[
-{txt:"Step jacks — kliv ut i sidled växelvis (skonsamt mot knän).",equip:["kroppsvikt"],cue:"Mjuka knän, landa lätt."},
-{txt:"Klassiska jumping jacks, 30-45 sek.",equip:["kroppsvikt"],cue:"Hela fotsulan, mjuk landning."},
-{txt:"Star jumps eller plank jacks i intervaller.",equip:["kroppsvikt"],cue:"Explosivt upp, kontrollerat ner."}]},
+{txt:"Step jacks — kliv ut i sidled växelvis (skonsamt mot knän). 30 sek.",equip:["kroppsvikt"],cue:"Mjuka knän, landa lätt.",feel:"Lätt pulshöjning, mjuk uppvärmning. Skonsamt."},
+{txt:"Klassiska jumping jacks, 30-45 sek.",equip:["kroppsvikt"],cue:"Hela fotsulan, mjuk landning.",feel:"Pulsen stiger, hela kroppen i rörelse. Lätt och rytmiskt."},
+{txt:"Star jumps eller plank jacks i intervaller. 40 sek.",equip:["kroppsvikt"],cue:"Explosivt upp, kontrollerat ner.",feel:"Hög puls, kraftfullt, hela kroppen jobbar."}]},
 
 {id:"burpee",name:"Burpees",area:"kondition",goals:["helkropp"],muscles:["helkropp","bröst","ben","core"],levels:[
-{txt:"Step-back burpee — kliv (inte hoppa) bak till planka, upp igen, inget hopp.",equip:["kroppsvikt"],cue:"Lugnt och kontrollerat, bygg vana."},
-{txt:"Full burpee med hopp upp och armhävning.",equip:["kroppsvikt"],cue:"Spänn bålen i plankan. Mjuk landning."},
-{txt:"Burpee med knätuck-hopp eller i längre intervaller.",equip:["kroppsvikt"],cue:"Behåll tekniken trots trötthet."}]},
+{txt:"Step-back burpee — kliv (inte hoppa) bak till planka, upp igen, inget hopp. 8 reps.",equip:["kroppsvikt"],cue:"Lugnt och kontrollerat, bygg vana.",feel:"Hela kroppen jobbar, pulsen stiger. Skonsam variant."},
+{txt:"Full burpee med hopp upp och armhävning. 10 reps.",equip:["kroppsvikt"],cue:"Spänn bålen i plankan. Mjuk landning.",feel:"Riktigt andfådd, hela kroppen. Tufft men tillfredsställande."},
+{txt:"Burpee med knätuck-hopp eller i längre intervaller. 12+ reps.",equip:["kroppsvikt"],cue:"Behåll tekniken trots trötthet.",feel:"Maxpuls, svettigt, hela kroppen. En av de tuffaste övningarna."}]},
 
-// ——— YOGA (flexibilitet/rörlighet) ———
+{id:"highknees",name:"Höga knän / Löpning på stället",area:"kondition",goals:["helkropp","ben"],muscles:["höftböjare","vader","core"],levels:[
+{txt:"Marsch på stället med höga knän, 30 sek.",equip:["kroppsvikt"],cue:"Knäna upp till höfthöjd, pumpa armarna.",feel:"Lätt pulshöjning, höftböjare och core vaknar."},
+{txt:"Höga knän i joggtempo, 40 sek.",equip:["kroppsvikt"],cue:"Snabb fotisättning, lätt på tå.",feel:"Pulsen stiger, benen och magen jobbar."},
+{txt:"Sprint-höga-knän i intervaller, max tempo 20 sek × 6.",equip:["kroppsvikt"],cue:"Maximal frekvens, håll bålen stabil.",feel:"Maxpuls och brännande lår. Explosivt."}]},
+
+// ═══ FLEXIBILITET: RÖRLIGHET ═══
+{id:"dynstretch",name:"Dynamisk rörlighet",area:"flex",goals:["helkropp"],muscles:["helkropp"],levels:[
+{txt:"Grundläggande dynamisk stretch — höftöppnare, katt/ko, axelrullningar, 5 min.",equip:["kroppsvikt"],cue:"Mjuka, kontrollerade rörelser. Andas med rörelsen.",feel:"Kroppen vaknar och blir varm. Ledena känns smordare."},
+{txt:"Djupare rörelseuttag + foam rolling av spända områden.",equip:["foamroller","yogablock"],cue:"Rulla långsamt, pausa på ömma punkter.",feel:"Spända muskler släpper. Lätt ömt på rullen men skönt efteråt."},
+{txt:"Flow-baserad rörlighet (yoga-sekvenser) med längre håll.",equip:["yogablock"],cue:"Kontroll i ytterlägen, andas djupt.",feel:"Djup, kontrollerad rörlighet. Lugn och fokuserad."}]},
+
+{id:"hipmobility",name:"Höftrörlighet",area:"flex",goals:["rumpa","ben","helkropp"],muscles:["höftböjare","sätesmuskel","baksida lår"],levels:[
+{txt:"Höftöppnare i marken (90/90, fjäril), mjuka gungningar. 5 min.",equip:["kroppsvikt"],cue:"Tvinga inte – andas in i sträcket.",feel:"Mjukt sträck i höft och insida lår. Aldrig smärta, bara töjning."},
+{txt:"Djupa utfall med rotation + foam rolling av höft/lår.",equip:["foamroller"],cue:"Rotera bröstkorgen, känn höftböjaren öppna.",feel:"Tydligt sträck framtill i höften. Skönt och öppnande."},
+{txt:"Aktiv rörlighet med kontroll i ytterlägen (CARs). 8 cirklar/håll.",equip:["kroppsvikt"],cue:"Långsamma, stora cirklar med full kontroll.",feel:"Kontrollerad ansträngning i ytterlägen, ökad rörelsefrihet."}]},
+
+{id:"hamstring",name:"Baksida lår-rörlighet",area:"flex",goals:["ben","rygg"],muscles:["baksida lår","vader","nedre rygg"],levels:[
+{txt:"Sittande/stående framåtfällning, mjukt sträck mot tårna. Håll 30 sek.",equip:["kroppsvikt"],cue:"Rak rygg, fäll från höften – runda inte ryggen.",feel:"Sträck längs baksida lår. Mjukt och stadigt, inte ryckigt."},
+{txt:"Foam rolling baksida lår + aktiv stretch med band. Håll 45 sek.",equip:["foamroller","gummiband"],cue:"Dra tån mot dig med bandet, håll benet rakt.",feel:"Djupare töjning, spända punkter släpper på rullen."},
+{txt:"Dynamisk benpendling + djupa aktiva sträck. 10 pendlingar/ben.",equip:["kroppsvikt"],cue:"Kontrollerade pendlingar, öka gradvis.",feel:"Baksidan blir varm och rörlig, ökat rörelseomfång."}]},
+
+{id:"thoracic",name:"Bröstrygg & hållning",area:"flex",goals:["rygg","axlar","helkropp"],muscles:["bröstrygg","bröstmuskel","axlar"],levels:[
+{txt:"Bröstöppnare mot dörrkarm + rotationer sittande. Håll 30 sek.",equip:["kroppsvikt"],cue:"Öppna bröstet, dra axlarna bakåt och ned.",feel:"Sträck över bröstet, axlarna sjunker ned. Skönt för hållningen."},
+{txt:"Foam roller längs bröstryggen + rotationsstretch. 2 min.",equip:["foamroller"],cue:"Rulla övre ryggen, andas ut i extensionen.",feel:"Stelhet i övre ryggen släpper. Lättare att räta på sig."},
+{txt:"Aktiva rotationer med band + hållningsövningar. 12 rotationer/sida.",equip:["gummiband"],cue:"Rotera från bröstryggen, håll höften still.",feel:"Ökad rörlighet i mitten av ryggen, starkare hållning."}]},
+
+// ═══ YOGA ═══
 {id:"sunsalutation",name:"Solhälsning (yoga)",area:"flex",goals:["helkropp","rygg"],muscles:["helkropp","rygg","höft","axlar"],levels:[
-{txt:"Förenklad solhälsning — berg, framåtfällning, halv plankа, kobra, nedåtgående hund. Mjukt flöde, 3-5 varv.",equip:["kroppsvikt"],cue:"Synka rörelse med andning — en rörelse per andetag."},
-{txt:"Full solhälsning A med utfall och chaturanga, 5-8 varv.",equip:["yogablock"],cue:"Block under händerna om du inte når golvet. Stadig bål."},
-{txt:"Solhälsning A + B med stolposition och krigare, flödande tempo.",equip:["kroppsvikt"],cue:"Håll andningen jämn även i de tyngre positionerna."}]},
+{txt:"Förenklad solhälsning — berg, framåtfällning, halv planka, kobra, nedåtgående hund. 3-5 varv.",equip:["kroppsvikt"],cue:"Synka rörelse med andning — en rörelse per andetag.",feel:"Hela kroppen vaknar, andningen och rörelsen flyter ihop. Lugnande."},
+{txt:"Full solhälsning A med utfall och chaturanga. 5-8 varv.",equip:["yogablock"],cue:"Block under händerna om du inte når golvet. Stadig bål.",feel:"Värme byggs upp, styrka och rörlighet samtidigt. Fokuserat."},
+{txt:"Solhälsning A + B med stolposition och krigare, flödande tempo. 8-10 varv.",equip:["kroppsvikt"],cue:"Håll andningen jämn även i de tyngre positionerna.",feel:"Svettig och stark, meditativt flöde. Kropp och andetag i ett."}]},
 
 {id:"warrior",name:"Krigarserien (yoga)",area:"flex",goals:["ben","helkropp","höft"],muscles:["framsida lår","sätesmuskel","höft","axlar"],levels:[
-{txt:"Krigare I & II — bredbent utfall, höften öppen, armarna sträckta. Håll 20-30 sek/sida.",equip:["kroppsvikt"],cue:"Främre knät över foten. Sänk höften, stark bål."},
-{txt:"Krigare III + utfallsvariationer — balans på ett ben, kroppen i linje.",equip:["yogablock"],cue:"Block för stöd. Aktiv stödfot, sträck genom hela kroppen."},
-{txt:"Flödande krigarsekvens med övergångar och längre håll.",equip:["kroppsvikt"],cue:"Kontroll i övergångarna, andas genom ansträngningen."}]},
+{txt:"Krigare I & II — bredbent utfall, höften öppen, armarna sträckta. Håll 20-30 sek/sida.",equip:["kroppsvikt"],cue:"Främre knät över foten. Sänk höften, stark bål.",feel:"Benen jobbar och darrar lätt, höften öppnar sig. Stark och stabil."},
+{txt:"Krigare III + utfallsvariationer — balans på ett ben, kroppen i linje.",equip:["yogablock"],cue:"Block för stöd. Aktiv stödfot, sträck genom hela kroppen.",feel:"Balansutmaning, hela bakkedjan och core jobbar för stabilitet."},
+{txt:"Flödande krigarsekvens med övergångar och längre håll.",equip:["kroppsvikt"],cue:"Kontroll i övergångarna, andas genom ansträngningen.",feel:"Benen brinner under de långa hållen, lugn andning trots ansträngning."}]},
 
 {id:"hipopener",name:"Höftöppnare (yoga)",area:"flex",goals:["rumpa","höft","helkropp"],muscles:["höft","sätesmuskel","höftböjare"],levels:[
-{txt:"Barnets position, fjäril och låg utfallsstretch. Mjuka, andas in i höften.",equip:["yogablock","kroppsvikt"],cue:"Tvinga aldrig — låt höften öppna med andningen."},
-{txt:"Duvan (pigeon pose) och ödlан, längre håll 30-60 sek.",equip:["yogablock"],cue:"Block under höften för stöd. Slappna av i sträcket."},
-{txt:"Djup duva med framåtfällning + aktiva höftrotationer.",equip:["kroppsvikt"],cue:"Gå bara så djupt din kropp tillåter idag."}]},
+{txt:"Barnets position, fjäril och låg utfallsstretch. Håll 30-45 sek var.",equip:["yogablock","kroppsvikt"],cue:"Tvinga aldrig — låt höften öppna med andningen.",feel:"Mjukt, skönt sträck i höft och ljumskar. Lugnande och släppande."},
+{txt:"Duvan (pigeon pose) och ödlan, längre håll 30-60 sek.",equip:["yogablock"],cue:"Block under höften för stöd. Slappna av i sträcket.",feel:"Djupt sträck i sätet och höften. Intensivt men släppande med andningen."},
+{txt:"Djup duva med framåtfällning + aktiva höftrotationer. Håll 60 sek.",equip:["kroppsvikt"],cue:"Gå bara så djupt din kropp tillåter idag.",feel:"Mycket djup öppning i höften. Andas in i den intensiva töjningen."}]},
 
 {id:"balance",name:"Balanspositioner (yoga)",area:"flex",goals:["helkropp","mage"],muscles:["core","ben","fotled"],levels:[
-{txt:"Trädet och stolen — stå på ett ben, fokusera blicken på en fast punkt.",equip:["kroppsvikt"],cue:"Fäst blicken stilla. Spänn bålen för balans."},
-{txt:"Örnen och dansaren — mer komplexa balanser med längre håll.",equip:["kroppsvikt"],cue:"Andas lugnt — balans kommer med stillhet, inte spänning."},
-{txt:"Half moon och handbalanser-förberedelser.",equip:["yogablock"],cue:"Block ger trygghet. Bygg styrka gradvis."}]},
+{txt:"Trädet och stolen — stå på ett ben, fokusera blicken på en fast punkt. Håll 30 sek.",equip:["kroppsvikt"],cue:"Fäst blicken stilla. Spänn bålen för balans.",feel:"Fotled och core jobbar konstant för att hålla balansen. Fokuserat lugn."},
+{txt:"Örnen och dansaren — mer komplexa balanser med längre håll.",equip:["kroppsvikt"],cue:"Andas lugnt — balans kommer med stillhet, inte spänning.",feel:"Hela kroppen samarbetar, koncentration och stabilitet."},
+{txt:"Half moon och handbalanser-förberedelser.",equip:["yogablock"],cue:"Block ger trygghet. Bygg styrka gradvis.",feel:"Stark balansutmaning, kroppskontroll och fokus på topp."}]},
 
-// ——— PILATES (flexibilitet + core/bäcken) ———
+// ═══ PILATES ═══
 {id:"pilateshundred",name:"The Hundred (pilates)",area:"flex",goals:["mage","backen"],muscles:["djup core","raka bukmuskeln","bäckenbotten"],levels:[
-{txt:"Liggande, knän böjda i bordsläge, lyft huvud/axlar lätt, pumpa armarna. 5 andetag.",equip:["kroppsvikt"],cue:"Naveln in mot ryggraden. Andas brett i revbenen."},
-{txt:"Benen sträckta i 90°, pumpa armarna i 10 andningscykler (100 pump).",equip:["kroppsvikt"],cue:"Ländryggen kvar i mattan. Knip bäckenbotten lätt."},
-{txt:"Benen sänkta närmare golvet (svårare hävstång), full hundred.",equip:["kroppsvikt","pilatesboll"],cue:"Sänk bara så långt du håller ländryggen stilla."}]},
+{txt:"Liggande, knän böjda i bordsläge, lyft huvud/axlar lätt, pumpa armarna. 5 andetag.",equip:["kroppsvikt"],cue:"Naveln in mot ryggraden. Andas brett i revbenen.",feel:"Djup mage jobbar och värms upp. Nacken avslappnad."},
+{txt:"Benen sträckta i 90°, pumpa armarna i 10 andningscykler (100 pump).",equip:["kroppsvikt"],cue:"Ländryggen kvar i mattan. Knip bäckenbotten lätt.",feel:"Stark, jämn brännkänsla i hela djupa core:n."},
+{txt:"Benen sänkta närmare golvet (svårare hävstång), full hundred.",equip:["kroppsvikt","pilatesboll"],cue:"Sänk bara så långt du håller ländryggen stilla.",feel:"Intensivt i hela magen. Skakighet är ett tecken på att det jobbar."}]},
 
 {id:"pilatesrolldown",name:"Roll-up / Roll-down (pilates)",area:"flex",goals:["mage","rygg"],muscles:["raka bukmuskeln","djup core","ryggrad"],levels:[
-{txt:"Sittande roll-down — rulla ryggraden bakåt kota för kota en bit, rulla upp.",equip:["kroppsvikt"],cue:"Rulla mjukt kota för kota, inte i ett block."},
-{txt:"Full roll-up från liggande till sittande, kontrollerat.",equip:["kroppsvikt"],cue:"Använd magen, inte fart. Sänk lika långsamt."},
-{txt:"Roll-up med sträckta ben + tillägg av teaser-förberedelse.",equip:["kroppsvikt"],cue:"Jämn rörelse hela vägen, ingen ryckighet."}]},
+{txt:"Sittande roll-down — rulla ryggraden bakåt kota för kota en bit, rulla upp. 8 reps.",equip:["kroppsvikt"],cue:"Rulla mjukt kota för kota, inte i ett block.",feel:"Magen kontrollerar rörelsen, ryggraden rör sig segment för segment."},
+{txt:"Full roll-up från liggande till sittande, kontrollerat. 8 reps.",equip:["kroppsvikt"],cue:"Använd magen, inte fart. Sänk lika långsamt.",feel:"Hela magen jobbar genom hela rörelsen, både upp och ner."},
+{txt:"Roll-up med sträckta ben + teaser-förberedelse. 6-8 reps.",equip:["kroppsvikt"],cue:"Jämn rörelse hela vägen, ingen ryckighet.",feel:"Maximal kontroll och core-styrka. Krävande men flytande."}]},
 
 {id:"pilatesleg",name:"Benlyft & cirklar (pilates)",area:"flex",goals:["mage","rumpa","ben"],muscles:["djup core","höftböjare","sätesmuskel"],levels:[
-{txt:"Liggande benlyft — ett ben i taget, ländrygg stilla. Single leg circles små cirklar.",equip:["kroppsvikt"],cue:"Bäckenet helt stilla — bara benet rör sig."},
-{txt:"Sidoliggande benlyft och cirklar för yttre/inre lår och säte.",equip:["gummiband","ankelvikt"],cue:"Kontroll i hela rörelsen, knip sätet i toppen."},
-{txt:"Dubbla benlyft + scissor med sträckta ben.",equip:["kroppsvikt"],cue:"Sänk bara så långt ländryggen håller."}]},
+{txt:"Liggande benlyft — ett ben i taget, ländrygg stilla. Single leg circles små cirklar. 8/ben.",equip:["kroppsvikt"],cue:"Bäckenet helt stilla — bara benet rör sig.",feel:"Djup mage stabiliserar medan benet rör sig. Kontrollerat."},
+{txt:"Sidoliggande benlyft och cirklar för yttre/inre lår och säte. 12/ben.",equip:["gummiband","ankelvikt"],cue:"Kontroll i hela rörelsen, knip sätet i toppen.",feel:"Brännande på utsida höft och säte. Jämnt och fokuserat."},
+{txt:"Dubbla benlyft + scissor med sträckta ben. 10 reps.",equip:["kroppsvikt"],cue:"Sänk bara så långt ländryggen håller.",feel:"Intensiv nedre mage. Håll ländryggen i mattan hela tiden."}]},
 
 {id:"pilatesbridge",name:"Pilates-brygga & rörlighet",area:"flex",goals:["rumpa","backen","rygg"],muscles:["sätesmuskel","baksida lår","bäckenbotten","ryggrad"],levels:[
-{txt:"Rulla upp ryggraden till brygga kota för kota, knip bäckenbotten, rulla ner mjukt.",equip:["kroppsvikt","minipilatesboll"],cue:"Artikulera ryggraden — en kota i taget upp och ner."},
-{txt:"Bro med ett ben sträckt + bäckenbotten-knip i toppen.",equip:["kroppsvikt"],cue:"Höften jämn, knip kontrollerat."},
-{txt:"Bro på instabilt underlag eller med längre håll + pulser.",equip:["bosu","pilatesboll","kroppsvikt"],cue:"Stabil bäcken, andas genom knipet."}]}
+{txt:"Rulla upp ryggraden till brygga kota för kota, knip bäckenbotten, rulla ner mjukt. 10 reps.",equip:["kroppsvikt","minipilatesboll"],cue:"Artikulera ryggraden — en kota i taget upp och ner.",feel:"Ryggraden rör sig mjukt segment för segment, säte och bäckenbotten aktiva."},
+{txt:"Bro med ett ben sträckt + bäckenbotten-knip i toppen. 8/ben.",equip:["kroppsvikt"],cue:"Höften jämn, knip kontrollerat.",feel:"Ena sätet och baksidan jobbar, bäckenbotten lyfter inifrån."},
+{txt:"Bro på instabilt underlag eller med längre håll + pulser.",equip:["bosu","pilatesboll","kroppsvikt"],cue:"Stabil bäcken, andas genom knipet.",feel:"Djup aktivering i säte, baksida och core. Balansutmaning."}]},
+
+// ═══ FLER ÖVNINGAR ═══
+{id:"steup",name:"Step-ups",area:"styrka",goals:["rumpa","ben"],muscles:["framsida lår","sätesmuskel","baksida lår"],levels:[
+{txt:"Kliv upp på en stadig låg upphöjning, ett ben i taget, kliv ner kontrollerat. 12/ben.",equip:["stepbracka","kroppsvikt"],cue:"Tryck genom hela foten på steget. Drivkraft från benet uppe.",feel:"Säte och framsida lår jobbar i det övre benet. Stabilt och kontrollerat."},
+{txt:"Step-ups med hantlar + högre upphöjning. 12/ben.",equip:["hantel","stepbracka"],cue:"Luta dig lätt framåt, driv genom hälen.",feel:"Tydligare jobb i säte och lår, balansen utmanas av vikterna."},
+{txt:"Hopp-step-ups eller med knälyft i toppen. 10/ben.",equip:["stepbracka","kroppsvikt"],cue:"Explosivt upp, mjuk landning.",feel:"Pulshöjande och explosivt, kraftfull känsla i säte och ben."}]},
+
+{id:"firehydrant",name:"Fire Hydrant (höft & säte)",area:"styrka",goals:["rumpa","höft"],muscles:["yttre säte","höft","core"],levels:[
+{txt:"På alla fyra — lyft ena knät utåt sidan som en hund vid en brandpost, sänk kontrollerat. 15/sida.",equip:["kroppsvikt"],cue:"Håll ryggen still, rör bara höften. Knät böjt.",feel:"Isolerad känsla på utsidan av sätet och höften."},
+{txt:"Fire hydrant med gummiband runt låren. 15/sida.",equip:["gummiband"],cue:"Pressa mot bandet, långsam återgång.",feel:"Brännande på utsida säte, motståndet gör det tydligt."},
+{txt:"Fire hydrant + benutsträckning i toppen. 12/sida.",equip:["gummiband","ankelvikt"],cue:"Lyft, sträck ut, dra in, sänk. Kontroll hela vägen.",feel:"Djup brännkänsla i yttre säte genom hela den längre rörelsen."}]},
+
+{id:"clamshell",name:"Clamshell (musselöppning)",area:"styrka",goals:["rumpa","höft"],muscles:["yttre säte","höft"],levels:[
+{txt:"Ligg på sidan, böjda knän, öppna övre knät uppåt som ett musselskal, fötterna ihop. 15/sida.",equip:["kroppsvikt"],cue:"Håll bäckenet stilla, rulla inte bakåt.",feel:"Fokuserad känsla på utsidan av höften och sätet."},
+{txt:"Clamshell med gummiband runt låren. 15/sida.",equip:["gummiband"],cue:"Långsam öppning och stängning mot bandet.",feel:"Tydlig brännkänsla i yttre säte från motståndet."},
+{txt:"Clamshell med lyft höft (sidoplanka-position). 12/sida.",equip:["gummiband","kroppsvikt"],cue:"Håll höften lyft och stabil under hela setet.",feel:"Hela sidan och yttre sätet jobbar intensivt, core stabiliserar."}]},
+
+{id:"chestfly",name:"Bröstpress & flyes",area:"styrka",goals:["brost","armar"],muscles:["bröstmuskel","främre axel"],levels:[
+{txt:"Liggande bröstpress med gummiband runt ryggen, pressa händerna ihop framför bröstet. 15 reps.",equip:["gummiband","kroppsvikt"],cue:"Långsam kontroll, kläm ihop bröstet i toppen.",feel:"Bröstmusklerna jobbar och kläms ihop. Lugnt tempo."},
+{txt:"Hantelpress liggande på golv/bänk. 12 reps.",equip:["hantel"],cue:"Sänk till brösthöjd, pressa rakt upp.",feel:"Bröst och triceps jobbar, stabil press."},
+{txt:"Hantel-flyes + press kombinerat, långsam fas. 10 reps.",equip:["hantel","justerbarhantel"],cue:"Vid behov böjda armbågar, känn stretchen i botten.",feel:"Djup stretch och kontraktion i bröstet. Intensivt."}]},
+
+{id:"superman",name:"Superman (rygg)",area:"styrka",goals:["rygg","rumpa"],muscles:["nedre rygg","sätesmuskel","övre rygg"],levels:[
+{txt:"Ligg på mage, lyft armar och ben samtidigt från golvet, håll kort, sänk. 12 reps.",equip:["kroppsvikt"],cue:"Lyft med ryggen och sätet, titta nedåt så nacken är neutral.",feel:"Hela baksidan av kroppen jobbar — nedre rygg och säte särskilt."},
+{txt:"Superman med håll (3-5 sek) i toppen + simrörelser med armarna. 10 reps.",equip:["kroppsvikt"],cue:"Andas under hållet, spänn sätet.",feel:"Uthållighetskänsla i hela bakkedjan, värme i nedre ryggen."},
+{txt:"Superman med växelvisa lyft + längre håll. 12 reps.",equip:["kroppsvikt"],cue:"Kontrollerade lyft, ingen ryckighet.",feel:"Stark, jämn aktivering genom hela ryggraden och sätet."}]},
+
+{id:"latpull",name:"Latsdrag / Pull-down",area:"styrka",goals:["rygg","armar"],muscles:["latissimus","övre rygg","biceps"],levels:[
+{txt:"Band fäst högt — dra ner armarna mot sidorna, kläm skulderbladen. 15 reps.",equip:["gummiband"],cue:"Dra med ryggen, armbågarna mot fickorna.",feel:"Breda ryggmuskeln jobbar, känsla av att 'dra ner' axlarna."},
+{txt:"Knästående band-pulldown med längre rörelse. 12 reps.",equip:["gummiband"],cue:"Sträck upp helt, dra ner kontrollerat.",feel:"Tydligt jobb längs sidorna av ryggen."},
+{txt:"Pull-ups (assisterade eller fria). 5-10 reps.",equip:["pullupbar","gummiband"],cue:"Full hängning, dra hakan över stången.",feel:"Hela ryggen och armarna jobbar maximalt."}]},
+
+{id:"woodchop",name:"Vedhuggare (rotation)",area:"styrka",goals:["mage","helkropp"],muscles:["sneda bukmuskler","djup core","axlar"],levels:[
+{txt:"Stå bredbent, för händerna diagonalt från höft till motsatt axel som ett vedhugg. 12/sida.",equip:["kroppsvikt"],cue:"Rotera från bålen, följ med blicken.",feel:"Sneda magmusklerna jobbar i rotationen, hela bålen aktiv."},
+{txt:"Vedhuggare med gummiband eller lätt vikt. 12/sida.",equip:["gummiband","hantel"],cue:"Kontrollerad rotation, motstånd hela vägen.",feel:"Tydlig brännkänsla i midjan och sneda magen."},
+{txt:"Vedhuggare med kettlebell + djup squat-rotation. 10/sida.",equip:["kettlebell"],cue:"Helkroppsrörelse, kraft från höft och bål.",feel:"Kraftfull, funktionell rotation genom hela kroppen."}]},
+
+{id:"birddog",name:"Bird Dog",area:"styrka",goals:["rygg","backen","mage"],muscles:["nedre rygg","djup core","sätesmuskel"],levels:[
+{txt:"På alla fyra — sträck ut motsatt arm och ben, håll kort, växla. 10/sida.",equip:["kroppsvikt"],cue:"Håll ryggen som ett bord, rör dig långsamt.",feel:"Djup core och nedre rygg jobbar för stabilitet, balansutmaning."},
+{txt:"Bird dog med håll (5 sek) + knip i bäckenbotten. 10/sida.",equip:["kroppsvikt"],cue:"Andas under hållet, höften jämn.",feel:"Stabiliteten utmanas, djup core och rygg samarbetar."},
+{txt:"Bird dog med armbåge-till-knä mellan utsträckningarna. 12/sida.",equip:["kroppsvikt"],cue:"Dra ihop, sträck ut, full kontroll.",feel:"Hela bålen jobbar dynamiskt, stark koordinationskänsla."}]}
 ];
 
 // === REDSKAPS-BIBLIOTEK: så här nyttjar du varje redskap ===
@@ -2124,7 +2194,7 @@ function rTrain(){
   // Program-sektion. Rehab-programmet är Daniels personliga → visas bara för honom. Andra populerar egna.
   h+='<div class="card" style="margin-bottom:10px"><div class="flex jcb aic" style="margin-bottom:8px"><span style="font-size:12px;font-weight:700">📋 Mina program</span><button class="btn btn-s btn-sm" id="trainAddProgram">+ Program</button></div>'+
     (isOwner()?'<button class="prog-open" data-prog="rehab" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">🩹</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+DANIEL_REHAB.name+'</div><div style="font-size:9px;color:var(--fg2)">'+(DANIEL_REHAB.mobility.length+DANIEL_REHAB.strength.length)+' övningar · rörlighet dagligen, styrka varannan dag</div></div><span style="color:var(--fg3)">›</span></button>'+
-    '<button class="prog-open" data-prog="kegel" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">🌸</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+KEGEL_PLAN.name+'</div><div style="font-size:9px;color:var(--fg2)">Steg '+myKegelStep()+"/4 · "+KEGEL_PLAN.steps[myKegelStep()-1].name+' · diskret, var som helst</div></div><span style="color:var(--fg3)">›</span></button>'+
+    '<button class="prog-open" data-prog="kegel" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">🌸</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+KEGEL_PLAN.name+'</div><div style="font-size:9px;color:var(--fg2)">Steg '+myKegelStep()+"/"+KEGEL_PLAN.steps.length+" · "+KEGEL_PLAN.steps[myKegelStep()-1].name+' · diskret, var som helst</div></div><span style="color:var(--fg3)">›</span></button>'+
     '<button class="prog-open" data-prog="bodyweight" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">🏋️</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+BODYWEIGHT_PLAN.name+'</div><div style="font-size:9px;color:var(--fg2)">Nivå '+myBwLevel()+"/4 · "+BODYWEIGHT_PLAN.levels[myBwLevel()-1].name+' · bröst/axlar/armar/rumpa/bål</div></div><span style="color:var(--fg3)">›</span></button>':'')+
     (myPrograms().map(function(p,i){return '<button class="prog-open" data-prog="custom:'+i+'" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">'+(p.emoji||"📋")+'</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+p.name+'</div><div style="font-size:9px;color:var(--fg2)">'+(p.exercises||[]).length+' övningar</div></div><span style="color:var(--fg3)">›</span></button>'}).join(''))+
     (!isOwner()&&!myPrograms().length?'<div style="font-size:11px;color:var(--fg3);text-align:center;padding:10px">Inga program än. Tryck <b>+ Program</b> för att skapa ditt eget med dina övningar.</div>':'')+
@@ -2144,7 +2214,18 @@ function rTrain(){
 function myPrograms(){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};if(!LISTS.workouts[ME].programs)LISTS.workouts[ME].programs=[];return LISTS.workouts[ME].programs}
 // Kegel-steg per användare (1-4)
 function myKegelStep(){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};return LISTS.workouts[ME].kegelStep||1}
-function setMyKegelStep(n){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};LISTS.workouts[ME].kegelStep=Math.max(1,Math.min(4,n));listsSync()}
+function setMyKegelStep(n){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};LISTS.workouts[ME].kegelStep=Math.max(1,Math.min(7,n));listsSync()}
+// Dagens kegel-omgångar (mål 2-3/dag). Sparas per dag och användare.
+function kegelRoundsToday(){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};var r=LISTS.workouts[ME].kegelRounds;return (r&&r.date===todayKey()+dateKey())?r.n:0}
+function addKegelRound(){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};var key=todayKey()+dateKey();var r=LISTS.workouts[ME].kegelRounds;LISTS.workouts[ME].kegelRounds={date:key,n:((r&&r.date===key)?r.n:0)+1};listsSync()}
+function resetKegelRound(){if(LISTS.workouts&&LISTS.workouts[ME])delete LISTS.workouts[ME].kegelRounds;listsSync()}
+// Det strukturerade passet (neutral beskrivning) — fysiologiskt uppbyggt
+var KEGEL_SESSION=[
+  {fas:"Andning",txt:"2 sek in genom näsan, 4 sek ut. Mjuk uppvärmning som lugnar och förbereder bäckenbotten.",tid:"ca 1 min"},
+  {fas:"Uthållighet",txt:"Knip 5 sek, slappna av helt 5 sek. Bygger uthållig styrka.",tid:"1–2 min"},
+  {fas:"Snabbknip",txt:"Knip 2 sek, slappna av 2 sek. Tränar reaktionssnabbhet.",tid:"ca 90 sek"},
+  {fas:"Nedvarvning",txt:"Lugn andning och full avslappning. Låt bäckenbotten vila helt.",tid:"ca 30 sek"}
+];
 // Kroppsvikt-nivå per användare (1-3)
 function myBwLevel(){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};return LISTS.workouts[ME].bwLevel||1}
 // Vald nivå per övning i registret (per användare). Default nivå 1.
@@ -2368,7 +2449,7 @@ function openProgramSheet(progId){
           return '<div class="ex-lvl" data-ex="'+e.id+'" data-lvl="'+n+'" style="padding:7px 8px;margin-bottom:3px;border-radius:8px;cursor:pointer;background:'+(active?"linear-gradient(135deg,rgba(107,77,170,.12),transparent)":"transparent")+';border:1px solid '+(active?"var(--purple)":"transparent")+'">'+
           '<div style="display:flex;gap:7px"><span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:'+(active?"var(--purple)":done?"var(--teal)":"var(--bg2)")+';color:'+(active||done?"#fff":"var(--fg2)")+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9px">'+(done?"✓":n)+'</span>'+
           '<div style="flex:1"><div style="font-size:11px;color:'+(active?"var(--fg)":"var(--fg2)")+';font-weight:'+(active?"500":"400")+'">'+lv.txt+'</div>'+
-          (active?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">🛠 '+(lv.equip||[]).map(function(k){var owned=ownsEquip(k);var nm=(EQUIPMENT_DB[k]||{name:k}).name;return nm+(owned?" ✓":' <span style="color:var(--coral)">(saknas)</span>')}).join(", ")+'</div><div style="font-size:9px;color:var(--teal);margin-top:2px">💡 '+lv.cue+'</div>':'')+'</div>'+
+          (active?'<div style="font-size:9px;color:var(--fg3);margin-top:3px">🛠 '+(lv.equip||[]).map(function(k){var owned=ownsEquip(k);var nm=(EQUIPMENT_DB[k]||{name:k}).name;return nm+(owned?" ✓":' <span style="color:var(--coral)">(saknas)</span>')}).join(", ")+'</div><div style="font-size:9px;color:var(--teal);margin-top:2px">💡 '+lv.cue+'</div>'+(lv.feel?'<div style="font-size:9px;color:var(--fg2);margin-top:2px">🎯 Ska kännas: '+lv.feel+'</div>':'')+'</div>':'')+'</div>'+
           (active?'<span style="font-size:9px;color:var(--purple);font-weight:700;white-space:nowrap;align-self:flex-start">DIN NIVÅ</span>':'')+'</div></div>'}).join('')+
         '<div class="flex gap4" style="margin-top:6px">'+(cur>1?'<button class="ex-down btn btn-s btn-sm" data-ex="'+e.id+'" style="flex:1">← Sänk</button>':'')+(cur<3?'<button class="ex-up btn btn-p btn-sm" data-ex="'+e.id+'" style="flex:1">⬆ Höj nivå</button>':'<span style="flex:1;text-align:center;font-size:10px;color:var(--teal);padding:6px">⭐ Toppnivå!</span>')+'<button class="ex-did btn btn-s btn-sm" data-ex="'+e.id+'" data-lvl="'+cur+'" style="flex:1">✓ Tränade</button></div>'+
         (readyToLevelUp(e.id)?'<div class="ex-ready" data-ex="'+e.id+'" style="margin-top:6px;padding:7px 10px;border-radius:8px;background:linear-gradient(135deg,rgba(26,138,101,.12),transparent);border:1px solid var(--teal);font-size:10px;color:var(--teal);cursor:pointer">🌟 Du har kört nivå '+cur+' flera gånger — redo att testa nivå '+(cur+1)+'? <b>Höj →</b></div>':'')+
@@ -2417,16 +2498,26 @@ function openProgramSheet(progId){
         '<div style="font-size:11px;margin-bottom:6px"><b>Gör:</b> '+s.how+'</div>'+
         '<div style="font-size:11px;margin-bottom:6px;color:var(--fg2)"><b>Frekvens:</b> '+s.freq+'</div>'+
         '<div style="font-size:11px;margin-bottom:6px;color:var(--fg2)"><b>Ska kännas:</b> '+s.feel+'</div>'+
-        '<div style="font-size:11px;color:var(--teal)"><b>Effekt:</b> '+s.effect+'</div>'+
+        '<div style="font-size:11px;color:var(--teal);margin-bottom:6px"><b>Effekt:</b> '+s.effect+'</div>'+
+        (s.between?'<div style="font-size:11px;margin-bottom:6px;color:var(--fg2);padding-top:6px;border-top:1px solid var(--border)"><b>🔄 Mellan passen:</b> '+s.between+'</div>':'')+
+        (s.tips?'<div style="font-size:11px;color:var(--fg2)"><b>💡 Tänk på:</b> '+s.tips+'</div>':'')+
       '</div>'+
-      '<button class="btn btn-p btn-sm" id="kegelLog" style="width:100%;margin-bottom:6px">✓ Loggа en omgång idag</button>'+
-      '<div class="flex gap4">'+(step>1?'<button class="btn btn-s btn-sm" id="kegelDown" style="flex:1">← Steg '+(step-1)+'</button>':'')+(step<4?'<button class="btn btn-s btn-sm" id="kegelUp" style="flex:1">Steg '+(step+1)+' →</button>':'')+'</div>'+
+      // Strukturerat pass (neutral beskrivning) + dagens omgångar
+      '<div style="border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:10px"><div style="font-size:12px;font-weight:700;margin-bottom:7px">🧘 Ett pass — steg för steg</div>'+
+        KEGEL_SESSION.map(function(p,i){return '<div style="display:flex;gap:8px;padding:5px 0'+(i<KEGEL_SESSION.length-1?";border-bottom:1px solid var(--bg2)":"")+'"><span style="flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">'+(i+1)+'</span><div style="flex:1"><div style="font-size:11px;font-weight:600">'+p.fas+' <span style="font-weight:400;color:var(--fg3)">· '+p.tid+'</span></div><div style="font-size:10px;color:var(--fg2);margin-top:1px">'+p.txt+'</div></div></div>'}).join('')+
+        '<div style="font-size:9px;color:var(--fg3);margin-top:7px">Sikta på 2–3 omgångar av hela passet per dag.</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:10px;padding:9px 12px;margin-bottom:8px"><span style="font-size:11px;font-weight:600">Idag: '+kegelRoundsToday()+' / 3 omgångar '+(kegelRoundsToday()>=2?"✓":"")+'</span>'+(kegelRoundsToday()>0?'<button class="ib" id="kegelUndo" style="font-size:11px;color:var(--fg3);width:auto;padding:2px 6px">ångra</button>':'')+'</div>'+
+      '<button class="btn btn-p btn-sm" id="kegelLog" style="width:100%;margin-bottom:6px">✓ Markera en omgång gjord</button>'+
+      '<div class="flex gap4">'+(step>1?'<button class="btn btn-s btn-sm" id="kegelDown" style="flex:1">← Steg '+(step-1)+'</button>':'')+(step<7?'<button class="btn btn-s btn-sm" id="kegelUp" style="flex:1">Steg '+(step+1)+' →</button>':'')+'</div>'+
+      '<div style="background:var(--bg2);border-radius:9px;padding:9px;font-size:9px;color:var(--fg2);margin-top:10px"><b>Allmänt:</b> '+KEGEL_PLAN.general+'</div>'+
       '<div style="font-size:9px;color:var(--fg3);text-align:center;margin-top:8px">Gå upp ett steg när nuvarande känns lätt och kontrollerat (oftast efter 2-3 veckor).</div>';
     openInfoSheet("🌸 "+KEGEL_PLAN.name,"Progressiv plan — kör diskret var som helst",body);
     setTimeout(function(){
-      var kl=document.getElementById("kegelLog");if(kl)kl.addEventListener("click",function(){addTrainSession({type:"core",parts:["backenbotten"],dur:0,note:"Kegel steg "+step});listsSync();closeSheet();haptic("ok");toast("✓ Kegel loggad!");render()});
-      var ku=document.getElementById("kegelUp");if(ku)ku.addEventListener("click",function(){setMyKegelStep(step+1);closeSheet();openProgramSheet("kegel")});
-      var kd=document.getElementById("kegelDown");if(kd)kd.addEventListener("click",function(){setMyKegelStep(step-1);closeSheet();openProgramSheet("kegel")});
+      var kl=document.getElementById("kegelLog");if(kl)kl.addEventListener("click",function(){addKegelRound();addTrainSession({type:"core",parts:["backenbotten"],dur:0,note:"Kegel steg "+step+" (omgång "+kegelRoundsToday()+")"});haptic("ok");var n=kegelRoundsToday();toast(n>=2?"✓ "+n+" omgångar idag — fint!":"✓ Omgång "+n+" klar");closeSheet();openProgramSheet("kegel")});
+      var kun=document.getElementById("kegelUndo");if(kun)kun.addEventListener("click",function(){if(LISTS.workouts&&LISTS.workouts[ME]&&LISTS.workouts[ME].kegelRounds){var r=LISTS.workouts[ME].kegelRounds;r.n=Math.max(0,r.n-1);if(!r.n)delete LISTS.workouts[ME].kegelRounds;listsSync()}haptic("tap");closeSheet();openProgramSheet("kegel")});
+      var ku=document.getElementById("kegelUp");if(ku)ku.addEventListener("click",function(){setMyKegelStep(step+1);haptic("ok");render();closeSheet();openProgramSheet("kegel")});
+      var kd=document.getElementById("kegelDown");if(kd)kd.addEventListener("click",function(){setMyKegelStep(step-1);haptic("tap");render();closeSheet();openProgramSheet("kegel")});
     },60);
     return;
   }

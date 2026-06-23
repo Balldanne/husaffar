@@ -2293,6 +2293,15 @@ function openEffectLogSheet(){
     '<div style="display:flex;gap:6px;margin-bottom:8px">'+opts.map(function(o){var on=existing&&existing.outcome===o.v;return '<button class="eff-opt" data-v="'+o.v+'" style="flex:1;padding:11px;border-radius:10px;border:1px solid '+(on?"var(--teal)":"var(--border)")+';background:'+(on?"var(--teal)":"var(--bg2)")+';color:'+(on?"#fff":"var(--fg)")+';font-size:12px;cursor:pointer">'+o.l+'</button>'}).join('')+'</div>'+
     (existing?'<button class="btn btn-s btn-sm" id="effClear" style="width:100%;margin-bottom:10px">Ta bort dagens notering</button>':'')+
     '<div style="font-size:10px;color:var(--fg2);margin:12px 0 5px;padding-top:10px;border-top:1px solid var(--border)">Historik ('+EFFECT_OUTCOMES.length+')</div>'+
+    (function(){
+      // Enkel framväxande insikt: snitt-måltidspoäng på dagar MED utfall vs alla loggade
+      var withCtx=EFFECT_OUTCOMES.filter(function(e){return e.ctx&&e.ctx.mealScore!=null});
+      if(withCtx.length<3)return '';
+      var hit=withCtx.filter(function(e){return e.outcome==="bada"||e.outcome==="andra"});
+      var avgAll=Math.round(withCtx.reduce(function(s,e){return s+e.ctx.mealScore},0)/withCtx.length);
+      var avgHit=hit.length?Math.round(hit.reduce(function(s,e){return s+e.ctx.mealScore},0)/hit.length):null;
+      return '<div style="background:var(--bg2);border-radius:9px;padding:9px;margin-bottom:10px;font-size:10px;color:var(--fg2)">📊 <b>Tidigt mönster</b> ('+withCtx.length+' dgr med data)<br>Snitt måltidspoäng: '+avgAll+(avgHit!=null?' · på dagar med utfall: <b style="color:var(--teal)">'+avgHit+'</b>':'')+'<div style="color:var(--fg3);margin-top:3px">Mer data ger tydligare bild över tid.</div></div>';
+    })()+
     (EFFECT_OUTCOMES.length?'<div style="max-height:180px;overflow-y:auto">'+EFFECT_OUTCOMES.slice(0,30).map(function(e){var lbl={jag:"Jag",andra:"Andra",bada:"Båda"}[e.outcome]||e.outcome;return '<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--bg2)"><span style="color:var(--fg2)">'+e.date+'</span><span style="font-weight:600">'+lbl+'</span></div>'}).join('')+'</div>':'<div style="font-size:10px;color:var(--fg3)">Inga noteringar än.</div>');
   openInfoSheet("📍 Utfallsnoteringar","Diskret · endast du ser detta",body);
   setTimeout(function(){
@@ -2605,9 +2614,20 @@ var EFFECT_OUTCOMES=[];
 function logEffectOutcome(dateStr,outcome){
   if(!isOwner())return;
   var d=dateStr||dateKey();
+  // Fånga dagens KONTEXT automatiskt (ingen extra input) — gör framtida validering möjlig:
+  // vilket fokus dagen hade, hur väl maten följde rytmen, och veckodag.
+  var di=todayIdx();var day=WEEKDAYS[di];
+  var ctx={focus:day?day.focus:null,weekday:day?day.k:null};
+  // Måltidspoäng för dagen (hur väl maten matchade) + dagens fokus-parameter-poäng
+  try{
+    var meals=getDayMeals(day.k);var recs=(LISTS.recipes||[]).concat(DEFAULT_RECIPES);
+    var tot=0,foc=0,n=0,fi=FOCUS_IDX[day.focus];
+    ["b","l","d"].forEach(function(s){if(!meals[s])return;var r=recs.find(function(x){return x.name===meals[s]});if(r){var ms=dietMealScore(r.items,r.cat);tot+=ms.total;if(fi!=null)foc+=ms.scores[fi];n++}});
+    ctx.mealScore=n?Math.round(tot):null;ctx.focusScore=n?Math.round(foc):null;ctx.meals=n;
+  }catch(e){}
   // En notering per dag — ersätt om finns
   EFFECT_OUTCOMES=EFFECT_OUTCOMES.filter(function(e){return e.date!==d});
-  EFFECT_OUTCOMES.push({date:d,outcome:outcome,t:Date.now()});
+  EFFECT_OUTCOMES.push({date:d,outcome:outcome,t:Date.now(),ctx:ctx});
   EFFECT_OUTCOMES.sort(function(a,b){return (a.date<b.date)?1:-1});
   if(EFFECT_OUTCOMES.length>400)EFFECT_OUTCOMES=EFFECT_OUTCOMES.slice(0,400);
   var r=shopRef?shopRef.parent.child("effectLog"):null;if(r)r.set(EFFECT_OUTCOMES);

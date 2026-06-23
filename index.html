@@ -2359,7 +2359,7 @@ function openAddMealSheet(){
 }
 // Efter att en rätt skapats: erbjud att lägga den i veckomenyn + ingredienser på inköp
 function offerMealPlacement(name,emoji,items){
-  var days=WEEKDAYS.map(function(d){return '<button class="mp-day btn btn-s btn-sm" data-day="'+d.k+'" style="flex:1;min-width:44px">'+d.n+'</button>'}).join('');
+  var days=WEEKDAYS.map(function(d){return '<button class="mp-day btn btn-s btn-sm" data-day="'+dateForWeekday(d.k)+'" data-name="'+d.n+'" style="flex:1;min-width:44px">'+d.n+'</button>'}).join('');
   var body='<div style="font-size:13px;font-weight:700;text-align:center;margin-bottom:4px">'+emoji+" "+name+'</div><div style="font-size:11px;color:var(--fg2);text-align:center;margin-bottom:14px">Rätten är sparad i banken! Vill du lägga in den nu?</div>'+
     '<div style="font-size:10px;color:var(--fg2);margin-bottom:4px">Lägg som middag på:</div>'+
     '<div class="flex gap4" style="flex-wrap:wrap;margin-bottom:12px">'+days+'</div>'+
@@ -2367,7 +2367,7 @@ function offerMealPlacement(name,emoji,items){
     '<button class="btn btn-s" id="mpSkip" style="width:100%">Klar — gör inget mer</button>';
   openInfoSheet("✓ Rätt skapad","Lägg in den i veckan",body);
   setTimeout(function(){
-    document.querySelectorAll(".mp-day").forEach(function(b){b.addEventListener("click",function(){setDayMeal(b.dataset.day,"d",name);haptic("ok");listsSync();var dn=WEEKDAYS.find(function(d){return d.k===b.dataset.day});toast("🍽️ "+name+" → "+(dn?dn.n:""));closeSheet();render()})});
+    document.querySelectorAll(".mp-day").forEach(function(b){b.addEventListener("click",function(){setDayMeal(b.dataset.day,"d",name);haptic("ok");listsSync();toast("🍽️ "+name+" → "+(b.dataset.name||""));closeSheet();render()})});
     var ms=document.getElementById("mpShop");if(ms)ms.addEventListener("click",function(){
       var added=0;items.forEach(function(ing){if(isBasicStaple(ing))return;var ex=(LISTS.items||[]).find(function(li){return normItem(li.text)===normItem(ing)&&!li.done});if(ex){if(ex.fromMeals.indexOf(name)<0)ex.fromMeals.push(name)}else{var g=guessArea(ing);if(!LISTS.items)LISTS.items=[];LISTS.items.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),text:ing,area:g.area||"mat",cat:g.cat||"",done:false,pri:"medel",assignee:"",price:0,added:Date.now(),fromMeals:[name],qty:1,unit:""});added++}});
       haptic("ok");listsSync();closeSheet();toast("🛒 "+added+" råvaror tillagda");render();
@@ -2736,7 +2736,7 @@ function logEffectOutcome(dateStr,outcome){
   var day=WEEKDAYS[di];
   var ctx={focus:day?day.focus:null,weekday:day?day.k:null};
   try{
-    var meals=getDayMeals(day.k);var recs=(LISTS.recipes||[]).concat(DEFAULT_RECIPES);
+    var meals=getDayMeals(d);var recs=(LISTS.recipes||[]).concat(DEFAULT_RECIPES);
     var tot=0,foc=0,n=0,fi=FOCUS_IDX[day.focus];
     ["b","l","d"].forEach(function(s){if(!meals[s])return;var r=recs.find(function(x){return x.name===meals[s]});if(r){var ms=dietMealScore(r.items,r.cat);tot+=ms.total;if(fi!=null)foc+=ms.scores[fi];n++}});
     ctx.mealScore=n?Math.round(tot):null;ctx.focusScore=n?Math.round(foc):null;ctx.meals=n;
@@ -2996,6 +2996,7 @@ function connect(id){
     var firstLoad=!LISTS_LOADED;LISTS_LOADED=true;
     validateLists();
     rolloverWeekIfNeeded();
+    migrateMealKeys();
     // Seed default recipes ENDAST vid allra första laddningen OCH bara om databasen verkligen är tom.
     // Skriv inte direkt — vänta så vi inte kapplöper med inkommande riktig data.
     if(firstLoad&&(!LISTS.recipes||!LISTS.recipes.length)&&d&&!d.recipes){
@@ -3920,8 +3921,25 @@ var SHOW_WORKOUTS=false;
 var GRILL_WEATHER=false;// sätts av väderfunktionen
 // Dagens veckodag-index (0=mån ... 6=sön)
 function todayIdx(){return(new Date().getDay()+6)%7}
-function todayKey(){return WEEKDAYS[todayIdx()].k}
-// Äten-markering: LISTS.mealEaten["tue:d"]=true
+// Datum-baserade nycklar (väg A): varje dag är unik → ingen krock mellan veckor.
+function todayKey(){return dateKey()}
+// Faktiskt datum (YYYY-MM-DD) för en veckodag i INNEVARANDE vecka.
+function dateForWeekday(wdKey){
+  var idx=["mon","tue","wed","thu","fri","sat","sun"].indexOf(wdKey);if(idx<0)return dateKey();
+  var d=new Date();var cur=(d.getDay()+6)%7;d.setHours(0,0,0,0);d.setDate(d.getDate()-cur+idx);return dateKey(d);
+}
+// Migrering: gammalt veckodagsformat (wed:b) → städas bort en gång. Datumnycklar (2026-06-25) behålls.
+function migrateMealKeys(){
+  if(!LISTS)return;
+  var migrated=LISTS._mealKeyFormat==="date";
+  if(migrated)return;
+  // Rensa gamla veckodagsnycklar i weekPlan (mon/tue/.../sun) och mealEaten — de saknar datum och kan ej räddas säkert
+  var wd=["mon","tue","wed","thu","fri","sat","sun"];
+  if(LISTS.weekPlan){Object.keys(LISTS.weekPlan).forEach(function(k){if(wd.indexOf(k)>=0)delete LISTS.weekPlan[k]})}
+  if(LISTS.mealEaten){Object.keys(LISTS.mealEaten).forEach(function(k){if(wd.indexOf(k.split(":")[0])>=0)delete LISTS.mealEaten[k]})}
+  LISTS._mealKeyFormat="date";listsSync();
+}
+// Äten-markering: LISTS.mealEaten["2026-06-25:d"]=true (datum-baserat)
 function isMealEaten(dayKey,slot){return!!(LISTS.mealEaten&&LISTS.mealEaten[dayKey+":"+slot])}
 function setMealEaten(dayKey,slot,eaten){if(!LISTS.mealEaten)LISTS.mealEaten={};var key=dayKey+":"+slot;if(eaten)LISTS.mealEaten[key]=true;else delete LISTS.mealEaten[key]}
 // === TRÄNING (kopplad till dagens fokus, samma cykel som maten) ===
@@ -4040,7 +4058,7 @@ function daysSinceEaten(recName){
   var newest=null;
   (HEALTH_LOG||[]).forEach(function(e){if(e.action==="eaten"&&e.item===recName){if(!newest||e.t>newest)newest=e.t}});
   var me=LISTS.mealEaten||{};var ti=todayIdx();
-  WEEKDAYS.forEach(function(d,i){var m=getDayMeals(d.k);["b","l","d"].forEach(function(s){if(m[s]===recName&&me[d.k+":"+s]){var diff=ti-i;var t=Date.now()-diff*86400000;if(diff>=0&&(!newest||t>newest))newest=t}})});
+  WEEKDAYS.forEach(function(d,i){var dk=dateForWeekday(d.k);var m=getDayMeals(dk);["b","l","d"].forEach(function(s){if(m[s]===recName&&me[dk+":"+s]){var diff=ti-i;var t=Date.now()-diff*86400000;if(diff>=0&&(!newest||t>newest))newest=t}})});
   if(newest===null)return 999;
   return Math.floor((Date.now()-newest)/86400000);
 }
@@ -4159,14 +4177,14 @@ function suggestWeekMeals(){
   var used=[];
   var order=WEEKDAYS.map(function(d,i){return{d:d,i:i}}).sort(function(a,b){return(b.d.smakW||0)-(a.d.smakW||0)});
   order.forEach(function(o){
-    var day=o.d;var dayPos=WEEKDAYS.indexOf(day);
+    var day=o.d;var dayPos=WEEKDAYS.indexOf(day);var dk=dateForWeekday(day.k);
     // Hoppa över dagar före idag och middagar som redan ätits
     if(dayPos<ti)return;
-    if(isMealEaten(day.k,"d"))return;
+    if(isMealEaten(dk,"d"))return;
     var ranked=dinner.map(function(x){return{i:x.i,name:x.r.name,score:recipeFocusScore(x.r,day)}})
       .filter(function(x){return used.indexOf(x.i)<0})
       .sort(function(a,b){return b.score-a.score});
-    if(ranked.length){var cur=plan[day.k];plan[day.k]=typeof cur==="object"?Object.assign({},cur,{d:ranked[0].name}):ranked[0].name;used.push(ranked[0].i);
+    if(ranked.length){var cur=plan[dk];plan[dk]=typeof cur==="object"?Object.assign({},cur,{d:ranked[0].name}):ranked[0].name;used.push(ranked[0].i);
       if(used.length>=dinner.length)used=[]}
   });
   return plan;
@@ -4385,23 +4403,24 @@ function rTodo(){
       var recipes=LISTS.recipes||[];var wp=LISTS.weekPlan||{};
       var allNames=allPlannedMeals();
       var TI=todayIdx();var TK=todayKey();
-      function scoreMeals(filterEaten){var tot=0,sc=[0,0,0,0];WEEKDAYS.forEach(function(day){var m=getDayMeals(day.k);["b","l","d"].forEach(function(s){if(!m[s])return;if(filterEaten&&!isMealEaten(day.k,s))return;var r=recipes.find(function(x){return x.name===m[s]});if(r){var ms=dietMealScore(r.items,r.cat);tot+=ms.total;for(var i=0;i<4;i++)sc[i]+=ms.scores[i]}})});return{scores:sc,total:tot}}
+      function scoreMeals(filterEaten){var tot=0,sc=[0,0,0,0];WEEKDAYS.forEach(function(day){var dk=dateForWeekday(day.k);var m=getDayMeals(dk);["b","l","d"].forEach(function(s){if(!m[s])return;if(filterEaten&&!isMealEaten(dk,s))return;var r=recipes.find(function(x){return x.name===m[s]});if(r){var ms=dietMealScore(r.items,r.cat);tot+=ms.total;for(var i=0;i<4;i++)sc[i]+=ms.scores[i]}})});return{scores:sc,total:tot}}
       var wpScore=scoreMeals(false);// planerat (allt)
       var eatenScore=scoreMeals(true);// faktiskt ätet
-      var eatenCount=0;WEEKDAYS.forEach(function(day){["b","l","d"].forEach(function(s){if(getDayMeals(day.k)[s]&&isMealEaten(day.k,s))eatenCount++})});
+      var eatenCount=0;WEEKDAYS.forEach(function(day){var dk=dateForWeekday(day.k);["b","l","d"].forEach(function(s){if(getDayMeals(dk)[s]&&isMealEaten(dk,s))eatenCount++})});
       // En måltidsslot (b/l/d) renderas
       function slotRow(day,slot,slotLabel,slotEmoji){
-        var meals=getDayMeals(day.k);var name=meals[slot];
+        var dk=dateForWeekday(day.k);
+        var meals=getDayMeals(dk);var name=meals[slot];
         var rec=name?recipes.find(function(r){return r.name===name}):null;
         var emoji=rec?(rec.emoji||mealEmoji(rec.name)):"";
-        var eaten=isMealEaten(day.k,slot);
+        var eaten=isMealEaten(dk,slot);
         var slotCol=slot==="b"?"#c87a3a":slot==="l"?"#3a8ac8":"#8a3ac8";
         if(rec){var ms=dietMealScore(rec.items,rec.cat);var fi=FOCUS_IDX[day.focus];var fp=ms.scores[fi];
           var tag=rec.power?' <span style="font-size:9px" title="Power food">⚡</span>':rec.treat?' <span style="font-size:9px" title="Treat — bäst tidigt i veckan">🍔</span>':'';
           var treatWarn=(isOwner()&&rec.treat&&day.smakW>=1.0)?' <span style="color:#c87a3a;font-size:9px" title="Treat på laddningsdag — flytta gärna tidigare">⚠</span>':'';
-          return '<div class="meal-slot meal-filled" data-day="'+day.k+'" data-slot="'+slot+'" data-recipe="'+encodeURIComponent(rec.name)+'" style="display:flex;align-items:center;gap:5px;padding:5px 6px;cursor:pointer;font-size:10px;border-left:3px solid '+slotCol+';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:3px'+(eaten?';opacity:.6':'')+'"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span>'+(isOwner()?'<span style="font-size:9px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600" title="'+focusName(day.focus)+'-poäng">'+fp+'</span><span style="font-size:9px;font-weight:700;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)" title="Totalpoäng">'+(ms.total>=0?"+":"")+ms.total+'</span>':(ms.total>=20?'<span style="font-size:10px" title="Passar dagens rytm">⭐</span>':''))+'<button class="ib meal-eaten" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:26px;height:26px;font-size:11px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" title="Visa recept" style="width:26px;height:26px;font-size:12px">👁</button><button class="ib clear-slot" data-day="'+day.k+'" data-slot="'+slot+'" title="'+(eaten?"Äten – tryck för att ta bort (kräver bekräftelse)":"Ta bort")+'" style="width:26px;height:26px;font-size:11px'+(eaten?';opacity:.4':'')+'">'+(eaten?"🔒":"×")+'</button></div>';
+          return '<div class="meal-slot meal-filled" data-day="'+dk+'" data-slot="'+slot+'" data-recipe="'+encodeURIComponent(rec.name)+'" style="display:flex;align-items:center;gap:5px;padding:5px 6px;cursor:pointer;font-size:10px;border-left:3px solid '+slotCol+';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:3px'+(eaten?';opacity:.6':'')+'"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(eaten?';text-decoration:line-through':'')+'">'+emoji+' '+rec.name+tag+treatWarn+'</span>'+(isOwner()?'<span style="font-size:9px;color:'+FOCUS_COLOR[day.focus]+';font-family:var(--m);font-weight:600" title="'+focusName(day.focus)+'-poäng">'+fp+'</span><span style="font-size:9px;font-weight:700;color:'+(ms.total>=20?"#1a8a65":ms.total>=0?"#999":"#c83a3a")+';font-family:var(--m)" title="Totalpoäng">'+(ms.total>=0?"+":"")+ms.total+'</span>':(ms.total>=20?'<span style="font-size:10px" title="Passar dagens rytm">⭐</span>':''))+'<button class="ib meal-eaten" data-day="'+dk+'" data-slot="'+slot+'" title="'+(eaten?"Ätet":"Markera ätet")+'" style="width:26px;height:26px;font-size:11px'+(eaten?";color:#1a8a65":"")+'">'+(eaten?"✓":"○")+'</button><button class="ib recipe-show" data-recipe="'+encodeURIComponent(rec.name)+'" title="Visa recept" style="width:26px;height:26px;font-size:12px">👁</button><button class="ib clear-slot" data-day="'+dk+'" data-slot="'+slot+'" title="'+(eaten?"Äten – tryck för att ta bort (kräver bekräftelse)":"Ta bort")+'" style="width:26px;height:26px;font-size:11px'+(eaten?';opacity:.4':'')+'">'+(eaten?"🔒":"×")+'</button></div>';
         }
-        return '<div class="meal-slot meal-empty" data-day="'+day.k+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
+        return '<div class="meal-slot meal-empty" data-day="'+dk+'" data-slot="'+slot+'" style="display:flex;align-items:center;gap:6px;padding:5px 6px;cursor:pointer;font-size:10px;color:var(--fg3);border-left:3px dashed '+slotCol+';border-radius:0 8px 8px 0;margin-bottom:3px"><span style="font-size:9px;font-weight:700;color:'+slotCol+';width:20px;text-transform:uppercase">'+slotLabel.slice(0,3)+'</span><span style="flex:1">'+slotEmoji+' + Lägg till '+slotLabel.toLowerCase()+'</span><span style="font-size:11px;color:'+slotCol+'">+</span></div>';
       }
       return (function(){
         // Litet levande tips-kort med dagsaktuella råvarutips
@@ -4427,8 +4446,9 @@ function rTodo(){
         // Veckokalender
         '<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">'+
         WEEKDAYS.map(function(day){
+          var dk=dateForWeekday(day.k);
           var fc=FOCUS_COLOR[day.focus];var fl=focusName(day.focus);var fe=focusEmoji(day.focus);
-          var isToday=day.k===TK;
+          var isToday=dk===TK;
           // Smak-ramp indikator
           var smakBar=isOwner()?(day.smakW>=1.3?"🍑🍑":day.smakW>=0.7?"🍑":""):"";
           return '<div style="display:flex;gap:6px;padding:4px 6px;border-radius:7px;background:'+(isToday?"var(--tealL)":"var(--bg2)")+(isToday?";box-shadow:inset 0 0 0 1.5px var(--teal)":"")+'">'+
@@ -4437,10 +4457,10 @@ function rTodo(){
             '<div style="flex:1;min-width:0">'+
               (SHOW_ALL_MEALS?slotRow(day,"b","frukost","🍳")+slotRow(day,"l","lunch","🥗"):'')+
               slotRow(day,"d","middag","🍽️")+
-              (SHOW_WORKOUTS?(function(){var w=workoutFor(day);var wd=isWorkoutDone(day.k);
+              (SHOW_WORKOUTS?(function(){var w=workoutFor(day);var wd=isWorkoutDone(dk);
                 var areas=trainForDay(day.k);
                 var areaTxt=areas.length?areas.map(function(a){return a.emoji+" "+a.name}).join(", "):w.title;
-                return '<div class="workout-row" data-day="'+day.k+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px'+(wd?";opacity:.6":"")+'"><span style="width:16px;opacity:.6">'+(areas.length?areas[0].emoji:w.emoji)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(wd?";text-decoration:line-through":"")+'">'+areaTxt+'</span><button class="ib workout-done" data-day="'+day.k+'" title="'+(wd?"Tränat":"Markera tränat")+'" style="width:24px;height:24px;font-size:11px'+(wd?";color:#1a8a65":"")+'">'+(wd?"✓":"○")+'</button></div>';
+                return '<div class="workout-row" data-day="'+dk+'" style="display:flex;align-items:center;gap:5px;padding:3px 5px;cursor:pointer;font-size:10px'+(wd?";opacity:.6":"")+'"><span style="width:16px;opacity:.6">'+(areas.length?areas[0].emoji:w.emoji)+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(wd?";text-decoration:line-through":"")+'">'+areaTxt+'</span><button class="ib workout-done" data-day="'+dk+'" title="'+(wd?"Tränat":"Markera tränat")+'" style="width:24px;height:24px;font-size:11px'+(wd?";color:#1a8a65":"")+'">'+(wd?"✓":"○")+'</button></div>';
               })():'')+
             '</div>'+
             (smakBar?'<div style="display:flex;align-items:center;font-size:9px" title="Fokusdag">'+smakBar+'</div>':'')+
@@ -4795,7 +4815,7 @@ function bindTodo(){
   // Klick på träningsrad → anpassa programmet för den fokustypen
   document.querySelectorAll(".workout-row").forEach(function(el){el.addEventListener("click",function(e){
     if(e.target.closest(".workout-done"))return;
-    var d=el.dataset.day;var dayObj=WEEKDAYS.find(function(x){return x.k===d});if(!dayObj)return;
+    var d=el.dataset.day;var dayObj=WEEKDAYS[(function(){try{var p=d.split("-");return (new Date(N(p[0]),N(p[1])-1,N(p[2])).getDay()+6)%7}catch(e){return todayIdx()}})()];if(!dayObj)return;
     openWorkoutEditor(dayObj);})});
   var pt=document.getElementById("planToggle");if(pt)pt.addEventListener("click",function(e){if(e.target.id==="dietInfo"||e.target.closest("button"))return;S.planCollapsed=!S.planCollapsed;render()});
   // Auto-fill week — bevarar ätet/tidigare dagar, bekräftar om något skrivs över
@@ -4803,7 +4823,7 @@ function bindTodo(){
     var recipes=LISTS.recipes||[];if(!recipes.length){toast("Inga rätter än — skapa några först");return}
     // Räkna hur många framtida, ej ätna middagar som redan är planerade (skrivs över)
     var ti=todayIdx(),willReplace=0;
-    WEEKDAYS.forEach(function(d,i){if(i>=ti&&!isMealEaten(d.k,"d")&&getDayMeals(d.k).d)willReplace++});
+    WEEKDAYS.forEach(function(d,i){var dk=dateForWeekday(d.k);if(i>=ti&&!isMealEaten(dk,"d")&&getDayMeals(dk).d)willReplace++});
     if(willReplace>0&&!confirm("Auto fyller tomma dagar och föreslår nya middagar framåt.\n\n"+willReplace+" redan planerade middagar (framåt) byts ut. Ätna måltider och tidigare dagar rörs INTE.\n\nFortsätt?"))return;
     var plan=suggestWeekMeals();
     LISTS.weekPlan=plan;addActivity(ME||"Okänd","auto-fyllde veckomenyn");listsSync();toast("✨ Veckomeny uppdaterad — ätet & tidigare dagar bevarat");render()});
@@ -4814,7 +4834,7 @@ function bindTodo(){
     if(el.classList.contains("meal-filled")&&el.dataset.recipe){
       var rn=decodeURIComponent(el.dataset.recipe);var r=(LISTS.recipes||[]).find(function(x){return x.name===rn});if(r){showRecipeSheet(r);return}
     }
-    var day=el.dataset.day;var slot=el.dataset.slot;var dayObj=WEEKDAYS.find(function(d){return d.k===day});
+    var day=el.dataset.day;var slot=el.dataset.slot;var dayObj=WEEKDAYS[(function(){try{var p=day.split("-");return (new Date(N(p[0]),N(p[1])-1,N(p[2])).getDay()+6)%7}catch(e){return todayIdx()}})()];
     var recipes=LISTS.recipes||[];if(!recipes.length){toast("Skapa rätter först");return}
     var pool=recipes.filter(function(r){return slot==="b"?r.meal==="frukost":r.meal!=="frukost"});
     if(!pool.length)pool=recipes;

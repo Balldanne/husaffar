@@ -1145,7 +1145,7 @@ var DEFAULT_RECIPES=[
   {name:"Kokos-kycklinggryta med koriander",emoji:"🍲",focus:"driv",cat:"gryta",gf:true,howto:"Fräs kyckling. Tillsätt kokosmjölk och lime, koka 15 min. Rör i spenat, garnera koriander.",items:["kyckling","kokosmjölk","lime","koriander","spenat"]},
   {name:"Fiskgryta med lime & dill",emoji:"🍲",focus:"driv",cat:"gryta",gf:true,howto:"Fräs morot. Tillsätt fisk och kokosmjölk, koka 10 min. Pressa lime, strö dill.",items:["vit fisk","lime","dill","kokosmjölk","morot"]},
   {name:"Thai green curry med kyckling",emoji:"🍲",focus:"driv",cat:"gryta",gf:true,howto:"Fräs kyckling. Tillsätt currypasta och kokosmjölk, koka 12 min. Rör i lime, koriander och basilika.",items:["kyckling","kokosmjölk","lime","koriander","basilika"]},
-  {name:"Lätt ratatouille med basilika",emoji:"🍲",focus:"kansla",cat:"gryta",gf:true,howto:"Fräs aubergine, zucchini, paprika och tomat i lager. Koka ihop 20 min. Garnera basilika och persilja.",items:["zucchini","paprika","tomat","basilika","persilja"]},
+  {name:"Lätt ratatouille med basilika",emoji:"🍲",focus:"kansla",cat:"gryta",gf:true,howto:"Tärna zucchini och paprika, hacka tomaterna. Fräs zucchini och paprika i olivolja på medelvärme tills de mjuknar, ca 5 min. Tillsätt tomaterna och en nypa salt. Sänk värmen och låt småkoka under lock ca 20 min, rör om då och då, tills det blivit en mjuk gryta. Smaka av med salt och peppar. Toppa med riven basilika och persilja. Servera som den är eller till fisk, kyckling eller ris.",items:["zucchini","paprika","tomat","basilika","persilja"]},
   {name:"Kycklinggryta med spenat & citron",emoji:"🍲",focus:"driv",cat:"gryta",gf:true,howto:"Fräs kyckling. Tillsätt spenat och yoghurt, värm 5 min. Pressa citron.",items:["kyckling","spenat","citron","grekisk yoghurt"]},
   {name:"Indisk yoghurtcurry med spenat",emoji:"🍲",focus:"bas",cat:"gryta",gf:true,howto:"Fräs kyckling eller kikärtor. Tillsätt yoghurt, spenat och bockhornsklöver, koka 10 min. Garnera koriander.",items:["kikärtor","grekisk yoghurt","spenat","koriander","bockhornsklöver"]},
   {name:"Fiskgryta med apelsin & örter",emoji:"🍲",focus:"bas",cat:"gryta",gf:true,howto:"Koka fisk med apelsin, dill och kokosmjölk 12 min.",items:["vit fisk","apelsin","dill","kokosmjölk"]},
@@ -2094,8 +2094,13 @@ function renderCookPane(pane){
 function renderCookChips(){
   var box=document.getElementById("cookChips");if(!box)return;
   if(!S.cookPicks.length){box.innerHTML='<span style="font-size:11px;color:var(--fg3)">Inga råvaror valda än</span>';return}
-  box.innerHTML=S.cookPicks.map(function(n,i){return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--tealL);color:var(--teal);border-radius:14px;padding:4px 6px 4px 10px;font-size:11px;font-weight:500">'+n+'<button class="cook-rm" data-i="'+i+'" style="border:none;background:none;color:var(--teal);cursor:pointer;font-size:13px;padding:0 2px">×</button></span>'}).join('');
+  // Råvaror som inte redan finns i skafferiet → erbjud att spara dem
+  var inPantry=pantryItems().map(normItem);
+  var newOnes=S.cookPicks.filter(function(n){return inPantry.indexOf(normItem(n))<0});
+  box.innerHTML=S.cookPicks.map(function(n,i){return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--tealL);color:var(--teal);border-radius:14px;padding:4px 6px 4px 10px;font-size:11px;font-weight:500">'+n+'<button class="cook-rm" data-i="'+i+'" style="border:none;background:none;color:var(--teal);cursor:pointer;font-size:13px;padding:0 2px">×</button></span>'}).join('')+
+    (newOnes.length?'<button id="cookToPantry" style="width:100%;margin-top:8px;padding:8px;border-radius:9px;border:1px dashed var(--teal);background:transparent;color:var(--teal);font-size:11px;cursor:pointer">🏠 Spara '+newOnes.length+' råvaror i skafferiet (har hemma)</button>':'');
   box.querySelectorAll(".cook-rm").forEach(function(b){b.addEventListener("click",function(){S.cookPicks.splice(N(b.dataset.i),1);renderCookChips();renderCookResults()})});
+  var ctp=document.getElementById("cookToPantry");if(ctp)ctp.addEventListener("click",function(){newOnes.forEach(function(n){pantryAdd(n)});listsSync();haptic("ok");toast("🏠 "+newOnes.length+" råvaror sparade i skafferiet");renderCookChips()});
 }
 function renderCookResults(){
   var box=document.getElementById("cookList");if(!box)return;
@@ -2834,7 +2839,7 @@ function renderAchievements(){
     }).join('')+'</div></div></div>'
 }
 var ME=localStorage.getItem("fc_me")||"";
-var APP_VERSION="0.1";// 0.x = beta (Daniel), 1.0 = release till Malin, sen 1.1, 1.2...
+var APP_VERSION="0.2";// 0.x = beta (Daniel), 1.0 = release till Malin, sen 1.1, 1.2...
 // Detaljnivå PER DEL — var och en optar in i fördjupning där de vill. Allt börjar enkelt.
 // Delar: "mat", "train", "ekonomi", "husjakt". Nivåer: "enkel" | "mer"
 var UI_DEPTH={};

@@ -137,7 +137,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .shop-item:hover{background:var(--bg2)}.shop-item.done{opacity:0.4;text-decoration:line-through}
 .shop-item .chk{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:15px}
 .shop-item.done .chk{background:var(--teal);border-color:var(--teal);color:#fff}
-.shop-item .name{flex:1;font-size:15px;font-weight:500}.shop-item .cat-tag{font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg2);color:var(--fg2);white-space:nowrap}
+.shop-item .name{flex:1;min-width:0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.shop-item .cat-tag{font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg2);color:var(--fg2);white-space:nowrap;flex-shrink:0}
 .shop-item .price-tag{font-size:10px;font-family:var(--m);color:var(--fg2);min-width:40px;text-align:right}
 .shop-item .actions{display:flex;gap:2px;opacity:1;transition:opacity 0.15s}
 @media (hover:hover){.shop-item .actions{opacity:0}.shop-item:hover .actions{opacity:1}}
@@ -325,6 +325,28 @@ function openInfoSheet(title,sub,htmlBody){
   enableSheetSwipe(sheet);
   // När ett fält fokuseras (tangentbord upp) → scrolla in det i vy så det ej döljs
   sheet.addEventListener("focusin",function(e){if(e.target.matches("input,textarea")){setTimeout(function(){try{e.target.scrollIntoView({block:"center",behavior:"smooth"})}catch(_){}},300)}});
+}
+// Native textinmatning (ersätter prompt). opts: {title, sub, placeholder, value, type, cb}
+function openInputSheet(opts){
+  var body='<div style="font-size:11px;color:var(--fg2);margin-bottom:10px">'+(opts.hint||"")+'</div>'+
+    '<input id="inpSheetVal" type="'+(opts.type||"text")+'" placeholder="'+(opts.placeholder||"")+'" value="'+((opts.value||"")+"").replace(/"/g,"&quot;")+'" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;box-sizing:border-box;background:var(--bg2);color:var(--fg);font-size:16px;margin-bottom:12px"'+(opts.inputmode?' inputmode="'+opts.inputmode+'"':'')+'>'+
+    '<button class="btn btn-p" id="inpSheetSave" style="width:100%">'+(opts.saveLabel||"Spara")+'</button>';
+  openInfoSheet(opts.title||"Skriv",opts.sub||"",body);
+  setTimeout(function(){
+    var inp=document.getElementById("inpSheetVal");if(inp){inp.focus();inp.select&&inp.select()}
+    function save(){var v=(inp.value||"").trim();closeSheet();opts.cb(v)}
+    var sv=document.getElementById("inpSheetSave");if(sv)sv.addEventListener("click",save);
+    if(inp)inp.addEventListener("keydown",function(e){if(e.key==="Enter")save()});
+  },60);
+}
+// Native val-lista (ersätter prompt med numrerade val). opts: {title, sub, options:[{label,value}], cb}
+function openChoiceSheet(opts){
+  var body='<div style="font-size:11px;color:var(--fg2);margin-bottom:10px">'+(opts.hint||"")+'</div>'+
+    opts.options.map(function(o,i){return '<button class="choice-item btn btn-s" data-v="'+String(o.value).replace(/"/g,"&quot;")+'" style="width:100%;text-align:left;justify-content:flex-start;padding:13px;margin-bottom:6px;height:auto">'+o.label+'</button>'}).join('');
+  openInfoSheet(opts.title||"Välj",opts.sub||"",body);
+  setTimeout(function(){
+    document.querySelectorAll(".choice-item").forEach(function(b){b.addEventListener("click",function(){closeSheet();opts.cb(b.dataset.v)})});
+  },60);
 }
 // Expand/collapse state
 var EXP=JSON.parse(localStorage.getItem("exp")||"{}");
@@ -1887,11 +1909,11 @@ function openTrainingGoals(){
     var uo=document.getElementById("useOptimal");if(uo)uo.addEventListener("click",function(){
       applyOptimalPlan();closeSheet();toast("✨ Optimalt upplägg aktiverat ("+INTENSITY[myIntensity()].label.toLowerCase()+")");render();});
     var ac=document.getElementById("addCustomArea");if(ac)ac.addEventListener("click",function(){
-      var name=prompt("Eget träningsområde (t.ex. Klättring, Simning):");if(!name||!name.trim())return;
-      var id="c_"+normItem(name).replace(/[^a-z0-9]/g,"");
-      if(!p.areas)p.areas=[];if(!p.areas.find(function(a){return a.id===id})){p.areas.push({id:id,name:name.trim(),emoji:"💪",fit:["driv"],goal:1})}
-      allAreas=AREA_LIB.concat((p.areas||[]).filter(function(a){return !AREA_LIB.find(function(l){return l.id===a.id})}));
-      selected[id]={goal:1};refresh();
+      openInputSheet({title:"Eget träningsområde",hint:"T.ex. Klättring, Simning, Innebandy",placeholder:"Områdesnamn",saveLabel:"Lägg till",cb:function(name){if(!name||!name.trim())return;
+        var id="c_"+normItem(name).replace(/[^a-z0-9]/g,"");
+        if(!p.areas)p.areas=[];if(!p.areas.find(function(a){return a.id===id})){p.areas.push({id:id,name:name.trim(),emoji:"💪",fit:["driv"],goal:1})}
+        selected[id]={goal:1};closeSheet();openTrainingGoals();
+      }});
     });
     var sv=document.getElementById("saveGoals");if(sv)sv.addEventListener("click",function(){
       p.areas=Object.keys(selected).map(function(id){var lib=areaById(id);return{id:id,name:lib.name,emoji:lib.emoji,goal:selected[id].goal}});
@@ -2100,7 +2122,7 @@ function renderCookChips(){
   box.innerHTML=S.cookPicks.map(function(n,i){return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--tealL);color:var(--teal);border-radius:14px;padding:4px 6px 4px 10px;font-size:11px;font-weight:500">'+n+'<button class="cook-rm" data-i="'+i+'" style="border:none;background:none;color:var(--teal);cursor:pointer;font-size:13px;padding:0 2px">×</button></span>'}).join('')+
     (newOnes.length?'<button id="cookToPantry" style="width:100%;margin-top:8px;padding:8px;border-radius:9px;border:1px dashed var(--teal);background:transparent;color:var(--teal);font-size:11px;cursor:pointer">🏠 Spara '+newOnes.length+' råvaror i skafferiet (har hemma)</button>':'');
   box.querySelectorAll(".cook-rm").forEach(function(b){b.addEventListener("click",function(){S.cookPicks.splice(N(b.dataset.i),1);renderCookChips();renderCookResults()})});
-  var ctp=document.getElementById("cookToPantry");if(ctp)ctp.addEventListener("click",function(){newOnes.forEach(function(n){pantryAdd(n)});listsSync();haptic("ok");toast("🏠 "+newOnes.length+" råvaror sparade i skafferiet");renderCookChips()});
+  var ctp=document.getElementById("cookToPantry");if(ctp)ctp.addEventListener("click",function(){newOnes.forEach(function(n){var g=guessArea(n);pantryAdd({text:n,area:g.area||"mat",cat:g.cat||""})});listsSync();haptic("ok");toast("🏠 "+newOnes.length+" råvaror sparade i skafferiet");renderCookChips()});
 }
 function renderCookResults(){
   var box=document.getElementById("cookList");if(!box)return;
@@ -2159,7 +2181,10 @@ function renderWorkoutCard(){
 // ============================================================
 function rTrain(){
   var g=myGoals();var sw=sessionsThisWeek();var rw=runsThisWeek();
-  var runCount=rw.length;var strengthCount=sw.filter(function(e){return e.type==="styrka"||e.type==="core"}).length;
+  var runCount=rw.length;
+  // Riktiga styrkepass räknas mot målet. Kegel/core/stretch är komplement (räknas separat, inflaterar ej målet).
+  var strengthCount=sw.filter(function(e){return e.type==="styrka"}).length;
+  var complementCount=sw.filter(function(e){return e.type==="core"||e.type==="flex"}).length;
   var streak=trainStreak();
   var dayObj=WEEKDAYS[todayIdx()];var areas=trainForDay(todayKey());var wd=isWorkoutDone(todayKey());
   // Progress mot veckomål
@@ -2194,7 +2219,8 @@ function rTrain(){
   // Veckomål-progress
   h+='<div class="card" style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;margin-bottom:8px">🎯 Veckomål</div>'+
     bar(runCount,g.weeklyRun,"#c87a3a","🏃 Löpning")+
-    bar(strengthCount,g.weeklyStrength,"#8a3ac8","🏋️ Styrka/Core")+
+    bar(strengthCount,g.weeklyStrength,"#8a3ac8","🏋️ Styrkepass")+
+    (complementCount?'<div style="font-size:10px;color:var(--fg2);margin:-2px 0 8px">🌸 Komplement (kegel/stretch): '+complementCount+' — bonus utöver målet</div>':'')+
     '<button class="btn btn-s btn-sm mt6" id="trainEditGoals" style="width:100%">✎ Ändra mål & fokus</button></div>';
   // Dagens rekommendation (från optimalt/eget upplägg)
   var recTitle=areas.length?areas.map(function(a){return a.emoji+" "+a.name}).join(" + "):"Vila / lugn dag";
@@ -2214,6 +2240,7 @@ function rTrain(){
     '<button class="prog-open" data-prog="bodyweight" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">🏋️</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+BODYWEIGHT_PLAN.name+'</div><div style="font-size:9px;color:var(--fg2)">Nivå '+myBwLevel()+"/4 · "+BODYWEIGHT_PLAN.levels[myBwLevel()-1].name+' · bröst/axlar/armar/rumpa/bål</div></div><span style="color:var(--fg3)">›</span></button>':'')+
     (myPrograms().map(function(p,i){return '<button class="prog-open" data-prog="custom:'+i+'" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">'+(p.emoji||"📋")+'</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">'+p.name+'</div><div style="font-size:9px;color:var(--fg2)">'+(p.exercises||[]).length+' övningar</div></div><span style="color:var(--fg3)">›</span></button>'}).join(''))+
     (!isOwner()&&!myPrograms().length?'<div style="font-size:11px;color:var(--fg3);text-align:center;padding:10px">Inga program än. Tryck <b>+ Program</b> för att skapa ditt eget med dina övningar.</div>':'')+
+    '<button class="mbal-open" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--teal);border-radius:10px;background:var(--tealL);cursor:pointer;margin-bottom:6px"><span style="font-size:18px">💪</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">Min träningsbalans</div><div style="font-size:9px;color:var(--fg2)">Se vad du tränat & få förslag på komplement</div></div><span style="color:var(--fg3)">›</span></button>'+
     '<button class="prog-open" data-prog="register" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px;border:1px dashed var(--border);border-radius:10px;background:none;cursor:pointer;margin-top:4px"><span style="font-size:18px">📚</span><div style="flex:1;text-align:left"><div style="font-size:12px;font-weight:600">Övningsregister</div><div style="font-size:9px;color:var(--fg2)">'+EXERCISE_DB.length+' övningar med progressionstrappor</div></div><span style="color:var(--fg3)">›</span></button>'+
     '</div>';
   // Logg-historik (senaste)
@@ -2251,6 +2278,32 @@ function setMyExLevel(exId,n){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.wor
 function logExercise(exId,lvl){if(!LISTS.workouts)LISTS.workouts={};if(!LISTS.workouts[ME])LISTS.workouts[ME]={};if(!LISTS.workouts[ME].exLog)LISTS.workouts[ME].exLog=[];LISTS.workouts[ME].exLog.push({ex:exId,lvl:lvl,t:Date.now()});if(LISTS.workouts[ME].exLog.length>300)LISTS.workouts[ME].exLog=LISTS.workouts[ME].exLog.slice(-300);listsSync()}
 // Antal pass för en övning på nuvarande nivå senaste 14 dgr
 function exSessions14(exId,lvl){var log=(LISTS.workouts&&LISTS.workouts[ME]&&LISTS.workouts[ME].exLog)||[];var cut=Date.now()-14*86400000;return log.filter(function(e){return e.ex===exId&&e.lvl===lvl&&e.t>=cut}).length}
+// Muskelbalans senaste 14 dgr: räknar hur mycket varje muskelgrupp tränats via exLog.
+function muscleBalance(days){
+  var cut=Date.now()-(days||14)*86400000;
+  var log=(LISTS.workouts&&LISTS.workouts[ME]&&LISTS.workouts[ME].exLog)||[];
+  var recent=log.filter(function(e){return e.t>=cut});
+  // Gruppera muskler till huvudgrupper för överskådlig feedback
+  var GROUPS={
+    "Rumpa":["sätesmuskel","yttre säte"],
+    "Ben":["framsida lår","baksida lår","insida lår","vader"],
+    "Mage/Core":["raka bukmuskeln","sneda bukmuskler","djup core","bäckenbotten"],
+    "Rygg":["latissimus","övre rygg","nedre rygg","bröstrygg"],
+    "Bröst":["bröstmuskel","nedre bröst"],
+    "Axlar":["axlar","främre axel"],
+    "Armar":["biceps","triceps","underarm"]
+  };
+  var count={};Object.keys(GROUPS).forEach(function(g){count[g]=0});
+  recent.forEach(function(e){var ex=EXERCISE_DB.find(function(x){return x.id===e.ex});if(!ex)return;
+    (ex.muscles||[]).forEach(function(m){for(var g in GROUPS){if(GROUPS[g].some(function(mm){return m.indexOf(mm.split(" ")[0])>=0}))count[g]++}});
+  });
+  return {count:count,groups:GROUPS,total:recent.length};
+}
+// Förslag på övningar för en muskelgrupp (som användaren tränat lite)
+function suggestForGroup(groupName,bal){
+  var muscles=bal.groups[groupName]||[];
+  return EXERCISE_DB.filter(function(e){return e.area==="styrka"&&(e.muscles||[]).some(function(m){return muscles.some(function(mm){return m.indexOf(mm.split(" ")[0])>=0})})}).slice(0,3);
+}
 // Bör appen föreslå höjning? (lättviktig: ~4+ pass på nuvarande nivå senaste 14 dgr, ej redan toppnivå)
 function readyToLevelUp(exId){var cur=myExLevel(exId);if(cur>=3)return false;return exSessions14(exId,cur)>=4}
 // === REDSKAPS-INVENTARIE (hemmet) ===
@@ -2278,6 +2331,7 @@ function bindTrain(){
   var eg=document.getElementById("trainEditGoals");if(eg)eg.addEventListener("click",openTrainGoalsSheet);
   document.querySelectorAll(".log-act").forEach(function(b){b.addEventListener("click",function(){openLogSheet(b.dataset.type)})});
   document.querySelectorAll(".prog-open").forEach(function(b){b.addEventListener("click",function(){openProgramSheet(b.dataset.prog)})});
+  document.querySelectorAll(".mbal-open").forEach(function(b){b.addEventListener("click",function(){openMuscleBalance()})});
   var ap=document.getElementById("trainAddProgram");if(ap)ap.addEventListener("click",openNewProgramSheet);
 }
 function areaTypeToday(){var a=trainForDay(todayKey());if(!a.length)return"rorlighet";var n=a[0].name.toLowerCase();if(n.indexOf("löp")>=0||n.indexOf("kondition")>=0)return"lopning";if(n.indexOf("styrka")>=0)return"styrka";if(n.indexOf("core")>=0||n.indexOf("mage")>=0)return"core";if(n.indexOf("yoga")>=0||n.indexOf("balans")>=0)return"yoga";if(n.indexOf("vila")>=0||n.indexOf("promenad")>=0)return"promenad";return"rorlighet"}
@@ -2694,17 +2748,40 @@ function guessArea(text){
 }
 var _syncTimer=null,_syncPending=false,_writingOwn=false;
 function _doWrite(){
+  // HÅRD GUARD: skriv ALDRIG om data inte laddats — annars kan tom LISTS radera allt.
+  if(!LISTS_LOADED){console.warn("_doWrite blocked — data not loaded");_syncPending=false;return}
   var r=shopRef?shopRef.parent.child("lists"):null;if(!r)return;
+  // SÄKERHETSSPÄRR: vägra skriva en misstänkt tom LISTS över existerande data.
+  // Om recepten plötsligt är tomma men vi VET att vi laddat → något är fel, avbryt hellre än raderar.
+  if(_lastGoodRecipeCount>20&&(!LISTS.recipes||LISTS.recipes.length<_lastGoodRecipeCount*0.5)){
+    console.error("_doWrite ABORTED — recept krympte onaturligt ("+((LISTS.recipes||[]).length)+" vs "+_lastGoodRecipeCount+"). Skyddar mot dataförlust.");
+    _syncPending=false;return;
+  }
   _syncTimer=null;_syncPending=false;_writingOwn=true;
-  r.set(LISTS,function(err){_writingOwn=false;if(err){console.error("Sync-fel:",err);toast("⚠ Kunde inte spara — kontrollera nätet")}});
+  r.set(LISTS,function(err){_writingOwn=false;if(err){console.error("Sync-fel:",err);toast("⚠ Kunde inte spara — kontrollera nätet")}else{if(LISTS.recipes&&LISTS.recipes.length>_lastGoodRecipeCount)_lastGoodRecipeCount=LISTS.recipes.length}});
 }
+var _lastGoodRecipeCount=0;// högsta kända antal recept — skydd mot att tom data skriver över
 function listsSync(){
   if(!LISTS_LOADED){console.warn("listsSync blocked — data not loaded");return}
   if(skipSync)return;
   if(!shopRef)return;
   _syncPending=true;
+  saveLocalBackup();// spegla till localStorage varje gång — sista skyddsnätet
   if(_syncTimer)clearTimeout(_syncTimer);
   _syncTimer=setTimeout(_doWrite,150);// kort debounce — sparar snabbt
+}
+// LOKAL SÄKERHETSKOPIA: speglar LISTS till localStorage. Sista skyddsnätet om Firebase fallerar.
+function saveLocalBackup(){
+  try{
+    if(!LISTS_LOADED||!LISTS.recipes)return;
+    // Spara bara om det finns meningsfull data (skydd mot att spara tomt)
+    if(LISTS.recipes.length<5)return;
+    var backup={t:Date.now(),recipes:LISTS.recipes.length,data:LISTS};
+    localStorage.setItem("harvan_backup",JSON.stringify(backup));
+  }catch(e){/* localStorage full/otillgänglig — ignorera tyst */}
+}
+function getLocalBackup(){
+  try{var b=localStorage.getItem("harvan_backup");return b?JSON.parse(b):null}catch(e){return null}
 }
 // Flush direkt (synkront-ish) vid alla situationer där sidan kan försvinna.
 // Mobil (iOS pull-to-refresh, app-byte) kör ofta INTE beforeunload → använd flera signaler.
@@ -2719,15 +2796,19 @@ window.addEventListener("pagehide",flushSync);
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushSync()});
 // Activity feed
 var ACTIVITY=[];
+// LOAD-GUARDS: varje hjälplogg får en flagga som blir true när Firebase först laddat den.
+// Skrivningar blockeras tills laddning skett → förhindrar att tom data skriver över historik.
+var LOADED={activity:false,shopStatus:false,sharedTrain:false,effectLog:false,healthLog:false};
 function addActivity(who,action){ACTIVITY.unshift({who:who,action:action,time:Date.now()});if(ACTIVITY.length>20)ACTIVITY.length=20;
+  if(!LOADED.activity){console.warn("activity write blocked — not loaded");return}
   var r=shopRef?shopRef.parent.child("activity"):null;if(r)r.set(ACTIVITY)}
 // === DELAD SAMORDNING (syns för båda) ===
 // SHOP_STATUS: {who, state:"claimed"|"shopping"|"done", started, planned, bought} — vem handlar nu
 var SHOP_STATUS=null;
-function setShopStatus(obj){SHOP_STATUS=obj;var r=shopRef?shopRef.parent.child("shopStatus"):null;if(r){if(obj)r.set(obj);else r.remove()}}
+function setShopStatus(obj){SHOP_STATUS=obj;if(!LOADED.shopStatus){console.warn("shopStatus write blocked — not loaded");return}var r=shopRef?shopRef.parent.child("shopStatus"):null;if(r){if(obj)r.set(obj);else r.remove()}}
 // SHARED_TRAIN: {uid:{day,time,what,ts}} — planerad träning som partnern ser
 var SHARED_TRAIN={};
-function setSharedTrain(plan){if(!plan){if(SHARED_TRAIN[ME])delete SHARED_TRAIN[ME]}else SHARED_TRAIN[ME]=plan;var r=shopRef?shopRef.parent.child("sharedTrain"):null;if(r)r.set(SHARED_TRAIN)}
+function setSharedTrain(plan){if(!plan){if(SHARED_TRAIN[ME])delete SHARED_TRAIN[ME]}else SHARED_TRAIN[ME]=plan;if(!LOADED.sharedTrain){console.warn("sharedTrain write blocked — not loaded");return}var r=shopRef?shopRef.parent.child("sharedTrain"):null;if(r)r.set(SHARED_TRAIN)}
 function timeAgo(ts){var d=Math.round((Date.now()-ts)/1000);if(d<60)return "just nu";if(d<3600)return Math.round(d/60)+" min";if(d<86400)return Math.round(d/3600)+"h";return Math.round(d/86400)+"d"}
 // === EFFEKTLOGG (strikt admin-only, dold) — observerbara utfall för att validera modellen över tid ===
 // EFFECT_OUTCOMES: [{date, outcome:"jag"|"andra"|"bada", t}] — neutralt, frivilligt, ingen press.
@@ -2751,10 +2832,12 @@ function logEffectOutcome(dateStr,outcome){
   EFFECT_OUTCOMES.push({date:d,outcome:outcome,t:Date.now(),ctx:ctx});
   EFFECT_OUTCOMES.sort(function(a,b){return (a.date<b.date)?1:-1});
   if(EFFECT_OUTCOMES.length>400)EFFECT_OUTCOMES=EFFECT_OUTCOMES.slice(0,400);
+  if(!LOADED.effectLog){console.warn("effectLog write blocked — not loaded");return}
   var r=shopRef?shopRef.parent.child("effectLog"):null;if(r)r.set(EFFECT_OUTCOMES);
 }
 function removeEffectOutcome(dateStr){
   EFFECT_OUTCOMES=EFFECT_OUTCOMES.filter(function(e){return e.date!==dateStr});
+  if(!LOADED.effectLog){console.warn("effectLog write blocked — not loaded");return}
   var r=shopRef?shopRef.parent.child("effectLog"):null;if(r)r.set(EFFECT_OUTCOMES);
 }
 // Person filter
@@ -2954,8 +3037,8 @@ function weatherFoodSuggestion(maxTemp,sunny,rainy){
   return '';
 } // Vem använder denna enhet
 // shopSync removed — replaced by listsSync
-function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
-function saveProspects(){if(dbRef&&!skipSync)dbRef.set({family:S.family,prospects:S.prospects})}
+function ss(p){for(var k in p)S[k]=p[k];render();if(S.screen==="app"&&dbRef&&!skipSync)dbRef.update({family:S.family,prospects:S.prospects})}
+function saveProspects(){if(dbRef&&!skipSync)dbRef.update({family:S.family,prospects:S.prospects})}
 
 // === FIREBASE CONNECT ===
 function connect(id){
@@ -2966,19 +3049,19 @@ function connect(id){
   try{listsRef.keepSynced(true)}catch(e){}
   var actRef=shopRef.parent.child("activity");
   try{actRef.keepSynced(true)}catch(e){}
-  actRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){ACTIVITY=d}});
+  actRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){ACTIVITY=d}LOADED.activity=true});
   var shopStatusRef=shopRef.parent.child("shopStatus");
   try{shopStatusRef.keepSynced(true)}catch(e){}
-  shopStatusRef.on("value",function(snap){SHOP_STATUS=snap.val()||null;if(S.tab==="dash"||S.tab==="todo")render()});
+  shopStatusRef.on("value",function(snap){SHOP_STATUS=snap.val()||null;LOADED.shopStatus=true;if(S.tab==="dash"||S.tab==="todo")render()});
   var sharedTrainRef=shopRef.parent.child("sharedTrain");
   try{sharedTrainRef.keepSynced(true)}catch(e){}
-  sharedTrainRef.on("value",function(snap){SHARED_TRAIN=snap.val()||{};if(S.tab==="dash")render()});
+  sharedTrainRef.on("value",function(snap){SHARED_TRAIN=snap.val()||{};LOADED.sharedTrain=true;if(S.tab==="dash")render()});
   var effectRef=shopRef.parent.child("effectLog");
   try{effectRef.keepSynced(true)}catch(e){}
-  effectRef.on("value",function(snap){var d=snap.val();EFFECT_OUTCOMES=(d&&Array.isArray(d))?d:[]});
+  effectRef.on("value",function(snap){var d=snap.val();EFFECT_OUTCOMES=(d&&Array.isArray(d))?d:[];LOADED.effectLog=true});
   var healthRef=shopRef.parent.child("healthLog");
   try{healthRef.keepSynced(true)}catch(e){}
-  healthRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){HEALTH_LOG=d;if(S.tab==="dash"&&isOwner())render()}});
+  healthRef.on("value",function(snap){var d=snap.val();if(d&&Array.isArray(d)){HEALTH_LOG=d}LOADED.healthLog=true;if(S.tab==="dash"&&isOwner())render()});
   listsRef.on("value",function(snap){var d=snap.val();
     // Om vi har en väntande lokal skrivning (debounce pågår), ignorera inkommande eko så vi inte tappar ändringar
     if(_syncPending||_writingOwn){return}
@@ -2988,9 +3071,17 @@ function connect(id){
       LISTS.items=d.items||[];LISTS.history=d.history||{};LISTS.projects=d.projects||[];
       LISTS.activeArea=d.activeArea||"mat";LISTS.activeStores=d.activeStores||{};
       LISTS.weekMeals=d.weekMeals||[];LISTS.weekPlan=d.weekPlan||{};
-      LISTS.staples=d.staples||{};LISTS.mealEaten=d.mealEaten||{};LISTS.workouts=d.workouts||{};LISTS.workoutDone=d.workoutDone||{};LISTS.trainPlan=d.trainPlan||{};LISTS.trainLog=d.trainLog||[];LISTS.runLog=d.runLog||[];LISTS.trainGoals=d.trainGoals||{};LISTS.mealLog=d.mealLog||{};LISTS.pantry=d.pantry||{};LISTS.components=d.components||null;LISTS.equipment=d.equipment||{};LISTS._weekId=d._weekId||null;
+      LISTS.staples=d.staples||{};LISTS.mealEaten=d.mealEaten||{};LISTS.trainPlan=d.trainPlan||{};LISTS.trainGoals=d.trainGoals||{};LISTS.pantry=d.pantry||{};LISTS.components=d.components||null;LISTS.equipment=d.equipment||{};LISTS._weekId=d._weekId||null;LISTS._mealKeyFormat=d._mealKeyFormat||null;
+      LISTS.workoutDone=d.workoutDone||{};
+      // SKYDD för LOGG-ARRAYER: skriv bara över om inkommande är minst lika stor (annars behåll lokal).
+      // Förhindrar att en partiell/tom Firebase-push raderar loggad träning/mat.
+      function keepLonger(incoming,local){incoming=incoming||[];return (incoming.length>=((local&&local.length)||0)||!hadData)?incoming:local}
+      LISTS.trainLog=keepLonger(d.trainLog,LISTS.trainLog);
+      LISTS.runLog=keepLonger(d.runLog,LISTS.runLog);
+      // workouts + mealLog är objekt (per användare/datum) — merga hellre än ersätt
+      LISTS.workouts=(d.workouts&&Object.keys(d.workouts).length>=Object.keys(LISTS.workouts||{}).length)||!hadData?(d.workouts||{}):LISTS.workouts;
+      LISTS.mealLog=(d.mealLog&&Object.keys(d.mealLog).length>=Object.keys(LISTS.mealLog||{}).length)||!hadData?(d.mealLog||{}):LISTS.mealLog;
       // SKYDD: skriv bara över recepten om inkommande har minst lika många som vi redan har
-      // (förhindrar att en tom/delvis laddning raderar din sparade bank)
       var incoming=d.recipes||[];
       if(incoming.length>=( (LISTS.recipes&&LISTS.recipes.length)||0 ) || !hadData){LISTS.recipes=incoming;}
     }else{
@@ -3000,8 +3091,10 @@ function connect(id){
     }
     var firstLoad=!LISTS_LOADED;LISTS_LOADED=true;
     validateLists();
+    // Uppdatera "senast kända goda" receptantal — skydd mot att tom data skriver över
+    if(LISTS.recipes&&LISTS.recipes.length>_lastGoodRecipeCount)_lastGoodRecipeCount=LISTS.recipes.length;
     rolloverWeekIfNeeded();
-    migrateMealKeys();
+    var didMigrate=migrateMealKeys();
     // Seed default recipes ENDAST vid allra första laddningen OCH bara om databasen verkligen är tom.
     // Skriv inte direkt — vänta så vi inte kapplöper med inkommande riktig data.
     if(firstLoad&&(!LISTS.recipes||!LISTS.recipes.length)&&d&&!d.recipes){
@@ -3014,13 +3107,31 @@ function connect(id){
       var restored=0;dc(DEFAULT_RECIPES).forEach(function(r){if(!bn[r.name.toLowerCase()]){LISTS.recipes.push(r);restored++}});
       if(restored){skipSync=false;listsSync();skipSync=true;}
     }
+    if(didMigrate){skipSync=false;listsSync();skipSync=true;}
+    // ÅTERSTÄLLNINGSSKYDD: om Firebase laddade nästan tomt men vi har en lokal backup med data
+    // → erbjud återställning istället för att låta användaren tro att allt är borta.
+    (function(){
+      if(firstLoad&&(!LISTS.recipes||LISTS.recipes.length<5)){
+        var bk=getLocalBackup();
+        if(bk&&bk.data&&bk.data.recipes&&bk.data.recipes.length>=20){
+          setTimeout(function(){
+            if(confirm("⚠ Det ser ut som att data saknas.\n\nEn lokal säkerhetskopia hittades ("+bk.data.recipes.length+" recept, sparad "+new Date(bk.t).toLocaleString("sv-SE")+").\n\nVill du återställa den?")){
+              for(var k in bk.data)LISTS[k]=bk.data[k];
+              _lastGoodRecipeCount=LISTS.recipes.length;
+              skipSync=false;listsSync();skipSync=true;
+              toast("✓ Data återställd från säkerhetskopia");render();
+            }
+          },800);
+        }
+      }
+    })();
     render();skipSync=false});
   dbRef.on("value",function(snap){var d=snap.val();if(!d)return;skipSync=true;
     if(d.family){var fam=dc(FDEF);for(var k in d.family){if(k!=="persons"&&k!=="budget_shared")fam[k]=d.family[k]};if(d.family.persons)fam.persons=d.family.persons;if(d.family.budget_shared)fam.budget_shared=d.family.budget_shared;
     if(d.family.budget&&!d.family.budget_shared){var items=[];for(var bk in d.family.budget)items.push({name:bk,amount:N(d.family.budget[bk])});fam.budget_shared=items}
     S.family=fam}
     if(d.prospects)S.prospects=d.prospects;S.screen="app";skipSync=false;render();setTimeout(updateCharts,200);setTimeout(updateCharts,600)});
-  dbRef.once("value",function(snap){if(!snap.val())dbRef.set({family:S.family,prospects:[]})});
+  dbRef.once("value",function(snap){if(!snap.val())dbRef.update({family:S.family,prospects:[]})});
   S.screen="app";render()
 }
 
@@ -3047,17 +3158,18 @@ function openSessionBuilder(){
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+
       blocks.map(function(b){var on=picked[b.id];return '<button class="sb-block" data-id="'+b.id+'" style="display:flex;align-items:center;gap:8px;padding:12px 10px;border-radius:11px;border:2px solid '+(on?"var(--teal)":"var(--border)")+';background:'+(on?"rgba(26,138,101,.08)":"var(--bg2)")+';cursor:pointer"><span style="font-size:22px">'+b.emoji+'</span><span style="font-size:12px;font-weight:600;text-align:left;flex:1">'+b.name+'</span>'+(on?'<span style="color:var(--teal);font-weight:700">✓</span>':'')+'</button>'}).join('')+
       '</div>'+
+      '<button class="btn btn-s" id="sbExercises" style="width:100%;margin-bottom:12px">🎯 Bocka av enskilda övningar</button>'+
       '<div style="font-size:10px;color:var(--fg2);margin-bottom:4px">Anteckning (valfritt)</div>'+
       '<input id="sbNote" placeholder="T.ex. 5 km + ben + stretch" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;box-sizing:border-box;background:var(--bg2);color:var(--fg);margin-bottom:12px">'+
       '<button class="btn btn-p" id="sbSave" style="width:100%">✓ Logga passet ('+Object.keys(picked).length+' block)</button>';
     openInfoSheet("🧩 Dagens pass","Sätt ihop fritt",body);
     setTimeout(function(){
       document.querySelectorAll(".sb-block").forEach(function(b){b.addEventListener("click",function(){var id=b.dataset.id;if(picked[id])delete picked[id];else picked[id]=1;haptic("tap");closeSheet();draw()})});
+      var ex=document.getElementById("sbExercises");if(ex)ex.addEventListener("click",function(){closeSheet();openExerciseSession()});
       var sv=document.getElementById("sbSave");if(sv)sv.addEventListener("click",function(){
         var ids=Object.keys(picked);if(!ids.length){toast("Välj minst ett block");return}
         var note=(document.getElementById("sbNote")||{}).value||"";
         var names=ids.map(function(id){var b=blocks.find(function(x){return x.id===id});return b.name});
-        // Logga ett sammansatt pass + logga ev. löpning separat för veckomål
         var hasRun=ids.indexOf("lopning")>=0;
         addTrainSession({type:ids.indexOf("styrka")>=0||ids.indexOf("rehab")>=0?"styrka":"core",parts:[],dur:0,note:"Pass: "+names.join(" + ")+(note?" — "+note:"")});
         if(hasRun)addRun({dist:0,dur:0,pace:"",note:note||"Löprunda",type:"lopning",source:"session",date:Date.now()});
@@ -3066,6 +3178,127 @@ function openSessionBuilder(){
     },60);
   }
   draw();
+}
+// Muskelmedveten övnings-session: bocka av enskilda övningar, se vilka muskler du täckt,
+// få förslag på komplement för muskelgrupper du missat. Mixa & matcha.
+function openExerciseSession(){
+  if(!S.exSession)S.exSession={done:{},extra:[]};
+  var dayObj=WEEKDAYS[todayIdx()];
+  // Dagens rekommenderade övningar (från fokus/mål) + ev. tillagda
+  var goals=trainForDay(dayObj.k).map(function(a){return a.id}).filter(function(g){return g&&g!=="mat"&&g!=="hem"});
+  var base=EXERCISE_DB.filter(function(e){return e.area==="styrka"&&(!goals.length||e.goals.some(function(g){return goals.indexOf(g)>=0}))}).slice(0,5);
+  // Lägg till manuellt tillagda
+  S.exSession.extra.forEach(function(id){if(!base.some(function(e){return e.id===id})){var e=EXERCISE_DB.find(function(x){return x.id===id});if(e)base.push(e)}});
+  function muscleGroups(list){var m={};list.forEach(function(e){(e.muscles||[]).forEach(function(mu){m[mu]=true})});return Object.keys(m)}
+  function draw(){
+    var doneEx=base.filter(function(e){return S.exSession.done[e.id]});
+    var coveredMuscles=muscleGroups(doneEx);
+    // Vanliga muskelgrupper att täcka i ett helkroppspass
+    var keyGroups=["sätesmuskel","framsida lår","baksida lår","raka bukmuskeln","bröstmuskel","övre rygg","triceps","biceps","axlar"];
+    var missing=keyGroups.filter(function(g){return doneEx.length&&!coveredMuscles.some(function(c){return c.indexOf(g.split(" ")[0])>=0||g.indexOf(c.split(" ")[0])>=0})});
+    var body='<div style="font-size:11px;color:var(--fg2);margin-bottom:12px">Bocka av de övningar du faktiskt gjorde. Du ser direkt vilka muskler du tränat — och får förslag om något saknas.</div>'+
+      base.map(function(e){var on=S.exSession.done[e.id];return '<button class="es-ex" data-id="'+e.id+'" style="width:100%;display:flex;align-items:center;gap:10px;padding:11px;margin-bottom:6px;border-radius:10px;border:1px solid '+(on?"var(--teal)":"var(--border)")+';background:'+(on?"rgba(26,138,101,.08)":"var(--bg2)")+';cursor:pointer;text-align:left"><span style="font-size:18px">'+(on?"✅":"⬜")+'</span><div style="flex:1"><div style="font-size:12px;font-weight:600">'+e.name+'</div><div style="font-size:9px;color:var(--fg3)">'+(e.muscles||[]).slice(0,3).join(", ")+'</div></div></button>'}).join('')+
+      '<button class="es-add btn btn-s btn-sm" style="width:100%;margin:4px 0 12px">+ Lägg till en övning</button>';
+    // Täckta muskler
+    if(doneEx.length){
+      body+='<div style="background:var(--bg2);border-radius:9px;padding:10px;margin-bottom:10px"><div style="font-size:10px;font-weight:700;margin-bottom:5px">💪 Muskler du tränat ('+doneEx.length+' övn.)</div><div style="display:flex;flex-wrap:wrap;gap:4px">'+coveredMuscles.map(function(m){return '<span style="font-size:10px;background:rgba(26,138,101,.12);color:var(--teal);border-radius:10px;padding:2px 8px">'+m+'</span>'}).join('')+'</div></div>';
+      // Förslag på komplement
+      if(missing.length){
+        var suggGroup=missing[0];
+        var sugg=EXERCISE_DB.filter(function(e){return e.area==="styrka"&&(e.muscles||[]).some(function(m){return m.indexOf(suggGroup.split(" ")[0])>=0})&&!base.some(function(b){return b.id===e.id})}).slice(0,2);
+        if(sugg.length)body+='<div style="border:1px dashed var(--coral);border-radius:9px;padding:10px;margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:var(--coral);margin-bottom:5px">💡 Du har inte tränat: '+missing.slice(0,3).join(", ")+'</div><div style="font-size:10px;color:var(--fg2);margin-bottom:6px">Vill du komplettera? T.ex.:</div>'+sugg.map(function(e){return '<button class="es-sugg btn btn-s btn-sm" data-id="'+e.id+'" style="width:100%;justify-content:flex-start;margin-bottom:4px">+ '+e.name+' ('+(e.muscles||[])[0]+')</button>'}).join('')+'</div>';
+      }
+    }
+    body+='<button class="btn btn-p" id="esSave" style="width:100%">✓ Logga passet ('+doneEx.length+' övningar)</button>';
+    openInfoSheet("🎯 Bocka av övningar","Mixa & matcha",body);
+    setTimeout(function(){
+      document.querySelectorAll(".es-ex").forEach(function(b){b.addEventListener("click",function(){var id=b.dataset.id;if(S.exSession.done[id])delete S.exSession.done[id];else S.exSession.done[id]=1;haptic("tap");closeSheet();draw()})});
+      document.querySelectorAll(".es-sugg").forEach(function(b){b.addEventListener("click",function(){S.exSession.extra.push(b.dataset.id);S.exSession.done[b.dataset.id]=1;haptic("ok");closeSheet();draw()})});
+      var add=document.querySelector(".es-add");if(add)add.addEventListener("click",function(){closeSheet();openExercisePicker(function(id){S.exSession.extra.push(id);closeSheet();openExerciseSession()})});
+      var sv=document.getElementById("esSave");if(sv)sv.addEventListener("click",function(){
+        var doneEx=base.filter(function(e){return S.exSession.done[e.id]});
+        if(!doneEx.length){toast("Bocka av minst en övning");return}
+        var muscles=muscleGroups(doneEx);
+        addTrainSession({type:"styrka",parts:muscles,dur:0,note:"Styrka: "+doneEx.map(function(e){return e.name}).join(", ")});
+        setWorkoutDone(todayKey(),true);S.exSession={done:{},extra:[]};haptic("ok");listsSync();closeSheet();toast("💪 "+doneEx.length+" övningar loggade!");render();
+      });
+    },60);
+  }
+  draw();
+}
+// "Min träningsbalans" — visar vad du tränat senaste 14 dgr + föreslår vad du bör komplettera
+function openMuscleBalance(){
+  var bal=muscleBalance(14);
+  var groups=Object.keys(bal.count);
+  var maxC=Math.max(1,Math.max.apply(null,groups.map(function(g){return bal.count[g]})));
+  // Väl tränat = över snitt, försummat = 0 eller lågt
+  var trained=groups.filter(function(g){return bal.count[g]>0}).sort(function(a,b){return bal.count[b]-bal.count[a]});
+  var neglected=groups.filter(function(g){return bal.count[g]===0});
+  var low=groups.filter(function(g){return bal.count[g]>0&&bal.count[g]<=Math.max(1,maxC*0.3)});
+  var body='';
+  if(bal.total===0){
+    body='<div style="font-size:12px;color:var(--fg2);text-align:center;padding:14px">Du har inte loggat några övningar än (senaste 14 dgr). Bocka av övningar när du tränar så visas din muskelbalans här — och du får förslag på vad du bör komplettera.</div>';
+  }else{
+    // Sammanfattande mening
+    var summary='';
+    if(trained.length)summary='Du har tränat <b style="color:var(--teal)">'+trained.slice(0,2).join(" och ").toLowerCase()+'</b> bra';
+    var toComplement=neglected.concat(low.filter(function(g){return neglected.indexOf(g)<0}));
+    if(toComplement.length)summary+=(summary?", men ":"Du bör ")+'komplettera med <b style="color:var(--coral)">'+toComplement.slice(0,2).join(" och ").toLowerCase()+'</b>.';
+    else if(summary)summary+=" — fin balans!";
+    body+='<div style="background:var(--bg2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.5">💪 '+summary+'</div>';
+    // Stapeldiagram per grupp
+    body+='<div style="font-size:10px;color:var(--fg2);margin-bottom:6px">Senaste 14 dagarna</div>';
+    body+=groups.map(function(g){var c=bal.count[g];var pct=Math.round(c/maxC*100);var col=c===0?"var(--border)":c<=maxC*0.3?"#c87a3a":"var(--teal)";
+      return '<div style="margin-bottom:7px"><div class="flex jcb" style="font-size:11px;margin-bottom:2px"><span>'+g+'</span><span style="font-family:var(--m);color:var(--fg2)">'+c+'</span></div><div style="height:7px;background:var(--bg2);border-radius:4px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:'+Math.max(pct,c?8:0)+'%;background:'+col+';transition:width .4s"></div></div></div>';
+    }).join('');
+    // Förslag för försummade grupper
+    var suggestGroup=toComplement[0];
+    if(suggestGroup){
+      var sugg=suggestForGroup(suggestGroup,bal);
+      if(sugg.length){
+        body+='<div style="border:1px dashed var(--coral);border-radius:10px;padding:12px;margin-top:14px"><div style="font-size:11px;font-weight:700;color:var(--coral);margin-bottom:6px">💡 Förslag: träna '+suggestGroup.toLowerCase()+'</div>'+
+          sugg.map(function(e){return '<button class="mb-sugg btn btn-s btn-sm" data-id="'+e.id+'" style="width:100%;justify-content:flex-start;margin-bottom:5px;text-align:left">'+e.name+' <span style="color:var(--fg3);font-size:9px">· '+(e.muscles||[]).slice(0,2).join(", ")+'</span></button>'}).join('')+'</div>';
+      }
+    }
+  }
+  body+='<button class="btn btn-p" id="mbLog" style="width:100%;margin-top:14px">✓ Bocka av dagens övningar</button>'+
+    '<button class="btn btn-s" id="mbPick" style="width:100%;margin-top:6px">🔍 Välj en enskild övning</button>';
+  openInfoSheet("💪 Min träningsbalans","Vad du tränat & vad du bör komplettera",body);
+  setTimeout(function(){
+    document.querySelectorAll(".mb-sugg").forEach(function(b){b.addEventListener("click",function(){closeSheet();openExerciseDetail(b.dataset.id)})});
+    var lg=document.getElementById("mbLog");if(lg)lg.addEventListener("click",function(){closeSheet();openExerciseSession()});
+    var pk=document.getElementById("mbPick");if(pk)pk.addEventListener("click",function(){closeSheet();openExercisePicker(function(id){closeSheet();openExerciseDetail(id)})});
+  },60);
+}
+// Övningsdetalj: gör så här, nivå, logga — för fristående övningsval
+function openExerciseDetail(exId){
+  var e=EXERCISE_DB.find(function(x){return x.id===exId});if(!e){openMuscleBalance();return}
+  var lvl=myExLevel(exId);var lv=e.levels[lvl-1];
+  var body='<div style="font-size:10px;color:var(--fg2);margin-bottom:8px">'+(e.muscles||[]).join(", ")+'</div>'+
+    '<div style="display:flex;gap:6px;margin-bottom:12px">'+[1,2,3].map(function(n){var on=n===lvl;return '<button class="ed-lvl btn btn-s btn-sm" data-n="'+n+'" style="flex:1;border:1px solid '+(on?"var(--teal)":"var(--border)")+';background:'+(on?"var(--teal)":"var(--bg2)")+';color:'+(on?"#fff":"var(--fg)")+'">Nivå '+n+'</button>'}).join('')+'</div>'+
+    '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">'+
+      '<div style="font-size:12px;margin-bottom:8px"><b>Gör så här:</b> '+lv.txt+'</div>'+
+      '<div style="font-size:11px;color:var(--teal);margin-bottom:6px">💡 '+lv.cue+'</div>'+
+      (lv.feel?'<div style="font-size:11px;color:var(--fg2)">🎯 Ska kännas: '+lv.feel+'</div>':'')+
+      '<div style="font-size:9px;color:var(--fg3);margin-top:8px">🛠 '+(lv.equip||[]).map(function(k){return (EQUIPMENT_DB[k]||{name:k}).name+(ownsEquip(k)?" ✓":" (saknas)")}).join(", ")+'</div>'+
+    '</div>'+
+    (readyToLevelUp(exId)?'<div style="font-size:10px;color:var(--teal);text-align:center;margin-bottom:8px">🎉 Du har tränat detta flitigt — redo att höja nivå?</div>':'')+
+    '<button class="btn btn-p" id="edLog" style="width:100%">✓ Logga att jag gjort denna</button>';
+  openInfoSheet(e.name,"Fristående övning",body);
+  setTimeout(function(){
+    document.querySelectorAll(".ed-lvl").forEach(function(b){b.addEventListener("click",function(){setMyExLevel(exId,N(b.dataset.n));haptic("tap");closeSheet();openExerciseDetail(exId)})});
+    var lg=document.getElementById("edLog");if(lg)lg.addEventListener("click",function(){logExercise(exId,lvl);addTrainSession({type:"styrka",parts:e.muscles||[],dur:0,note:e.name+" (nivå "+lvl+")"});haptic("ok");closeSheet();toast("💪 "+e.name+" loggad!");render()});
+  },60);
+}
+// Enkel övningsväljare (för att lägga till valfri övning)
+function openExercisePicker(cb){  var body='<input id="exPick" placeholder="Sök övning..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;box-sizing:border-box;background:var(--bg2);color:var(--fg);margin-bottom:10px"><div id="exPickList"></div>';
+  openInfoSheet("Lägg till övning","Välj fritt",body);
+  function drawList(q){
+    var list=EXERCISE_DB.filter(function(e){return!q||e.name.toLowerCase().indexOf(q.toLowerCase())>=0||(e.muscles||[]).some(function(m){return m.indexOf(q.toLowerCase())>=0})}).slice(0,20);
+    var el=document.getElementById("exPickList");if(el)el.innerHTML=list.map(function(e){return '<button class="exp-item btn btn-s btn-sm" data-id="'+e.id+'" style="width:100%;justify-content:flex-start;margin-bottom:4px;text-align:left">'+e.name+' <span style="color:var(--fg3);font-size:9px">· '+(e.muscles||[]).slice(0,2).join(", ")+'</span></button>'}).join('');
+    if(el)el.querySelectorAll(".exp-item").forEach(function(b){b.addEventListener("click",function(){cb(b.dataset.id)})});
+  }
+  setTimeout(function(){drawList("");var inp=document.getElementById("exPick");if(inp)inp.addEventListener("input",function(){drawList(inp.value)})},60);
 }
 // Ändra detaljnivå när som helst
 function openDepthSheet(){
@@ -3935,14 +4168,14 @@ function dateForWeekday(wdKey){
 }
 // Migrering: gammalt veckodagsformat (wed:b) → städas bort en gång. Datumnycklar (2026-06-25) behålls.
 function migrateMealKeys(){
-  if(!LISTS)return;
-  var migrated=LISTS._mealKeyFormat==="date";
-  if(migrated)return;
+  if(!LISTS)return false;
+  if(LISTS._mealKeyFormat==="date")return false;// redan migrerad
   // Rensa gamla veckodagsnycklar i weekPlan (mon/tue/.../sun) och mealEaten — de saknar datum och kan ej räddas säkert
-  var wd=["mon","tue","wed","thu","fri","sat","sun"];
-  if(LISTS.weekPlan){Object.keys(LISTS.weekPlan).forEach(function(k){if(wd.indexOf(k)>=0)delete LISTS.weekPlan[k]})}
-  if(LISTS.mealEaten){Object.keys(LISTS.mealEaten).forEach(function(k){if(wd.indexOf(k.split(":")[0])>=0)delete LISTS.mealEaten[k]})}
-  LISTS._mealKeyFormat="date";listsSync();
+  var wd=["mon","tue","wed","thu","fri","sat","sun"];var changed=false;
+  if(LISTS.weekPlan){Object.keys(LISTS.weekPlan).forEach(function(k){if(wd.indexOf(k)>=0){delete LISTS.weekPlan[k];changed=true}})}
+  if(LISTS.mealEaten){Object.keys(LISTS.mealEaten).forEach(function(k){if(wd.indexOf(k.split(":")[0])>=0){delete LISTS.mealEaten[k];changed=true}})}
+  LISTS._mealKeyFormat="date";
+  return true;// signalera att migrering skett — anroparen avgör när sync sker
 }
 // Äten-markering: LISTS.mealEaten["2026-06-25:d"]=true (datum-baserat)
 function isMealEaten(dayKey,slot){return!!(LISTS.mealEaten&&LISTS.mealEaten[dayKey+":"+slot])}
@@ -4202,6 +4435,7 @@ function logHealth(action,item,scores,total,slot){
   HEALTH_LOG.push({t:Date.now(),action:action,item:item,scores:scores,total:total,who:ME||"?",slot:slot||null});
   // Keep last 500 entries
   if(HEALTH_LOG.length>500)HEALTH_LOG=HEALTH_LOG.slice(-500);
+  if(!LOADED.healthLog){console.warn("healthLog write blocked — not loaded");return}
   if(shopRef){var r=shopRef.parent.child("healthLog");r.set(HEALTH_LOG)}
 }
 function healthKPIs(){
@@ -4546,17 +4780,16 @@ function rTodo(){
     (isShop?renderPantrySection():'')
 }
 // Skafferi-sektion: varor hemma med saldo, +/-, slut-knapp
-function renderPantrySection(){
-  var pantry=LISTS.pantry||{};
+function renderPantrySection(){  var pantry=LISTS.pantry||{};
   var keys=Object.keys(pantry).filter(function(k){return pantry[k]&&pantry[k].area==="mat"});
   // Sortera: låg/slut först (behöver uppmärksamhet), sen hemma
   keys.sort(function(a,b){var pa=pantry[a],pb=pantry[b];var sa=pa.qty<=0?0:pa.qty<=1?1:2;var sb=pb.qty<=0?0:pb.qty<=1?1:2;if(sa!==sb)return sa-sb;return (pb.updated||0)-(pa.updated||0)});
   var collapsed=S.pantryCollapsed;
   var homeCount=keys.filter(function(k){return pantry[k].qty>0}).length;
   var lowCount=keys.filter(function(k){return pantry[k].qty>0&&pantry[k].qty<=1}).length;
-  var head='<div class="flex aic jcb" id="pantryToggle" style="cursor:pointer;margin-bottom:'+(collapsed?"0":"6px")+'"><span style="font-size:11px;font-weight:600">'+(collapsed?"▸":"▾")+' 🏠 Hemma ('+homeCount+')'+(lowCount?' <span style="font-size:9px;color:#c87a3a;font-weight:500">· '+lowCount+' tar slut</span>':'')+'</span></div>';
+  var head='<div class="flex aic jcb" style="margin-bottom:'+(collapsed?"0":"6px")+'"><span id="pantryToggle" style="cursor:pointer;font-size:11px;font-weight:600">'+(collapsed?"▸":"▾")+' 🏠 Mitt skafferi ('+homeCount+')'+(lowCount?' <span style="font-size:9px;color:#c87a3a;font-weight:500">· '+lowCount+' tar slut</span>':'')+'</span>'+(collapsed?'':'<button class="pantry-add-btn btn btn-s btn-sm" style="font-size:10px">+ Lägg till</button>')+'</div>';
   if(collapsed)return '<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">'+head+'</div>';
-  if(!keys.length)return '<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">'+head+'<div style="font-size:10px;color:var(--fg3);padding:6px 2px">Inget i skafferiet än. Bockar du av matvaror i affären hamnar de här.</div></div>';
+  if(!keys.length)return '<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">'+head+'<div style="font-size:10px;color:var(--fg3);padding:6px 2px">Inget i skafferiet än. Tryck <b>+ Lägg till</b> för att fylla på vad du har hemma — eller bocka av matvaror i affären så hamnar de här automatiskt.</div></div>';
   var rows=keys.map(function(k){var p=pantry[k];var low=p.qty>0&&p.qty<=1;var out=p.qty<=0;
     var em=itemEmoji({text:p.text,cat:p.cat});
     return '<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--bg2)'+(out?";opacity:.55":"")+'">'+
@@ -4573,6 +4806,21 @@ function renderPantrySection(){
   return '<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">'+head+rows+'</div>';
 }
 
+// Lägg till varor i skafferiet manuellt (skriv fritt, komma/rad separerar flera)
+function openPantryAddSheet(){
+  var body='<div style="font-size:11px;color:var(--fg2);margin-bottom:10px">Skriv vad du har hemma. Flera varor: separera med komma eller ny rad.</div>'+
+    '<textarea id="paInput" placeholder="t.ex. mjölk, ägg, smör, pasta" style="width:100%;height:80px;padding:10px;border:1px solid var(--border);border-radius:9px;box-sizing:border-box;background:var(--bg2);color:var(--fg);font-size:15px;resize:vertical"></textarea>'+
+    '<button class="btn btn-p" id="paSave" style="width:100%;margin-top:10px">🏠 Lägg till i skafferiet</button>';
+  openInfoSheet("+ Fyll på skafferiet","Vad har du hemma?",body);
+  setTimeout(function(){
+    var inp=document.getElementById("paInput");if(inp)inp.focus();
+    var sv=document.getElementById("paSave");if(sv)sv.addEventListener("click",function(){
+      var items=(inp.value||"").split(/[,\n]/).map(function(s){return s.trim()}).filter(Boolean);
+      if(!items.length){toast("Skriv minst en vara");return}
+      items.forEach(function(n){var g=guessArea(n);pantryAdd({text:n,area:g.area||"mat",cat:g.cat||""})});listsSync();haptic("ok");closeSheet();toast("🏠 "+items.length+" varor tillagda i skafferiet");render();
+    });
+  },60);
+}
 function itemEmoji(it){
   // Välj passande emoji utifrån kategori/typ
   var t=(it.text||"").toLowerCase();
@@ -4600,6 +4848,7 @@ function rItem(it,idx,isShop){
       (em?'<span style="font-size:15px;flex-shrink:0">'+em+'</span>':'')+
       '<span class="name">'+it.text+'</span>'+
     '</div>'+
+    '<div class="shop-badges" style="display:flex;align-items:center;gap:5px;flex-shrink:0;justify-content:flex-end">'+
     (isShop?'<span class="qty-tag" data-qty="'+iid+'" style="font-size:11px;font-weight:700;color:var(--teal);background:var(--tealL);border-radius:8px;padding:3px 9px;cursor:pointer;white-space:nowrap" title="Justera antal">'+(it.qty||1)+(it.unit?"×"+it.unit:" st")+'</span>':'')+
     mealTag+
     (isShop&&isOwner()&&it.cat?'<span class="cat-tag" style="cursor:pointer" data-setcat="'+iid+'" title="Byt kategori">'+(CAT_ICONS[it.cat]||"")+'</span>':'')+
@@ -4609,6 +4858,7 @@ function rItem(it,idx,isShop){
     (!isShop&&it.pri==="hög"?'<span style="font-size:9px;color:var(--rose)">⬆</span>':'')+
     (!isShop&&it.assignee?'<span style="font-size:9px;color:var(--purple)">'+it.assignee+'</span>':'')+
     (!isShop&&it.deadline?'<span style="font-size:9px;color:var(--fg3)">📅 '+it.deadline+'</span>':'')+
+    '</div>'+
     '<div class="actions">'+
     (isOwner()?'<button class="ib" data-tmove="'+iid+'" title="Flytta">↗</button>':'')+
     (!isShop&&isOwner()?'<button class="ib" data-tpri="'+iid+'" title="Prioritet">⬆</button><button class="ib" data-tassign="'+iid+'" title="Tilldela">👤</button><button class="ib" data-tdate="'+iid+'" title="Deadline">📅</button>':'')+
@@ -4755,6 +5005,7 @@ function bindTodo(){
   var sfn=document.getElementById("shopFinish");if(sfn)sfn.addEventListener("click",function(){setShopStatus(null);addActivity(ME||"Någon","handlade klart");render()});
   // Skafferi (pantry): saldo +/−, slut, hopfäll
   var ptg=document.getElementById("pantryToggle");if(ptg)ptg.addEventListener("click",function(){S.pantryCollapsed=!S.pantryCollapsed;render()});
+  var pab=document.querySelector(".pantry-add-btn");if(pab)pab.addEventListener("click",function(e){e.stopPropagation();openPantryAddSheet()});
   document.querySelectorAll(".pantry-plus").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();var k=b.dataset.pk;var p=(LISTS.pantry||{})[k];if(p){pantrySetQty(k,(p.qty||0)+1);listsSync();render()}})});
   document.querySelectorAll(".pantry-minus").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();var k=b.dataset.pk;var p=(LISTS.pantry||{})[k];if(p){pantrySetQty(k,(p.qty||0)-1);listsSync();render()}})});
   document.querySelectorAll(".pantry-out").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();pantryMarkOut(b.dataset.pk);listsSync();haptic("tap");toast("🛒 Tillagd på inköpslistan");render()})});
@@ -4763,10 +5014,10 @@ function bindTodo(){
   // Assign
   document.querySelectorAll("[data-tassign]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var it=findItem(el.dataset.tassign);if(!it)return;var names=S.family.persons.map(function(p){return p.name});var cur=it.assignee||"";it.assignee=cur?"":(names[0]||"");listsSync();render()})});
   // Set price
-  document.querySelectorAll("[data-setprice]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var p=prompt("Pris (kr):");if(p!==null){var it=findItem(el.dataset.setprice);if(!it)return;it.price=N(p);var nm=it.text;if(!LISTS.history)LISTS.history={};if(!LISTS.history[nm])LISTS.history[nm]={};LISTS.history[nm].price=N(p);listsSync();render()}})});
+  document.querySelectorAll("[data-setprice]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var it=findItem(el.dataset.setprice);if(!it)return;openInputSheet({title:"Pris",sub:it.text,placeholder:"kr",value:it.price||"",type:"number",inputmode:"decimal",saveLabel:"Spara pris",cb:function(v){if(v==="")return;it.price=N(v);var nm=it.text;if(!LISTS.history)LISTS.history={};if(!LISTS.history[nm])LISTS.history[nm]={};LISTS.history[nm].price=N(v);listsSync();render()}})})});
   // Area filter
   document.querySelectorAll("[data-area]").forEach(function(el){el.addEventListener("click",function(){
-    if(el.dataset.area==="_add"){var n=prompt("Projektnamn (t.ex. Bröllop):");if(!n)return;var icon=prompt("Emoji:")||"📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project",stores:[]});LISTS.activeArea=id;listsSync();render();return}
+    if(el.dataset.area==="_add"){openInputSheet({title:"Nytt projekt",hint:"T.ex. Bröllop, Renovering, Semester",placeholder:"Projektnamn",saveLabel:"Skapa projekt",cb:function(n){if(!n)return;var icon="📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project",stores:[]});LISTS.activeArea=id;listsSync();render()}});return}
     LISTS.activeArea=el.dataset.area;listsSync();render()})});
   // Store select
   var ss2=document.getElementById("storeSelect");if(ss2)ss2.addEventListener("change",function(e){if(!LISTS.activeStores)LISTS.activeStores={};LISTS.activeStores[LISTS.activeArea]=e.target.value;listsSync();render()});
@@ -4795,8 +5046,9 @@ function bindTodo(){
     LISTS.history[nm].cat=next;LISTS.history[nm].area=it.area;
     listsSync();render()})});
   // Move to different area
-  document.querySelectorAll("[data-tmove]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var it=findItem(el.dataset.tmove);if(!it)return;var allA=AREAS.concat(LISTS.projects||[]);var choice=prompt("Flytta till:\n"+allA.map(function(a,i){return(i+1)+". "+a.icon+" "+a.name}).join("\n")+"\n\nAnge nummer:");if(!choice)return;var ci=N(choice)-1;if(ci>=0&&ci<allA.length){it.area=allA[ci].id;it.cat="";var nm=it.text;if(LISTS.history[nm])LISTS.history[nm].area=allA[ci].id;
-    addActivity(ME||"Okänd","flyttade \""+nm+"\" till "+allA[ci].icon);listsSync();render()}})});
+  document.querySelectorAll("[data-tmove]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var it=findItem(el.dataset.tmove);if(!it)return;var allA=AREAS.concat(LISTS.projects||[]);
+    openChoiceSheet({title:"Flytta till",sub:it.text,options:allA.map(function(a){return{label:(a.icon||"")+" "+a.name,value:a.id}}),cb:function(aid){var area=allA.find(function(a){return a.id===aid});if(!area)return;it.area=area.id;it.cat="";var nm=it.text;if(LISTS.history[nm])LISTS.history[nm].area=area.id;
+      addActivity(ME||"Okänd","flyttade \""+nm+"\" till "+(area.icon||""));listsSync();render()}})})});
   // Deadline
   document.querySelectorAll("[data-tdate]").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var it=findItem(el.dataset.tdate);if(!it)return;
     var di=document.createElement("input");di.type="date";di.value=it.deadline||"";di.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;font-size:16px;padding:12px;border-radius:10px;border:2px solid var(--coral)";
@@ -4937,7 +5189,7 @@ function bindAll(f,c){
   var meBtn=document.getElementById("meBtn");if(meBtn)meBtn.addEventListener("click",function(){if(!IS_ADMIN)return;var names=S.family.persons.map(function(p){return p.name});var cur=ME||"";var next=names[(names.indexOf(cur)+1)%names.length];ME=next;localStorage.setItem("fc_me",ME);toast("Du är nu "+ME);render()});
   // Ask who you are on first use
   if(!ME&&S.family.persons.length>=2){var names=S.family.persons.map(function(p){return p.name});
-    setTimeout(function(){var who=prompt("Vem är du?\n"+names.map(function(n,i){return(i+1)+". "+n}).join("\n")+"\n\nAnge nummer:");if(who){var idx=N(who)-1;if(idx>=0&&idx<names.length){ME=names[idx];localStorage.setItem("fc_me",ME);toast("Hej "+ME+"!");render()}}},500)}
+    setTimeout(function(){openChoiceSheet({title:"Vem är du?",hint:"Välj din profil så personifieras appen",options:names.map(function(n){return{label:n,value:n}}),cb:function(v){if(v){ME=v;localStorage.setItem("fc_me",ME);toast("Hej "+ME+"!");render()}}})},500)}
   // FAB
   var fabBtn=document.getElementById("fabBtn"),fabMenu=document.getElementById("fabMenu");
   if(fabBtn)fabBtn.addEventListener("click",function(e){e.stopPropagation();fabMenu.classList.toggle("show");fabBtn.textContent=fabMenu.classList.contains("show")?"×":"+"});
@@ -4946,7 +5198,7 @@ function bindAll(f,c){
     var act=el.dataset.fab;fabMenu.classList.remove("show");fabBtn.textContent="+";
     if(act==="item"){S.tab="todo";render();setTimeout(function(){var inp=document.getElementById("todoInput");if(inp)inp.focus()},100)}
     else if(act==="prospect"){S.tab="prospekt";var ps=dc(S.prospects);var np=dc(PDEF);np.name="Prospekt "+(ps.length+1);np.comparables=[];ps.push(np);ss({prospects:ps,viewIdx:ps.length-1})}
-    else if(act==="project"){var n=prompt("Projektnamn:");if(!n)return;var icon=prompt("Emoji-ikon:")||"📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project"});LISTS.activeList=id;S.tab="todo";listsSync();render()}
+    else if(act==="project"){openInputSheet({title:"Nytt projekt",placeholder:"Projektnamn",saveLabel:"Skapa",cb:function(n){if(!n)return;var icon="📋";var id=n.toLowerCase().replace(/[^a-zåäö0-9]/g,"").slice(0,12);if(!LISTS.projects)LISTS.projects=[];LISTS.projects.push({id:id,name:n,icon:icon,type:"project"});LISTS.activeList=id;S.tab="todo";listsSync();render()}})}
   })});
   // Person filter
   document.querySelectorAll("[data-pf]").forEach(function(el){el.addEventListener("click",function(){PERSON_FILTER=el.dataset.pf;render()})});
@@ -5005,7 +5257,7 @@ function bindAll(f,c){
     render();setTimeout(updateCharts,100)})});
   // Expand/collapse
   document.querySelectorAll(".sec-h").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();toggleSec(el.dataset.sec)})});
-  document.getElementById("lo").addEventListener("click",function(){auth.signOut();localStorage.removeItem("hid");if(dbRef)dbRef.off();if(shopRef)shopRef.off();dbRef=null;shopRef=null;LISTS_LOADED=false;S.screen="login";S.hid="";render()});
+  document.getElementById("lo").addEventListener("click",function(){auth.signOut();localStorage.removeItem("hid");if(dbRef)dbRef.off();if(shopRef)shopRef.off();dbRef=null;shopRef=null;LISTS_LOADED=false;LOADED={activity:false,shopStatus:false,sharedTrain:false,effectLog:false,healthLog:false};S.screen="login";S.hid="";render()});
   var mb=document.getElementById("membersBtn");if(mb)mb.addEventListener("click",openMembersPanel);
   document.querySelectorAll(".tab").forEach(function(t){t.addEventListener("click",function(){haptic("tap");S.viewIdx=null;S.tab=t.dataset.t;render();setTimeout(updateCharts,60)})});
   document.querySelectorAll(".depth-toggle").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();toggleDepth(b.dataset.part);haptic("tap");render()})});
@@ -5028,8 +5280,8 @@ function bindAll(f,c){
   var addStep=document.getElementById("addStep");if(addStep)addStep.addEventListener("click",function(){var fam=dc(S.family);if(!fam.provision)fam.provision={type:"trappa",base:0,steps:[]};if(!fam.provision.steps)fam.provision.steps=[];fam.provision.steps.push({from:0,to:0,pct:0});ss({family:fam})});
   document.querySelectorAll(".si").forEach(function(el){el.addEventListener("change",function(e){var fam=dc(S.family);fam.budget_shared[N(e.target.dataset.si)].amount=N(e.target.value);ss({family:fam})})});
   document.querySelectorAll(".del-shared").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var fam=dc(S.family);fam.budget_shared.splice(N(el.dataset.si),1);ss({family:fam})})});
-  var addS=document.getElementById("add-shared");if(addS)addS.addEventListener("click",function(){var n=prompt("Namn:");if(!n)return;var fam=dc(S.family);fam.budget_shared.push({name:n,amount:0,account:"hushall"});ss({family:fam})});
-  document.querySelectorAll(".add-shared-acct").forEach(function(el){el.addEventListener("click",function(){var n=prompt("Namn:");if(!n)return;var fam=dc(S.family);fam.budget_shared.push({name:n,amount:0,account:el.dataset.acct||"hushall"});ss({family:fam})})});
+  var addS=document.getElementById("add-shared");if(addS)addS.addEventListener("click",function(){openInputSheet({title:"Ny budgetpost",hint:"Gemensam utgift",placeholder:"T.ex. Hemförsäkring",saveLabel:"Lägg till",cb:function(n){if(!n)return;var fam=dc(S.family);fam.budget_shared.push({name:n,amount:0,account:"hushall"});ss({family:fam})}})});
+  document.querySelectorAll(".add-shared-acct").forEach(function(el){el.addEventListener("click",function(){var acct=el.dataset.acct||"hushall";openInputSheet({title:"Ny budgetpost",hint:"Gemensam utgift",placeholder:"T.ex. El, Bredband",saveLabel:"Lägg till",cb:function(n){if(!n)return;var fam=dc(S.family);fam.budget_shared.push({name:n,amount:0,account:acct});ss({family:fam})}})})});
   var splitEvt=function(slId,nId,key){
     var sl=document.getElementById(slId),sn=document.getElementById(nId);
     if(sl)sl.addEventListener("input",function(e){var fam=dc(S.family);fam[key]=N(e.target.value)/100;ss({family:fam})});
@@ -5040,7 +5292,7 @@ function bindAll(f,c){
   splitEvt("slH","slHn","split_hushall");
   document.querySelectorAll(".pbi").forEach(function(el){el.addEventListener("change",function(e){var fam=dc(S.family);fam.persons[N(e.target.dataset.pi)].personal_budget[N(e.target.dataset.bi)].amount=N(e.target.value);ss({family:fam})})});
   document.querySelectorAll(".del-personal").forEach(function(el){el.addEventListener("click",function(e){e.stopPropagation();var fam=dc(S.family);fam.persons[N(el.dataset.pi)].personal_budget.splice(N(el.dataset.bi),1);ss({family:fam})})});
-  document.querySelectorAll(".add-personal").forEach(function(el){el.addEventListener("click",function(){var n=prompt("Namn:");if(!n)return;var fam=dc(S.family);var pi=N(el.dataset.pi);if(!fam.persons[pi].personal_budget)fam.persons[pi].personal_budget=[];fam.persons[pi].personal_budget.push({name:n,amount:0});ss({family:fam})})});
+  document.querySelectorAll(".add-personal").forEach(function(el){el.addEventListener("click",function(){var pi=N(el.dataset.pi);openInputSheet({title:"Ny personlig post",placeholder:"T.ex. Gymkort",saveLabel:"Lägg till",cb:function(n){if(!n)return;var fam=dc(S.family);if(!fam.persons[pi].personal_budget)fam.persons[pi].personal_budget=[];fam.persons[pi].personal_budget.push({name:n,amount:0});ss({family:fam})}})})});
   // Prospect
   var np=document.getElementById("np");if(np)np.addEventListener("click",function(){var p=dc(PDEF);p.name="Prospekt "+(S.prospects.length+1);var ps=dc(S.prospects);ps.push(p);ss({prospects:ps,viewIdx:ps.length-1})});
   // URL toggle
@@ -5228,7 +5480,7 @@ function bindAll(f,c){
       ps[S.viewIdx].addr=fullAddr;
       if(!ps[S.viewIdx].name||ps[S.viewIdx].name.indexOf("Prospekt")===0)ps[S.viewIdx].name=street;
       S.prospects=ps;
-      if(dbRef)dbRef.set({family:S.family,prospects:S.prospects});
+      if(dbRef)dbRef.update({family:S.family,prospects:S.prospects});
       toast("Adress vald: "+fullAddr+" — söker data...");
       setTimeout(function(){var btn=document.getElementById("searchData");if(btn)btn.click()},300);
     }
@@ -5428,7 +5680,7 @@ auth.onAuthStateChanged(function(user){
   if(!user){
     if(dbRef){dbRef.off();dbRef=null}if(shopRef){shopRef.off();shopRef=null}
     if(membersAllRef){membersAllRef.off();membersAllRef=null}
-    LISTS_LOADED=false;IS_ADMIN=false;MEMBER=null;MEMBERS=null;S.screen="login";render();return;
+    LISTS_LOADED=false;LOADED={activity:false,shopStatus:false,sharedTrain:false,effectLog:false,healthLog:false};IS_ADMIN=false;MEMBER=null;MEMBERS=null;S.screen="login";render();return;
   }
   var email=(user.email||"").toLowerCase();
   ME=email?email.split("@")[0]:"";
@@ -5508,6 +5760,7 @@ function openMembersPanel(){
         }
       });
       // Tvinga direkt skrivning (inte bara debounce) så det säkert landar i databasen
+      if(!LISTS_LOADED){toast("Vänta tills data laddats");return}
       _syncPending=false;if(_syncTimer){clearTimeout(_syncTimer);_syncTimer=null}
       _writingOwn=true;
       var r2=shopRef?shopRef.parent.child("lists"):null;
